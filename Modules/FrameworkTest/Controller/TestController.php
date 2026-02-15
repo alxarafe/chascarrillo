@@ -14,11 +14,13 @@ use Alxarafe\Attribute\Menu;
 )]
 class TestController extends GenericPublicController
 {
+    #[\Override]
     public static function getModuleName(): string
     {
         return 'FrameworkTest';
     }
 
+    #[\Override]
     public static function getControllerName(): string
     {
         return 'Test';

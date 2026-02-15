@@ -16,11 +16,13 @@ use Alxarafe\Attribute\Menu;
 )]
 class BlogController extends GenericPublicController
 {
+    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
+    #[\Override]
     public static function getControllerName(): string
     {
         return 'Blog';

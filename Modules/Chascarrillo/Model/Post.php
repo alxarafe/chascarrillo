@@ -5,6 +5,23 @@ namespace Modules\Chascarrillo\Model;
 use Alxarafe\Base\Model\Model;
 use Parsedown;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property string $slug
+ * @property string $type
+ * @property bool $in_menu
+ * @property int $menu_order
+ * @property string|null $meta_title
+ * @property string|null $meta_description
+ * @property string|null $meta_keywords
+ * @property string|null $featured_image
+ * @property string|null $content
+ * @property bool $is_published
+ * @property \Illuminate\Support\Carbon|null $published_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Post extends Model
 {
     protected $table = 'posts';

@@ -7,6 +7,8 @@
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
+    bootstrap="phpstan-bootstrap.php"
+    allConstantsGlobal="true"
 >
     <projectFiles>
         <directory name="Modules" />
@@ -14,4 +16,7 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
+    <stubs>
+        <file name="psalm-stubs.php" />
+    </stubs>
 </psalm>

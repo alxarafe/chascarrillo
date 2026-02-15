@@ -15,6 +15,7 @@ use Alxarafe\Attribute\Menu;
 )]
 class PostController extends ResourceController
 {
+    #[\Override]
     protected function setup()
     {
         parent::setup();
@@ -29,16 +30,19 @@ class PostController extends ResourceController
         );
     }
 
+    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
+    #[\Override]
     public static function getControllerName(): string
     {
         return 'Post';
     }
 
+    #[\Override]
     protected function getModelClass(): array
     {
         return [
@@ -46,6 +50,7 @@ class PostController extends ResourceController
         ];
     }
 
+    #[\Override]
     protected function getListColumns(): array
     {
         return [
@@ -63,6 +68,7 @@ class PostController extends ResourceController
         ];
     }
 
+    #[\Override]
     protected function getEditFields(): array
     {
         return [
@@ -80,6 +86,7 @@ class PostController extends ResourceController
         ];
     }
 
+    #[\Override]
     protected function beforeEdit()
     {
         $this->setDefaultTemplate('page/chascarrillo/post/edit');
@@ -92,6 +99,7 @@ class PostController extends ResourceController
         }
     }
 
+    #[\Override]
     protected function handleRequest()
     {
         if (isset($_GET['ajax']) && $_GET['ajax'] === 'upload_image') {

@@ -7,11 +7,13 @@ use Alxarafe\Lib\Functions;
 
 class ThemeController extends GenericPublicController
 {
+    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
+    #[\Override]
     public static function getControllerName(): string
     {
         return 'Theme';

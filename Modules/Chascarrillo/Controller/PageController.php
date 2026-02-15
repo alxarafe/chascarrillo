@@ -7,11 +7,13 @@ use Modules\Chascarrillo\Model\Post;
 
 class PageController extends GenericPublicController
 {
+    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
+    #[\Override]
     public static function getControllerName(): string
     {
         return 'Page';

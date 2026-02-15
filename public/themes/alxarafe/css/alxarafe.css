@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --alx-primary: #2563eb;
+    --alx-primary-hover: #1d4ed8;
+    --alx-secondary: #0f172a;
+    --alx-accent: #38bdf8;
+    --alx-gray: #64748b;
+    --alx-bg: #f8fafc;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--alx-bg);
+    color: var(--alx-secondary);
+    line-height: 1.6;
+}
+
+/* Navbar */
+.alx-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 0;
+}
+
+.nav-link-alx {
+    color: var(--alx-secondary);
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.2s;
+}
+
+.nav-link-alx:hover {
+    color: var(--alx-primary);
+}
+
+.social-link-alx {
+    color: var(--alx-gray);
+    font-size: 1.25rem;
+    transition: color 0.2s;
+}
+
+.social-link-alx:hover {
+    color: var(--alx-primary);
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--alx-gray);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    height: 100%;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.icon-wrapper {
+    width: 3.5rem;
+    height: 3.5rem;
+    background: #eff6ff;
+    color: var(--alx-primary);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-title {
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: var(--alx-gray);
+    font-size: 0.95rem;
+}
+
+/* Buttons */
+.btn-alx {
+    background: var(--alx-primary);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.btn-alx:hover {
+    background: var(--alx-primary-hover);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.btn-outline-alx {
+    border: 2px solid var(--alx-primary);
+    color: var(--alx-primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.btn-outline-alx:hover {
+    background: var(--alx-primary);
+    color: white;
+}
+
+/* Utilities */
+.bg-primary-soft {
+    background-color: #eff6ff !important;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fw-800 {
+    font-weight: 800;
+}
+
+/* Content Blocks (Callouts/Notes) */
+.callout {
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0.75rem;
+    border-left: 4px solid #e2e8f0;
+    background-color: #f8fafc;
+}
+
+.callout p:last-child {
+    margin-bottom: 0;
+}
+
+.callout-info {
+    border-left-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.callout-warn {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.callout-note {
+    border-left-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.callout-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--alx-secondary);
+}
+
+.callout-info .callout-title {
+    color: #1e40af;
+}
+
+.callout-warn .callout-title {
+    color: #854d0e;
+}
+
+.callout-note .callout-title {
+    color: #065f46;
+}
+
+.content-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

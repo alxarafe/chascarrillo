@@ -1,0 +1,41 @@
+<?php
+
+namespace Modules\Chascarrillo\Controller;
+
+use Alxarafe\Base\Controller\GenericPublicController;
+use Modules\Chascarrillo\Model\Post;
+
+class PageController extends GenericPublicController
+{
+    public static function getModuleName(): string
+    {
+        return 'Chascarrillo';
+    }
+
+    public static function getControllerName(): string
+    {
+        return 'Page';
+    }
+
+    public function doShow(): bool
+    {
+        $slug = $_GET['slug'] ?? '';
+
+        $page = Post::where('slug', $slug)
+            ->where('type', 'page')
+            ->where('is_published', true)
+            ->first();
+
+        if (!$page) {
+            \Alxarafe\Lib\Functions::httpRedirect(\CoreModules\Admin\Controller\ErrorController::url(true));
+            return false;
+        }
+
+        $this->title = !empty($page->meta_title) ? $page->meta_title : $page->title;
+        $this->addVariable('meta_description', $page->meta_description);
+        $this->addVariable('meta_keywords', $page->meta_keywords);
+        $this->addVariable('page', $page);
+
+        return true;
+    }
+}

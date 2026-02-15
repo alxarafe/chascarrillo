@@ -61,9 +61,6 @@ class BlogController extends GenericPublicController
             return false;
         }
 
-        $Parsedown = new \Parsedown();
-        $post->content = $Parsedown->text($post->content);
-
         $this->title = !empty($post->meta_title) ? $post->meta_title : $post->title;
         $this->addVariable('meta_description', $post->meta_description);
         $this->addVariable('meta_keywords', $post->meta_keywords);

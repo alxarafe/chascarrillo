@@ -20,5 +20,5 @@ if (Config::doRunMigrations()) {
     echo "SUCCESS: Migrations executed.\n";
 } else {
     echo "ERROR: Migration failed.\n";
-    print_r(Messages::getErrors());
+    print_r(Messages::getMessages());
 }

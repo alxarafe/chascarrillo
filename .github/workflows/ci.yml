@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: chascarrillo_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    container:
+      image: rsanjose/php851:latest
+      options: --user root
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP Version
+        run: php -v
+
+      - name: Install Composer deps
+        run: composer install --no-interaction --no-progress
+
+      - name: PHPCBF (autofix)
+        run: vendor/bin/phpcbf --tab-width=4 --encoding=utf-8 --standard=phpcs.xml Modules -s || true
+
+      - name: PHPCS (lint)
+        run: vendor/bin/phpcs --tab-width=4 --encoding=utf-8 --standard=phpcs.xml Modules -s
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse Modules --memory-limit=1G
+
+      - name: Psalm
+        run: vendor/bin/psalm Modules --output-format=github
+
+      - name: Generate PHP Metrics report
+        run: |
+          rm -rf public/quality
+          mkdir -p public/quality
+          vendor/bin/phpmetrics --report-html=public/quality Modules
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

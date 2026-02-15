@@ -21,11 +21,17 @@ $config = Config::getConfig();
 if ($config && isset($config->main)) {
     $config->main->appName = 'Alxarafe';
     $config->main->appIcon = 'fas fa-cubes';
+
+    // Theme Override for Testing
+    if (isset($_COOKIE['alx_theme_test'])) {
+        $config->main->theme = $_COOKIE['alx_theme_test'];
+    }
 }
 
 // Bootstrapping
 Debug::initialize();
 Trans::initialize();
+class_alias(\Illuminate\Support\Str::class, 'Str');
 
 if ($config && isset($config->main->language)) {
     Trans::setLang($config->main->language);

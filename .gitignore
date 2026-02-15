@@ -1,0 +1,8 @@
+/vendor/
+/var/
+/tmp/
+.env
+config.json
+.phpunit.cache
+.idea
+.vscode

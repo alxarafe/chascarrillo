@@ -1,0 +1,181 @@
+/* Alternative Theme - Pastel Tones */
+:root {
+    --alt-bg: #FDFBF7;
+    /* Creamy White */
+    --alt-text: #5D5C61;
+    /* Soft Slate Gray */
+    --alt-primary: #B1BCE6;
+    /* Periwinkle Blue */
+    --alt-secondary: #B7E5DD;
+    /* Pale Mint */
+    --alt-accent: #F2A1A1;
+    /* Soft Pastel Pink */
+    --alt-border: #E0E0E0;
+    /* Light Gray */
+    --alt-card-bg: #FFFFFF;
+    --alt-input-bg: #FAFAFA;
+}
+
+body {
+    background-color: var(--alt-bg) !important;
+    color: var(--alt-text) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Soft sans-serif */
+}
+
+/* Typography overrides for softer feel */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #379683;
+    /* Soft Teal for headers */
+    font-weight: 600;
+}
+
+a {
+    color: #8EE4AF;
+    /* Soft Green link */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #5CDB95;
+    /* Slightly darker green on hover */
+}
+
+/* Cards */
+.card {
+    background-color: var(--alt-card-bg);
+    border: 1px solid var(--alt-border);
+    border-radius: 12px;
+    /* Softer rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    /* Very subtle shadow */
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: var(--alt-secondary);
+    color: #333;
+    border-bottom: 1px solid var(--alt-border);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Buttons - Pastel variants */
+.btn-primary {
+    background-color: var(--alt-primary);
+    border-color: var(--alt-primary);
+    color: #FFF;
+    border-radius: 20px;
+    /* Rounded buttons */
+}
+
+.btn-primary:hover {
+    background-color: #9AA5D1;
+    /* Darker Periwinkle */
+    border-color: #9AA5D1;
+}
+
+.btn-secondary {
+    background-color: var(--alt-secondary);
+    border-color: var(--alt-secondary);
+    color: #333;
+    border-radius: 20px;
+}
+
+.btn-secondary:hover {
+    background-color: #A0D3CB;
+    border-color: #A0D3CB;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    background-color: var(--alt-input-bg);
+    border: 1px solid var(--alt-border);
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: var(--alt-text);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--alt-primary);
+    box-shadow: 0 0 0 0.2rem rgba(177, 188, 230, 0.25);
+    /* Primary color glow */
+}
+
+/* Tables */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    /* Space between rows */
+}
+
+.table thead th {
+    background-color: var(--alt-bg);
+    /* Transparent header essentially */
+    border-bottom: 2px solid var(--alt-primary);
+    color: var(--alt-text);
+}
+
+.table tbody tr {
+    background-color: var(--alt-card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.table td {
+    padding: 15px;
+    vertical-align: middle;
+    border-top: none;
+    /* Remove default bootstrap border */
+}
+
+/* Sidebar override */
+.sidebar {
+    background-color: #FFF !important;
+    /* White sidebar */
+    border-right: 1px solid var(--alt-border);
+}
+
+.sidebar a {
+    color: var(--alt-text) !important;
+}
+
+.sidebar a:hover {
+    color: var(--alt-primary) !important;
+    background-color: #F0F4F8 !important;
+    /* Very light blue hover */
+    border-radius: 0 20px 20px 0;
+}
+
+/* Alerts */
+.alert-success {
+    background-color: #D4EDDA;
+    /* Pastel Green */
+    color: #155724;
+    border-color: #C3E6CB;
+}
+
+.alert-danger {
+    background-color: #F8D7DA;
+    /* Pastel Red */
+    color: #721C24;
+    border-color: #F5C6CB;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--alt-bg) !important;
+    border-bottom: 1px solid var(--alt-border);
+}
+
+/* Specific component tweaks */
+.pastel-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23B1BCE6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}

@@ -1,0 +1,29 @@
+{
+    "name": "alxarafe/chascarrillo-app",
+    "description": "Chascarrillo Blog Application using Alxarafe Framework",
+    "type": "project",
+    "license": "GPL-3.0-or-later",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../alxarafe"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/alxarafe/alxarafe.git"
+        }
+    ],
+    "require": {
+        "php": ">=8.5",
+        "alxarafe/alxarafe": "v0.1.1",
+        "erusev/parsedown": "^1.7"
+    },
+    "require-dev": {
+        "php-debugbar/php-debugbar": "^3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Chascarrillo\\": "src/"
+        }
+    }
+}

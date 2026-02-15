@@ -1,0 +1,184 @@
+/* High Contrast Theme - Accessibility Focus */
+:root {
+    --hc-bg: #000000;
+    --hc-text: #FFFF00;
+    --hc-link: #40E0D0;
+    /* Turquoise */
+    --hc-border: #FFFFFF;
+    --hc-input-bg: #000000;
+    --hc-highlight: #FF00FF;
+    /* Magenta */
+}
+
+body {
+    background-color: var(--hc-bg) !important;
+    color: var(--hc-text) !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 110%;
+    /* Larger base font */
+    line-height: 1.6;
+}
+
+/* Force high contrast on all text elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+label,
+span,
+div {
+    color: var(--hc-text) !important;
+}
+
+/* Links must be very distinct */
+a {
+    color: var(--hc-link) !important;
+    text-decoration: underline !important;
+    font-weight: bold;
+}
+
+a:hover,
+a:focus {
+    background-color: var(--hc-link) !important;
+    color: var(--hc-bg) !important;
+    outline: 3px solid var(--hc-border);
+}
+
+/* Cards & Containers - Solid borders instead of shadows */
+.card,
+.navbar,
+.sidebar,
+.modal-content {
+    background-color: var(--hc-bg) !important;
+    border: 3px solid var(--hc-border) !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    /* Sharp corners are easier */
+}
+
+.card-header,
+.card-footer {
+    background-color: var(--hc-bg) !important;
+    border-bottom: 2px solid var(--hc-border) !important;
+    border-top: 2px solid var(--hc-border) !important;
+}
+
+/* Forms - Clear boundaries */
+.form-control,
+.form-select,
+input,
+select,
+textarea {
+    background-color: var(--hc-input-bg) !important;
+    color: #FFFFFF !important;
+    border: 3px solid var(--hc-border) !important;
+    border-radius: 0 !important;
+    font-size: 1.1rem !important;
+    padding: 10px !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    outline: 4px solid var(--hc-highlight) !important;
+    box-shadow: none !important;
+    border-color: var(--hc-highlight) !important;
+}
+
+/* Buttons - High visibility targets */
+.btn {
+    background-color: var(--hc-bg) !important;
+    color: var(--hc-highlight) !important;
+    border: 3px solid var(--hc-highlight) !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 0 !important;
+}
+
+.btn:hover,
+.btn:focus {
+    background-color: var(--hc-highlight) !important;
+    color: #000000 !important;
+}
+
+/* Tables */
+.table {
+    border: 2px solid var(--hc-border);
+}
+
+.table th,
+.table td {
+    border: 1px solid var(--hc-border);
+    color: #FFFFFF !important;
+    padding: 12px;
+}
+
+.table thead th {
+    background-color: #333 !important;
+    color: var(--hc-text) !important;
+    font-size: 1.1em;
+}
+
+/* Sidebar - No subtle grays */
+.sidebar a {
+    border-bottom: 2px solid #555;
+    padding: 15px !important;
+}
+
+.sidebar a:hover {
+    background-color: var(--hc-highlight) !important;
+    color: #000000 !important;
+}
+
+/* Hide decorative elements if any */
+.shadow,
+.shadow-sm,
+.shadow-lg {
+    box-shadow: none !important;
+}
+/* High Contrast Focus */
+/* Sidebar override */
+#id_container {
+    display: flex;
+    min-height: 100vh;
+}
+
+#id-right {
+    margin-left: 310px; /* Matching the sidebar width + space */
+    padding: 2rem;
+    flex-grow: 1;
+    background-color: #000;
+}
+
+.sidebar {
+    width: 300px; /* Fixed width */
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    background-color: #000;
+    border-right: 5px solid #FFD700; /* Gold/Yellow Border */
+    z-index: 1000;
+}
+
+.sidebar a {
+    display: block;
+    padding: 1rem;
+    color: #FFF;
+    text-decoration: none;
+    border-bottom: 2px solid #FFF;
+    font-size: 1.2rem;
+}
+
+.sidebar h6 {
+    color: #FFD700; /* Yellow */
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-bottom: 3px solid #FFD700;
+}

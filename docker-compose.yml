@@ -1,0 +1,71 @@
+networks:
+    chascarrillo_network:
+        name: chascarrillo_network
+
+services:
+    chascarrillo_nginx:
+        image: nginx:alpine
+        container_name: chascarrillo_nginx
+        restart: always
+        env_file: ".env"
+        ports:
+            - "${HTTP_PORT}:80"
+        networks:
+            - chascarrillo_network
+        volumes:
+            - ".:/var/www/html:rw"
+            - "./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+        depends_on:
+            - chascarrillo_php
+            - chascarrillo_db
+
+    chascarrillo_php:
+        container_name: chascarrillo_php
+        restart: always
+        env_file: ".env"
+        build:
+            context: .
+            dockerfile: .docker/php/Dockerfile
+            args:
+                - USER_ID=${USER_ID}
+                - GROUP_ID=${GROUP_ID}
+        networks:
+            - chascarrillo_network
+        volumes:
+            - ".:/var/www/html:rw"
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    chascarrillo_db:
+        image: mariadb:10.11
+        container_name: chascarrillo_db
+        restart: always
+        env_file: ".env"
+        ports:
+            - "${MARIADB_PORT}:3306"
+        environment:
+            - MARIADB_DATABASE=${MARIADB_DATABASE}
+            - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+        networks:
+            - chascarrillo_network
+        volumes:
+            - "chascarrillo_db_data:/var/lib/mysql"
+
+    chascarrillo_phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: chascarrillo_phpmyadmin
+        restart: always
+        env_file: ".env"
+        ports:
+            - "${PHPMYADMIN_PORT}:80"
+        environment:
+            - PMA_HOST=chascarrillo_db
+            - PMA_PORT=3306
+            - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+        networks:
+            - chascarrillo_network
+        depends_on:
+            - chascarrillo_db
+
+volumes:
+    chascarrillo_db_data:

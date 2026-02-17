@@ -1,4 +1,4 @@
-@extends('layout.public')
+@extends('partial.layout.main')
 
 @section('content')
 <div class="container mt-4">
@@ -10,9 +10,6 @@
         </div>
     </div>
 
-    @if(!empty($alerts))
-        @include('partial.alerts')
-    @endif
 
     <form method="POST" enctype="multipart/form-data" action="index.php?module=Admin&controller=Profile&action=save">
         <input type="hidden" name="action" value="save">

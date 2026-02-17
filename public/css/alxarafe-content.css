@@ -1,0 +1,202 @@
+/* Alxarafe Content Styles (Markdown Components) - Theme Aware */
+:root {
+    --alx-content-primary: #2235dd;
+    --alx-content-secondary: #05060f;
+    --alx-content-border: #f1f1f2;
+    --alx-content-bg: rgba(248, 250, 252, 0.8);
+    --alx-content-text: #05060f;
+
+    --alx-callout-info-bg: #eff6ff;
+    --alx-callout-info-border: #3b82f6;
+    --alx-callout-info-text: #1e40af;
+
+    --alx-callout-warn-bg: #fffbeb;
+    --alx-callout-warn-border: #f59e0b;
+    --alx-callout-warn-text: #854d0e;
+
+    --alx-callout-note-bg: #f0fdf4;
+    --alx-callout-note-border: #10b981;
+    --alx-callout-note-text: #065f46;
+
+    --alx-code-bg: #f1f5f9;
+    --alx-code-text: #e11d48;
+    --alx-pre-bg: #1e293b;
+    --alx-pre-text: #f8fafc;
+}
+
+/* Theme Overrides for Content Components */
+[data-theme="cyberpunk"] {
+    --alx-content-primary: #66fcf1;
+    --alx-content-secondary: #45a29e;
+    --alx-content-border: #1f2833;
+    --alx-content-bg: rgba(31, 40, 51, 0.9);
+    --alx-content-text: #c5c6c7;
+
+    --alx-callout-info-bg: rgba(102, 252, 241, 0.1);
+    --alx-callout-info-border: #66fcf1;
+    --alx-callout-info-text: #66fcf1;
+
+    --alx-callout-warn-bg: rgba(255, 0, 255, 0.1);
+    --alx-callout-warn-border: #ff00ff;
+    --alx-callout-warn-text: #ff00ff;
+
+    --alx-callout-note-bg: rgba(0, 255, 0, 0.1);
+    --alx-callout-note-border: #00ff00;
+    --alx-callout-note-text: #00ff00;
+
+    --alx-code-bg: #0b0c10;
+    --alx-code-text: #45a29e;
+    --alx-pre-bg: #1f2833;
+    --alx-pre-text: #66fcf1;
+}
+
+[data-theme="high-contrast"] {
+    --alx-content-primary: #FFFF00;
+    --alx-content-secondary: #FFFFFF;
+    --alx-content-border: #FFFFFF;
+    --alx-content-bg: #000000;
+    --alx-content-text: #FFFF00;
+
+    --alx-callout-info-bg: #000000;
+    --alx-callout-info-border: #FFFF00;
+    --alx-callout-info-text: #FFFF00;
+
+    --alx-callout-warn-bg: #000000;
+    --alx-callout-warn-border: #FF00FF;
+    --alx-callout-warn-text: #FF00FF;
+
+    --alx-callout-note-bg: #000000;
+    --alx-callout-note-border: #00FF00;
+    --alx-callout-note-text: #00FF00;
+
+    --alx-code-bg: #000000;
+    --alx-code-text: #40E0D0;
+    --alx-pre-bg: #000000;
+    --alx-pre-text: #FFFFFF;
+}
+
+/* Content Blocks (Callouts/Notes) */
+.callout {
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0.75rem;
+    border-left: 4px solid var(--alx-content-border);
+    background-color: var(--alx-content-bg);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--alx-content-text);
+}
+
+.callout p:last-child {
+    margin-bottom: 0;
+}
+
+.callout-info {
+    border-left-color: var(--alx-callout-info-border) !important;
+    background-color: var(--alx-callout-info-bg) !important;
+    color: var(--alx-callout-info-text) !important;
+}
+
+.callout-warn {
+    border-left-color: var(--alx-callout-warn-border) !important;
+    background-color: var(--alx-callout-warn-bg) !important;
+    color: var(--alx-callout-warn-text) !important;
+}
+
+.callout-note {
+    border-left-color: var(--alx-callout-note-border) !important;
+    background-color: var(--alx-callout-note-bg) !important;
+    color: var(--alx-callout-note-text) !important;
+}
+
+.callout-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+/* Buttons inside content */
+.btn-alx {
+    background-color: var(--alx-content-primary);
+    color: #fff !important;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="high-contrast"] .btn-alx {
+    color: #000 !important;
+    border: 3px solid #FFFF00 !important;
+    border-radius: 0;
+}
+
+.btn-alx:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Generic Image styling in posts */
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="high-contrast"] .post-content img {
+    border: 3px solid #FFF;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Typography refinements for readability */
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
+    color: var(--alx-content-text);
+}
+
+.post-content p {
+    margin-bottom: 1.5rem;
+    color: var(--alx-content-text);
+}
+
+.post-content code {
+    background: var(--alx-code-bg);
+    color: var(--alx-code-text);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+}
+
+.post-content pre {
+    background: var(--alx-pre-bg);
+    color: var(--alx-pre-text);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+
+[data-theme="high-contrast"] .post-content pre {
+    border: 2px solid #FFF;
+    border-radius: 0;
+}

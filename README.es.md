@@ -22,11 +22,11 @@ Construido sobre el **Alxarafe Framework**, Chascarrillo aprovecha su robustez p
 
 - **Minimalista**: Foco absoluto en el contenido.
 - **Código Ingenioso**: Implementación eficiente y elegante.
-- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.1 para servicios centrales y enrutamiento.
+- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.2 para servicios centrales y enrutamiento.
 
 ## Requisitos
 - PHP >= 8.5
-- Alxarafe Framework v0.1.1
+- Alxarafe Framework v0.1.2
 - Composer
 
 ## Instalación

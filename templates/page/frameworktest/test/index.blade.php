@@ -1,4 +1,4 @@
-@extends('layout.public')
+@extends('partial.layout.main')
 
 @section('content')
 <div class="container mt-5">

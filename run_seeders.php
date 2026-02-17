@@ -19,9 +19,11 @@ if (isset($config->db)) {
 
 echo "--- Run Seeders ---\n";
 
-// Mock environment for Routes to find paths relative to skeleton/public
+if (!defined('APP_PATH')) {
+    define('APP_PATH', __DIR__);
+}
 if (!defined('ALX_PATH')) {
-    define('ALX_PATH', realpath(__DIR__ . '/../../'));
+    define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe');
 }
 
 // Ensure Routes knows where to look if running from CLI skeleton root
@@ -40,5 +42,5 @@ if (Config::runSeeders()) {
     echo "SUCCESS: Seeders executed (if any).\n";
 } else {
     echo "ERROR: Seeder execution failed.\n";
-    print_r(Messages::getErrors());
+    print_r(Messages::getMessages());
 }

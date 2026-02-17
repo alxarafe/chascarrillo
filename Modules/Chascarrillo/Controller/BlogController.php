@@ -37,15 +37,23 @@ class BlogController extends GenericPublicController
             ->orderBy('published_at', 'DESC')
             ->get();
 
-        $Parsedown = new \Parsedown();
+        // Diferenciamos si estamos en la home o en el índice del blog (Laboratorio)
+        $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog');
+
+        if ($isBlogIndex) {
+            $this->title = 'Laboratorio de Chascarrillos';
+            $this->setDefaultTemplate('blog/index');
+        }
+
         foreach ($posts as $post) {
             // We only need this for the excerpt if meta_description is missing
             if (empty($post->meta_description)) {
-                $post->content = $Parsedown->text($post->content);
+                $post->content = \Alxarafe\Service\MarkdownService::render($post->content);
             }
         }
 
         $this->addVariable('posts', $posts);
+        $this->addVariable('is_blog_index', $isBlogIndex);
 
         return true;
     }
@@ -67,6 +75,7 @@ class BlogController extends GenericPublicController
         $this->addVariable('meta_description', $post->meta_description);
         $this->addVariable('meta_keywords', $post->meta_keywords);
         $this->addVariable('post', $post);
+        $this->addVariable('content', $post->getRenderedContent());
 
         return true;
     }

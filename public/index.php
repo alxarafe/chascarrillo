@@ -8,14 +8,22 @@ use Alxarafe\Base\Config;
 use Alxarafe\Lib\Trans;
 use Alxarafe\Tools\Debug;
 
-// Define base paths
-define('BASE_PATH', __DIR__); // skeleton/public
-define('BASE_URL', 'http://localhost:8082');
-define('APP_PATH', realpath(__DIR__ . '/../'));    // chascarrillo root
-define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe'); // framework in vendor
+// Load Configuration first to get base settings
+define('APP_PATH', realpath(__DIR__ . '/../'));
+define('BASE_PATH', __DIR__);
+define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe');
 
-// Load Configuration and Initialize Services
 $config = Config::getConfig();
+
+// Determine BASE_URL
+if (!defined('BASE_URL')) {
+    $baseUrl = $config->main->url ?? null;
+    if (!$baseUrl && isset($_SERVER['HTTP_HOST'])) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $baseUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
+    }
+    define('BASE_URL', rtrim($baseUrl ?? 'http://localhost', '/'));
+}
 
 // Temporary App Branding (User Request)
 if ($config && isset($config->main)) {
@@ -90,6 +98,8 @@ if (php_sapi_name() === 'cli') {
         $method = $match['action'];
         // Merge params into $_GET for transparency
         $_GET = array_merge($_GET, $match['params']);
+        $_GET['action'] = $method;
+        $_GET['route_name'] = $match['name'];
     } else {
         $module = $_GET['module'] ?? 'Chascarrillo';
         $controller = $_GET['controller'] ?? 'Blog';

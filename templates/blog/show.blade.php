@@ -1,4 +1,4 @@
-@extends('layout.public')
+@extends('partial.layout.main')
 
 @section('content')
 <div class="container mt-5">
@@ -20,8 +20,8 @@
                     @endif
                 </header>
                 
-                <div class="post-content fs-5" style="line-height: 1.8; color: #2c2c2c;">
-                    {!! $post->content !!}
+                <div class="post-content fs-5" style="line-height: 1.8; color: inherit;">
+                    {!! $content !!}
                 </div>
             </article>
             

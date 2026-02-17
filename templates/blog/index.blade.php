@@ -1,13 +1,16 @@
-@extends('layout.public')
+@extends('partial.layout.main')
 
 @section('content')
-<div class="container mt-5">
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="hero-title">{{ $title ?? 'Laboratorio de Chascarrillos' }}</h1>
+        <p class="hero-subtitle">Investigación, desarrollo y reflexiones sobre el ecosistema PHP y la IA.</p>
+    </div>
+</div>
+
+<div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="mb-5 border-bottom pb-4">
-                <h1 class="display-5 fw-bold mb-3">{{ $active_module_title ?? 'Explora el Desarrollo de Alxarafe' }}</h1>
-                <p class="lead text-muted">Ingeniería, IA y cimientos sólidos.</p>
-            </div>
 
             @if(isset($posts) && count($posts) > 0)
                 <div class="d-grid gap-5">
@@ -15,7 +18,7 @@
                     <article class="blog-post">
                         <header class="mb-3">
                             <h2 class="h3 fw-bold mb-1">
-                                <a href="{{ $me::url('show', ['slug' => $post->slug]) }}" class="text-decoration-none text-dark">
+                                <a href="/blog/{{ $post->slug }}" class="text-decoration-none text-dark">
                                     {{ $post->title }}
                                 </a>
                             </h2>
@@ -38,7 +41,7 @@
                             </p>
                         </div>
 
-                        <a href="{{ $me::url('show', ['slug' => $post->slug]) }}" class="btn btn-link p-0 text-decoration-none text-dark fw-bold" style="font-size: 0.9rem;">
+                        <a href="/blog/{{ $post->slug }}" class="btn btn-link p-0 text-decoration-none text-dark fw-bold" style="font-size: 0.9rem;">
                             Leer entrada &raquo;
                         </a>
                     </article>

@@ -116,7 +116,7 @@ class PostController extends ResourceController
 
     public function doSync(): bool
     {
-        $postsDir = ALX_PATH . '/skeleton/Modules/Chascarrillo/posts';
+        $postsDir = APP_PATH . '/Modules/Chascarrillo/posts';
         $results = \Alxarafe\Service\MarkdownSyncService::sync($postsDir, Post::class);
 
         if (empty($results['errors'])) {

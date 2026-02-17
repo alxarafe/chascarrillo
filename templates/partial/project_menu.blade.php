@@ -1,0 +1,87 @@
+@php
+    $companyTz = \Alxarafe\Base\Config::getConfig()->main->timezone ?? 'UTC';
+    $userTz = (\Alxarafe\Lib\Auth::$user->timezone ?? null) ?: $companyTz;
+    $currentTheme = \Alxarafe\Base\Config::getConfig()->main->theme ?? 'default';
+    
+    // Obtenemos las páginas del menú de forma dinámica
+    $menuPages = \Modules\Chascarrillo\Model\Post::getMenuPages();
+@endphp
+
+<header class="app-header navbar navbar-expand-lg">
+    <div class="container">
+        <!-- Brand / Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <span class="brand-text">Alxarafe</span>
+        </a>
+
+        <!-- Toggler for mobile -->
+        <button class="navbar-toggler border-0 p-2" type="button" data-bs-toggle="collapse" data-bs-target="#appNavigation" aria-controls="appNavigation" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Navigation Links (Centered as in alxarafe.es) -->
+        <div class="collapse navbar-collapse" id="appNavigation">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3">
+                <li class="nav-item">
+                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'home' ? 'active' : '' }}" href="/">Inicio</a>
+                </li>
+                
+                {{-- Páginas dinámicas --}}
+                @foreach($menuPages as $page)
+                    <li class="nav-item">
+                        <a class="nav-link {{ ($_GET['slug'] ?? '') === $page->slug ? 'active' : '' }}" href="/{{ $page->slug }}">{{ $page->title }}</a>
+                    </li>
+                @endforeach
+
+                <li class="nav-item">
+                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'blog_index' ? 'active' : '' }}" href="/blog">Laboratorio</a>
+                </li>
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Documentación
+                    </a>
+                    <ul class="dropdown-menu shadow border-0" aria-labelledby="docsDropdown">
+                        <li><a class="dropdown-item" href="https://docs.alxarafe.com" target="_blank">Framework</a></li>
+                        <li><a class="dropdown-item" href="https://github.com/alxarafe/alxarafe" target="_blank">Código Fuente</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Right Side Tools -->
+            <div class="header-tools d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                
+                <div class="d-none d-xl-flex gap-3 me-2">
+                    <a href="https://github.com/alxarafe/alxarafe" target="_blank" class="text-secondary small" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/rsanjose/" target="_blank" class="text-secondary small" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                </div>
+
+                @include('partial/theme_switcher')
+
+                <div class="vr d-none d-lg-block text-gray-300" style="height: 20px;"></div>
+
+                @if(\Alxarafe\Lib\Auth::$user)
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @if(!empty(\Alxarafe\Lib\Auth::$user->avatar) && file_exists(\Alxarafe\Base\Config::getPublicRoot() . '/' . \Alxarafe\Lib\Auth::$user->avatar))
+                                <img src="{{ \Alxarafe\Lib\Auth::$user->avatar }}" class="rounded-circle border" style="width: 24px; height: 24px; object-fit: cover;">
+                            @else
+                                <i class="fas fa-user-circle text-secondary fa-lg"></i>
+                            @endif
+                            <span class="small fw-bold d-none d-sm-inline">{{ \Alxarafe\Lib\Auth::$user->username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
+                            <li><a class="dropdown-item" href="index.php?module=Admin&controller=Dashboard"><i class="fas fa-cog me-2"></i> Dashboard Admin</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> Salir</a></li>
+                        </ul>
+                    </div>
+                @else
+                    <a href="index.php?module=Admin&controller=Auth" class="btn btn-sm btn-outline-primary px-3 rounded-pill" title="Acceso Usuarios">
+                        <i class="fas fa-lock small"></i>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+</header>

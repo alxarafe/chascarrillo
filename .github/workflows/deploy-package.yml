@@ -25,12 +25,14 @@ jobs:
 
       - name: Prepare dependencies for CI
         run: |
+          # Remove lock file to avoid path repository conflicts and force fresh resolution
+          rm -f composer.lock
           # Remove the local path repository which doesn't exist in CI
-          # This forces composer to use the VCS repository (GitHub)
           php -r '$c=json_decode(file_get_contents("composer.json"),true); if(isset($c["repositories"]) && $c["repositories"][0]["type"] === "path") { array_shift($c["repositories"]); } file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));'
-          
-          # We need to update the lock file in CI to switch from 'path' to 'vcs' for alxarafe/alxarafe
-          composer update alxarafe/alxarafe --no-dev --optimize-autoloader --no-interaction
+          # Force platform PHP version for compatibility
+          composer config platform.php 8.2.0
+          # Install dependencies (will act as update since lock is gone)
+          composer install --no-dev --optimize-autoloader --no-interaction
 
       - name: Create Deployment ZIP
         run: |

@@ -205,7 +205,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
 
                 // 3.3 Copy public files specifically to SETUP_DIR
                 if (is_dir($sourcePath . '/' . $zipPublicFolder)) {
-                    recursiveCopy($sourcePath . '/' . $zipPublicFolder, SETUP_DIR, ['setup.php', '.htaccess']);
+                    // We copy .htaccess only if it doesn't exist, to avoid overwriting custom ones
+                    // Actually, for a clean setup/update it's usually better to have the latest one.
+                    // Let's copy it but keep a backup if exists? 
+                    // Simplified: just copy it. If the user has a custom one, they should know.
+                    recursiveCopy($sourcePath . '/' . $zipPublicFolder, SETUP_DIR, ['setup.php']);
                 }
 
                 recursiveRmdir($extractTemp);

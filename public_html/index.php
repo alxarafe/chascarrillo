@@ -81,6 +81,10 @@ if ($config && isset($config->main->language)) {
             $lang = 'es';
         }
     }
+    // Ensure the main module is set for Trans to load its translations
+    if (!isset($_GET['module'])) {
+        $_GET['module'] = 'Chascarrillo';
+    }
     Trans::setLang($lang);
 }
 

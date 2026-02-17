@@ -66,7 +66,7 @@
         <div class="row align-items-center">
             <div class="col-md-6 text-center text-md-start">
                 <span class="text-muted">Potenciado por <a href="https://github.com/alxarafe/chascarrillo" target="_blank" class="text-secondary fw-bold text-decoration-none">Chascarrillo</a> 
-                <small class="ms-1 text-secondary-emphasis">v{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</small>. 
+                <small class="ms-1 text-secondary-emphasis">{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</small>. 
                 Desarrollado con <strong>Alxarafe Framework</strong></span>
             </div>
             <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">

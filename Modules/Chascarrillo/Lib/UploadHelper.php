@@ -21,7 +21,8 @@ class UploadHelper
 
         $file = $_FILES[$fileKey];
         $publicPath = 'uploads/' . $targetDir;
-        $absolutePath = APP_PATH . '/public/' . $publicPath;
+        $publicDir = defined('PUBLIC_DIR') ? PUBLIC_DIR : 'public';
+        $absolutePath = APP_PATH . '/' . $publicDir . '/' . $publicPath;
 
         if (!is_dir($absolutePath)) {
             if (!mkdir($absolutePath, 0777, true)) {

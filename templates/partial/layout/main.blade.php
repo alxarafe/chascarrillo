@@ -14,12 +14,20 @@
     <!-- Alxarafe Content Styles -->
     <link href="/css/alxarafe-content.css?v={{ time() }}" rel="stylesheet">
 
+    @if(class_exists(\Modules\Chascarrillo\Service\DomainService::class))
+        @foreach(\Modules\Chascarrillo\Service\DomainService::getHreflangs() as $lang => $url)
+            <link rel="alternate" hreflang="{{ $lang }}" href="{{ $url }}" />
+        @endforeach
+        <link rel="alternate" hreflang="x-default" href="{{ \Modules\Chascarrillo\Service\DomainService::getTargetDomain('en') }}" />
+    @endif
+
     {!! $me->getRenderHeader() !!}
 </head>
 <body class="theme-{!! $me->config->main->theme ?? 'default' !!}">
     @php
         $_body = 'body_' . ($empty ?? false ? 'empty' : 'standard');
     @endphp
+    @include('partial.domain_suggestion')
     @include('partial.' . $_body)
     @include('partial.footer')
 </body>

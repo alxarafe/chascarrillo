@@ -90,7 +90,8 @@ class UpdateService
             }
         }
 
-        $success = self::recursiveCopy($source, APP_PATH, ['config.json', '.env', 'public/.htaccess']);
+        $publicDir = defined('PUBLIC_DIR') ? PUBLIC_DIR : 'public';
+        $success = self::recursiveCopy($source, APP_PATH, ['config.json', '.env', "$publicDir/.htaccess"]);
 
         if ($success) {
             // 4. Run Migrations

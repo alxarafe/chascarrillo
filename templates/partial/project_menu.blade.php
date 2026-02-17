@@ -24,7 +24,7 @@
     <div class="container">
         <!-- Brand / Logo -->
         <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <span class="brand-text">Alxarafe</span>
+            <span class="brand-text">Chascarrillo</span>
         </a>
 
         <!-- Toggler for mobile -->

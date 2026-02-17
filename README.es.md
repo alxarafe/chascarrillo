@@ -1,6 +1,6 @@
 # Chascarrillo
 
-![Versión PHP](https://img.shields.io/badge/PHP-8.5.1-blueviolet?style=flat-square)
+![Versión PHP](https://img.shields.io/badge/PHP-8.2%2B-blueviolet?style=flat-square)
 ![CI](https://github.com/alxarafe/chascarrillo/actions/workflows/ci.yml/badge.svg)
 ![Tests](https://github.com/alxarafe/chascarrillo/actions/workflows/tests.yml/badge.svg)
 [![Informe de calidad](https://img.shields.io/badge/calidad-informe-brightgreen?style=flat-square)](https://alxarafe.github.io/chascarrillo/quality/)
@@ -22,11 +22,11 @@ Construido sobre el **Alxarafe Framework**, Chascarrillo aprovecha su robustez p
 
 - **Minimalista**: Foco absoluto en el contenido.
 - **Código Ingenioso**: Implementación eficiente y elegante.
-- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.2 para servicios centrales y enrutamiento.
+- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.4 para servicios centrales y enrutamiento.
 
 ## Requisitos
-- PHP >= 8.5
-- Alxarafe Framework v0.1.2
+- PHP >= 8.2
+- Alxarafe Framework v0.1.4
 - Composer
 
 ## Instalación

@@ -19,5 +19,5 @@ Este sistema ha sido diseñado para desarrolladores y creadores que buscan el co
 Chascarrillo no es solo un gestor de contenidos; es una herramienta de ingeniería de software para la web. 
 - **Cero Cookies**: Por defecto, no rastreamos a nadie.
 - **Markdown Nativo**: Escribe en texto plano y nosotros nos encargamos del resto.
-- **Rendimiento Extremo**: Basado en PHP 8.5 y arquitectura limpia.
+- **Rendimiento Extremo**: Basado en PHP 8.2+ y arquitectura limpia.
 - **Control Humano**: La IA es nuestra herramienta, pero el código es nuestro.

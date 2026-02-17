@@ -3,7 +3,7 @@
 Esta guía detalla los pasos para instalar **Chascarrillo CMS** en tu servidor (ej: `alxarafe.es`) y sustituir una instalación existente de WordPress.
 
 ## Requisitos Previos
-- Servidor con **PHP 8.5** (recomendado) o PHP 8.2+.
+- Servidor con **PHP 8.2+** (recomendado 8.4 para Hostinger).
 - Base de datos MySQL / MariaDB.
 - Servidor web (Apache con `mod_rewrite` activo o Nginx).
 - Composer instalado en el servidor (o subir la carpeta `vendor` ya procesada).

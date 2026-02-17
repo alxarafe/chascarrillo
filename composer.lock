@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d5b397961b8851fa0b3684680356d13",
+    "content-hash": "4f6ce1927cdfa429c366ea03038346d9",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "0.1.3",
+            "version": "0.1.4",
             "dist": {
                 "type": "path",
                 "url": "../alxarafe",
-                "reference": "85cf7192135e0e850f9fbe587fbea3c92a5fb16a"
+                "reference": "cb80eaf6bcbc9ab0b54588762f2418d1603203cd"
             },
             "require": {
                 "erusev/parsedown": "^1.7",
@@ -23,7 +23,7 @@
                 "illuminate/view": "^10.48",
                 "jenssegers/blade": "^2.0",
                 "luracast/restler": "^5.0",
-                "php": ">=8.5",
+                "php": "^8.2",
                 "symfony/translation": "^6.4",
                 "symfony/var-dumper": "^6.4",
                 "symfony/yaml": "^6.4"
@@ -7606,7 +7606,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.5"
+        "php": "^8.2"
     },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"

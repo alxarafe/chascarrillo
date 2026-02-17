@@ -124,6 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
                 throw new Exception("Error en respuesta de GitHub: No se encontró un archivo de descarga.");
             }
 
+            if (!class_exists('ZipArchive')) {
+                throw new Exception("La extensión ZipArchive no está habilitada en este servidor.");
+            }
+
             $currentTag = $release['tag_name'] ?? 'actual';
             $logs[] = "Descargando versión $currentTag...";
             $zipData = null;
@@ -176,7 +180,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
                 unlink($tmpZip);
 
                 $subfolders = array_diff(scandir($extractTemp), ['.', '..']);
-                $sourcePath = $extractTemp . '/' . reset($subfolders);
+
+                // Detection of wrapper folder
+                if (count($subfolders) === 1 && is_dir($extractTemp . '/' . reset($subfolders))) {
+                    $sourcePath = $extractTemp . '/' . reset($subfolders);
+                } else {
+                    $sourcePath = $extractTemp;
+                }
 
                 // 3.1 Identify public folder in ZIP
                 $zipPublicFolder = 'public_html'; // Default in Chascarrillo

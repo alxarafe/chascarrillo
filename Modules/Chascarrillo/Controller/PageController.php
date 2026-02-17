@@ -23,10 +23,14 @@ class PageController extends GenericPublicController
     {
         $slug = $_GET['slug'] ?? '';
 
-        $page = Post::where('slug', $slug)
-            ->where('type', 'page')
-            ->where('is_published', true)
-            ->first();
+        try {
+            $page = Post::where('slug', $slug)
+                ->where('type', 'page')
+                ->where('is_published', true)
+                ->first();
+        } catch (\Exception $e) {
+            $page = null;
+        }
 
         if (!$page) {
             \Alxarafe\Lib\Functions::httpRedirect(\CoreModules\Admin\Controller\ErrorController::url(true));

@@ -32,10 +32,14 @@ class BlogController extends GenericPublicController
     {
         $this->title = 'Chascarrillo Blog';
 
-        $posts = Post::where('is_published', true)
-            ->where('published_at', '<=', date('Y-m-d H:i:s'))
-            ->orderBy('published_at', 'DESC')
-            ->get();
+        try {
+            $posts = Post::where('is_published', true)
+                ->where('published_at', '<=', date('Y-m-d H:i:s'))
+                ->orderBy('published_at', 'DESC')
+                ->get();
+        } catch (\Exception $e) {
+            $posts = collect();
+        }
 
         // Diferenciamos si estamos en la home o en el índice del blog (Laboratorio)
         $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog');
@@ -62,9 +66,13 @@ class BlogController extends GenericPublicController
     {
         $slug = $_GET['slug'] ?? '';
 
-        $post = Post::where('slug', $slug)
-            ->where('is_published', true)
-            ->first();
+        try {
+            $post = Post::where('slug', $slug)
+                ->where('is_published', true)
+                ->first();
+        } catch (\Exception $e) {
+            $post = null;
+        }
 
         if (!$post) {
             \Alxarafe\Lib\Functions::httpRedirect(\CoreModules\Admin\Controller\ErrorController::url(true));

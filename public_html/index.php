@@ -14,6 +14,50 @@ define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe');
 
 $config = Config::getConfig();
 
+// --- Stability Guardian: If no config exists, redirect to the Installation/Config page ---
+if (!$config && (($_GET['controller'] ?? '') !== 'Config')) {
+    header('Location: index.php?module=Admin&controller=Config');
+    exit;
+}
+
+// --- Initial Guardian: Auto-Migration & Health Check ---
+if ($config && isset($config->db)) {
+    $varDir = APP_PATH . '/var';
+    if (!is_dir($varDir)) {
+        @mkdir($varDir, 0755, true);
+    }
+
+    $appVersion = \Modules\Chascarrillo\Service\UpdateService::VERSION ?? 'unknown';
+    $flagFile = $varDir . '/.migrated_' . $appVersion;
+
+    if (!file_exists($flagFile)) {
+        // Try to run migrations silently
+        if (Config::doRunMigrations()) {
+            @touch($flagFile);
+        }
+    }
+
+    // --- Safety Seeder: Ensure at least one admin exists if the table is empty ---
+    try {
+        // Initialize connection and get the Capsule instance
+        $capsule = \Alxarafe\Base\Database::createConnection($config->db);
+
+        if ($capsule->schema()->hasTable('users')) {
+            if (\CoreModules\Admin\Model\User::count() === 0) {
+                $admin = new \CoreModules\Admin\Model\User();
+                $admin->name = 'admin';
+                $admin->email = 'admin@' . ($_SERVER['HTTP_HOST'] ?? 'example.com');
+                $admin->password = password_hash('password', PASSWORD_DEFAULT);
+                $admin->is_admin = true;
+                $admin->save();
+            }
+        }
+    } catch (\Exception $e) {
+        // Log error and report if necessary
+        @error_log("Guardian Safety Seeder Error: " . $e->getMessage());
+    }
+}
+
 // Determine BASE_URL for the app
 if (!defined('BASE_URL')) {
     $baseUrl = $config->main->url ?? null;

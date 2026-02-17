@@ -52,11 +52,15 @@ class Post extends Model
      */
     public static function getMenuPages()
     {
-        return self::where('type', 'page')
-            ->where('is_published', true)
-            ->where('in_menu', true)
-            ->orderBy('menu_order', 'ASC')
-            ->get();
+        try {
+            return self::where('type', 'page')
+                ->where('is_published', true)
+                ->where('in_menu', true)
+                ->orderBy('menu_order', 'ASC')
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
     }
 
     /**

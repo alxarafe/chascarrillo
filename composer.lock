@@ -4,11 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f6ce1927cdfa429c366ea03038346d9",
+    "content-hash": "d6aa5da88d5104b5d8c9811c657ab4d0",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "0.1.4",
+            "version": "0.1.5",
             "dist": {
                 "type": "path",
                 "url": "../alxarafe",
@@ -79,7 +79,7 @@
                 "source": "https://github.com/alxarafe/alxarafe"
             },
             "transport-options": {
-                "symlink": true,
+                "symlink": false,
                 "relative": true
             }
         },

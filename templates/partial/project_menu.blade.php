@@ -5,7 +5,20 @@
     
     // Obtenemos las páginas del menú de forma dinámica
     $menuPages = \Modules\Chascarrillo\Model\Post::getMenuPages();
+
+    // Comprobación de seguridad: Contraseña por defecto
+    $showPasswordWarning = false;
+    if (\Alxarafe\Lib\Auth::$user && \Alxarafe\Lib\Auth::$user->is_admin) {
+        $showPasswordWarning = password_verify('password', \Alxarafe\Lib\Auth::$user->password);
+    }
 @endphp
+
+@if($showPasswordWarning)
+    <div class="alert alert-warning border-0 rounded-0 m-0 py-2 text-center" style="background: #ffc107; color: #000; font-size: 0.85em;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>{{ \Alxarafe\Lib\Trans::_('security') }}:</strong> {{ \Alxarafe\Lib\Trans::_('default_password_warning') }} <a href="index.php?module=Admin&controller=Profile" class="fw-bold text-dark text-decoration-underline">{{ \Alxarafe\Lib\Trans::_('change_it_now') }}</a>.
+    </div>
+@endif
 
 <header class="app-header navbar navbar-expand-lg">
     <div class="container">
@@ -23,7 +36,7 @@
         <div class="collapse navbar-collapse" id="appNavigation">
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3">
                 <li class="nav-item">
-                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'home' ? 'active' : '' }}" href="/">Inicio</a>
+                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'home' ? 'active' : '' }}" href="/">{{ \Alxarafe\Lib\Trans::_('home') }}</a>
                 </li>
                 
                 {{-- Páginas dinámicas --}}
@@ -34,12 +47,12 @@
                 @endforeach
 
                 <li class="nav-item">
-                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'blog_index' ? 'active' : '' }}" href="/blog">Laboratorio</a>
+                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'blog_index' ? 'active' : '' }}" href="/blog">{{ \Alxarafe\Lib\Trans::_('laboratory') }}</a>
                 </li>
                 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Documentación
+                        {{ \Alxarafe\Lib\Trans::_('documentation') }}
                     </a>
                     <ul class="dropdown-menu shadow border-0" aria-labelledby="docsDropdown">
                         <li><a class="dropdown-item" href="https://docs.alxarafe.com" target="_blank">Framework</a></li>
@@ -73,7 +86,7 @@
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
                             <li><a class="dropdown-item" href="index.php?module=Admin&controller=Dashboard"><i class="fas fa-cog me-2"></i> Dashboard Admin</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> Salir</a></li>
+                            <li><a class="dropdown-item text-danger" href="index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> {{ \Alxarafe\Lib\Trans::_('logout') }}</a></li>
                         </ul>
                     </div>
                 @else

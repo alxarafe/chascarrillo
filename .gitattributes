@@ -1,0 +1,15 @@
+setup.php export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+phpunit.xml export-ignore
+tests/ export-ignore
+composer.lock export-ignore
+phpstan.neon export-ignore
+PSALM_VERSION export-ignore
+psalm.xml export-ignore
+.php_cs.dist.php export-ignore
+bin/create_admin_user.php export-ignore
+bin/sync_content.php export-ignore
+force_sync.php export-ignore
+check_users.php export-ignore
+web_migrate.php export-ignore

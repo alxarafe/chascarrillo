@@ -1,5 +1,5 @@
 <?php
-define('BASE_PATH', __DIR__ . '/public');
+define('BASE_PATH', __DIR__ . '/public_html');
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Alxarafe\Base\Config;

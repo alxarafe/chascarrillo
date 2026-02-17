@@ -3,8 +3,8 @@
 @section('content')
 <div class="hero-section">
     <div class="container text-center">
-        <h1 class="hero-title">{{ $title ?? 'Laboratorio de Chascarrillos' }}</h1>
-        <p class="hero-subtitle">Investigación, desarrollo y reflexiones sobre el ecosistema PHP y la IA.</p>
+        <h1 class="hero-title">{{ $title ?? \Alxarafe\Lib\Trans::_('laboratory_title') }}</h1>
+        <p class="hero-subtitle">{{ \Alxarafe\Lib\Trans::_('laboratory_subtitle') }}</p>
     </div>
 </div>
 
@@ -42,14 +42,14 @@
                         </div>
 
                         <a href="/blog/{{ $post->slug }}" class="btn btn-link p-0 text-decoration-none text-dark fw-bold" style="font-size: 0.9rem;">
-                            Leer entrada &raquo;
+                            {{ \Alxarafe\Lib\Trans::_('follow_reading') }} &raquo;
                         </a>
                     </article>
                     @endforeach
                 </div>
             @else
                 <div class="py-5 text-center">
-                    <p class="text-muted">No hay entradas publicadas todavía.</p>
+                    <p class="text-muted">{{ \Alxarafe\Lib\Trans::_('no_posts_yet') }}</p>
                 </div>
             @endif
         </div>

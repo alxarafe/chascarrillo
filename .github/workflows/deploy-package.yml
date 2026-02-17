@@ -1,0 +1,54 @@
+name: Create Release Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build Deployment Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, zip, pdo, mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader
+
+      - name: Create Deployment ZIP
+        run: |
+          # Use the tag name for the filename
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          ZIP_NAME="chascarrillo-deploy-${TAG_NAME}.zip"
+          
+          # Zip everything including vendor, excluding dev files
+          zip -r "$ZIP_NAME" . \
+            -x "*.git*" \
+            -x "var/*" \
+            -x "config.json" \
+            -x ".env" \
+            -x "tests/*" \
+            -x "phpunit.xml" \
+            -x ".agent/*" \
+            -x ".github/*"
+            
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

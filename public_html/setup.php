@@ -71,25 +71,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
 
             // --- Step 1: Download Latest Release ---
             $logs[] = "Consultando última versión en GitHub...";
-            $opts = ['http' => ['method' => 'GET', 'header' => ['User-Agent: Chascarrillo-Bootstrapper']]];
-            $context = stream_context_create($opts);
-            $releaseJson = @file_get_contents(REPO_URL, false, $context);
+            $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+            $releaseJson = null;
+            $errorDetail = '';
+
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, REPO_URL);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+                $releaseJson = curl_exec($ch);
+                $errorDetail = curl_error($ch);
+                curl_close($ch);
+            }
+
+            if (!$releaseJson && ini_get('allow_url_fopen')) {
+                $opts = ['http' => ['method' => 'GET', 'header' => ["User-Agent: $userAgent"], 'timeout' => 20]];
+                $context = stream_context_create($opts);
+                $releaseJson = @file_get_contents(REPO_URL, false, $context);
+                if (!$releaseJson) {
+                    $errorDetail = "file_get_contents falló";
+                }
+            }
 
             if (!$releaseJson) {
-                throw new Exception("No se pudo conectar con GitHub. Compruebe su conexión a internet.");
+                throw new Exception("No se pudo conectar con GitHub. Error: " . ($errorDetail ?: "Acceso denegado por el servidor"));
             }
 
             $release = json_decode($releaseJson, true);
-            $zipUrl = $release['zipball_url'] ?? null;
+            $zipUrl = null;
 
-            if (!$zipUrl) {
-                throw new Exception("No se encontró el archivo ZIP en la release de GitHub.");
+            // Try to find a pre-built deploy package in assets (includes vendor)
+            if (!empty($release['assets'])) {
+                foreach ($release['assets'] as $asset) {
+                    if (str_contains(strtolower($asset['name']), 'deploy') || str_contains(strtolower($asset['name']), 'full')) {
+                        $zipUrl = $asset['browser_download_url'];
+                        $logs[] = "¡Paquete optimizado detectado! Usando " . $asset['name'];
+                        break;
+                    }
+                }
             }
 
-            $logs[] = "Descargando versión " . ($release['tag_name'] ?? 'actual') . "...";
-            $zipData = @file_get_contents($zipUrl, false, $context);
+            // Fallback to source zip if no asset found
+            if (!$zipUrl) {
+                $zipUrl = $release['zipball_url'] ?? null;
+            }
+
+            if (!$zipUrl) {
+                throw new Exception("Error en respuesta de GitHub: No se encontró un archivo de descarga.");
+            }
+
+            $currentTag = $release['tag_name'] ?? 'actual';
+            $logs[] = "Descargando versión $currentTag...";
+            $zipData = null;
+
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $zipUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                $zipData = curl_exec($ch);
+                curl_close($ch);
+            } else if (ini_get('allow_url_fopen')) {
+                $zipData = @file_get_contents($zipUrl, false, $context);
+            }
+
             if (!$zipData) {
-                throw new Exception("Error al descargar el archivo del sistema.");
+                throw new Exception("Error al descargar los archivos desde GitHub. El servidor de hosting podría estar bloqueando el acceso saliente.");
             }
 
             $tmpZip = TARGET_DIR . '/chascarrillo_temp.zip';
@@ -358,56 +411,67 @@ function recursiveRmdir($dir)
                     <a href="index.php" class="btn btn-primary px-5 rounded-pill">Ir al Sitio</a>
                 </div>
             <?php else: ?>
-                <?php if ($error): ?>
-                    <div class="error-alert">
-                        <strong>Atención:</strong> <?php echo htmlspecialchars($error); ?>
+                <?php if ($isLocked): ?>
+                    <div class="error-alert mb-4">
+                        <h4 class="h6 mb-3 text-white"><i class="fas fa-lock me-2"></i> Instalador Bloqueado</h4>
+                        <p class="small mb-0">Esta web ya está instalada. Para autorizar una actualización o cambios en la configuración, debe crear un archivo vacío llamado <code class="text-white">setup.unlock</code> en la carpeta pública de su servidor.</p>
                     </div>
+                    <div class="text-center">
+                        <p class="text-muted small">Por seguridad, el acceso a los datos de configuración está oculto hasta que se abra el candado.</p>
+                        <a href="?" class="btn btn-outline-secondary btn-sm mt-3 px-4 rounded-pill">Refrescar tras desbloquear</a>
+                    </div>
+                <?php else: ?>
+                    <?php if ($error): ?>
+                        <div class="error-alert">
+                            <strong>Atención:</strong> <?php echo htmlspecialchars($error); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="post">
+                        <input type="hidden" name="db_charset" value="<?php echo htmlspecialchars($existingConfig['db']['charset'] ?? 'utf8mb4'); ?>">
+                        <input type="hidden" name="db_collation" value="<?php echo htmlspecialchars($existingConfig['db']['collation'] ?? 'utf8mb4_unicode_ci'); ?>">
+
+                        <div class="mb-3">
+                            <label class="form-label">Servidor DB</label>
+                            <input type="text" name="db_host" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['host'] ?? 'localhost'); ?>">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Base Datos</label>
+                                <input type="text" name="db_name" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['name'] ?? ''); ?>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prefijo Tablas</label>
+                                <input type="text" name="db_prefix" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['prefix'] ?? 'alx_'); ?>">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Usuario DB</label>
+                            <input type="text" name="db_user" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['user'] ?? ''); ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña DB</label>
+                            <input type="password" name="db_pass" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['pass'] ?? ''); ?>">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Nombre Carpeta Pública</label>
+                            <input type="text" name="public_dir" class="form-control" value="<?php echo htmlspecialchars(basename(SETUP_DIR)); ?>">
+                            <div class="form-text text-muted small">Detectada automáticamente: <strong><?php echo basename(SETUP_DIR); ?></strong></div>
+                        </div>
+
+                        <div class="form-check mb-4 small">
+                            <input class="form-check-input" type="checkbox" name="self_delete" id="selfDelete" checked>
+                            <label class="form-check-label text-muted" for="selfDelete">
+                                Eliminar este instalador tras finalizar (Recomendado)
+                            </label>
+                        </div>
+
+                        <button type="submit" name="install" class="btn btn-install text-white shadow">
+                            <i class="fas fa-rocket me-2"></i> <?php echo $isInstalled ? 'AUTORIZAR ACTUALIZACIÓN' : 'INICIAR INSTALACIÓN'; ?>
+                        </button>
+                    </form>
                 <?php endif; ?>
-
-                <form method="post">
-                    <input type="hidden" name="db_charset" value="<?php echo htmlspecialchars($existingConfig['db']['charset'] ?? 'utf8mb4'); ?>">
-                    <input type="hidden" name="db_collation" value="<?php echo htmlspecialchars($existingConfig['db']['collation'] ?? 'utf8mb4_unicode_ci'); ?>">
-
-                    <div class="mb-3">
-                        <label class="form-label">Servidor DB</label>
-                        <input type="text" name="db_host" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['host'] ?? 'localhost'); ?>">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre Base Datos</label>
-                            <input type="text" name="db_name" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['name'] ?? ''); ?>" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Prefijo Tablas</label>
-                            <input type="text" name="db_prefix" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['prefix'] ?? 'alx_'); ?>">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Usuario DB</label>
-                        <input type="text" name="db_user" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['user'] ?? ''); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña DB</label>
-                        <input type="password" name="db_pass" class="form-control" value="<?php echo htmlspecialchars($existingConfig['db']['pass'] ?? ''); ?>">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Nombre Carpeta Pública</label>
-                        <input type="text" name="public_dir" class="form-control" value="<?php echo htmlspecialchars(basename(SETUP_DIR)); ?>">
-                        <div class="form-text text-muted small">Detectada automáticamente: <strong><?php echo basename(SETUP_DIR); ?></strong></div>
-                    </div>
-
-                    <div class="form-check mb-4 small">
-                        <input class="form-check-input" type="checkbox" name="self_delete" id="selfDelete" checked>
-                        <label class="form-check-label text-muted" for="selfDelete">
-                            Eliminar este instalador tras finalizar (Recomendado)
-                        </label>
-                    </div>
-
-                    <button type="submit" name="install" class="btn btn-install text-white shadow">
-                        <i class="fas fa-rocket me-2"></i> <?php echo $isInstalled ? 'AUTORIZAR ACTUALIZACIÓN' : 'INICIAR INSTALACIÓN'; ?>
-                    </button>
-                </form>
             <?php endif; ?>
         </div>
     </div>

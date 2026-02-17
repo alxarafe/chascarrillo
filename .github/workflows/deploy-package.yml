@@ -23,6 +23,12 @@ jobs:
           extensions: mbstring, zip, pdo, mysql
           coverage: none
 
+      - name: Prepare composer.json for CI
+        run: |
+          # Remove the local path repository which doesn't exist in CI
+          # This forces composer to use the VCS repository (GitHub)
+          php -r '$c=json_decode(file_get_contents("composer.json"),true); if(isset($c["repositories"]) && $c["repositories"][0]["type"] === "path") { array_shift($c["repositories"]); } file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));'
+
       - name: Install dependencies
         run: |
           composer install --no-dev --optimize-autoloader

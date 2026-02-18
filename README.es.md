@@ -68,12 +68,12 @@ Si prefieres ejecutarlo sin Docker:
 3. Ejecuta `php run_migrations.php` y `php run_seeders.php`.
 4. Lanza el servidor local: `php -S localhost:8000 -t public`.
 
-## Control de Calidad
+## Documentación
 
-Utiliza los scripts proporcionados en `bin/` para asegurar la calidad del código:
-*   **Tests**: `./bin/run_tests.sh`
-*   **Análisis Estático**: `./bin/static_analysis.sh`
-*   **Estándares de Código**: `./bin/check_standards.sh`
+Para más información detallada sobre el uso y mantenimiento:
+* [Manual de Despliegue Avanzado](doc/es/manual_despliegue_avanzado.md)
+* [Guía de Guía de Estilos y Diseño](doc/es/estilos.md)
+* [Gestión de Menús Dinámicos](doc/es/menu.md)
 
 ## Licencia
 GPL-3.0-or-later.

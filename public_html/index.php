@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use Alxarafe\Tools\Dispatcher\WebDispatcher;
@@ -92,9 +94,15 @@ if ($config && isset($config->main->language)) {
 if ($config && isset($config->main)) {
     $config->main->appName = 'Alxarafe';
     $config->main->appIcon = 'fas fa-cubes';
-    if (isset($_COOKIE['alx_theme_test'])) {
-        $config->main->theme = $_COOKIE['alx_theme_test'];
+
+    // Check for theme in session first, then cookie
+    $selectedTheme = $_SESSION['alx_theme_test'] ?? $_COOKIE['alx_theme_test'] ?? null;
+    if ($selectedTheme) {
+        $config->main->theme = $selectedTheme;
     }
+
+    // We define the active theme for the ThemeManager and other framework components
+    define('THEME_SKIN', $config->main->theme);
 }
 
 // Step 4: Run the Application!

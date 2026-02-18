@@ -1,12 +1,21 @@
 @php
-    $companyTz = \Alxarafe\Base\Config::getConfig()->main->timezone ?? 'UTC';
+    $config = \Alxarafe\Base\Config::getConfig();
+    $companyTz = $config->main->timezone ?? 'UTC';
     $userTz = (\Alxarafe\Lib\Auth::$user->timezone ?? null) ?: $companyTz;
-    $currentTheme = \Alxarafe\Base\Config::getConfig()->main->theme ?? 'default';
+    $currentTheme = $config->main->theme ?? 'default';
     
-    // Obtenemos las páginas del menú de forma dinámica
-    $menuPages = \Modules\Chascarrillo\Model\Post::getMenuPages();
+    // Social links from config
+    $githubUrl = $config->social->github ?? 'https://github.com/alxarafe/alxarafe';
+    $linkedinUrl = $config->social->linkedin ?? 'https://www.linkedin.com/in/rsanjose/';
 
-    // Comprobación de seguridad: Contraseña por defecto
+    // Get menu pages dynamically (legacy / simple pages)
+    // $menuPages = \Modules\Chascarrillo\Model\Post::getMenuPages();
+
+    // Get dynamic menu
+    $headMenu = \Modules\Chascarrillo\Model\Menu::getBySlug('header-menu');
+    $menuItems = $headMenu ? $headMenu->items : collect();
+
+    // Security check: Default password alert
     $showPasswordWarning = false;
     if (\Alxarafe\Lib\Auth::$user && \Alxarafe\Lib\Auth::$user->is_admin) {
         $showPasswordWarning = password_verify('password', \Alxarafe\Lib\Auth::$user->password);
@@ -34,21 +43,28 @@
 
         <!-- Navigation Links (Centered as in alxarafe.es) -->
         <div class="collapse navbar-collapse" id="appNavigation">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3">
-                <li class="nav-item">
-                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'home' ? 'active' : '' }}" href="/">{{ \Alxarafe\Lib\Trans::_('home') }}</a>
-                </li>
-                
-                {{-- Páginas dinámicas --}}
-                @foreach($menuPages as $page)
-                    <li class="nav-item">
-                        <a class="nav-link {{ ($_GET['slug'] ?? '') === $page->slug ? 'active' : '' }}" href="/{{ $page->slug }}">{{ $page->title }}</a>
-                    </li>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-2 ms-lg-4">
+                {{-- Dynamic menu items from database --}}
+                @foreach($menuItems as $item)
+                    @if($item->children->count() > 0)
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="{{ $item->url ?? '#' }}" id="navDrop{{ $item->id }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @if($item->icon)<i class="{{ $item->icon }} me-1"></i>@endif {{ $item->label }}
+                            </a>
+                            <ul class="dropdown-menu shadow border-0" aria-labelledby="navDrop{{ $item->id }}">
+                                @foreach($item->children as $child)
+                                    <li><a class="dropdown-item" href="{{ $child->url }}" target="{{ $child->target }}">{{ $child->label }}</a></li>
+                                @endforeach
+                            </ul>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ $item->url }}" target="{{ $item->target }}">
+                                @if($item->icon)<i class="{{ $item->icon }} me-1"></i>@endif {{ $item->label }}
+                            </a>
+                        </li>
+                    @endif
                 @endforeach
-
-                <li class="nav-item">
-                    <a class="nav-link {{ ($_GET['route_name'] ?? '') === 'blog_index' ? 'active' : '' }}" href="/blog">{{ \Alxarafe\Lib\Trans::_('laboratory') }}</a>
-                </li>
                 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -62,11 +78,11 @@
             </ul>
 
             <!-- Right Side Tools -->
-            <div class="header-tools d-flex align-items-center gap-3 mt-3 mt-lg-0">
+            <div class="header-tools d-flex align-items-center gap-2 gap-xl-3 mt-3 mt-lg-0">
                 
-                <div class="d-none d-xl-flex gap-3 me-2">
-                    <a href="https://github.com/alxarafe/alxarafe" target="_blank" class="text-secondary small" title="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="https://www.linkedin.com/in/rsanjose/" target="_blank" class="text-secondary small" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <div class="d-none d-xxl-flex gap-3 me-2">
+                    <a href="{{ $githubUrl }}" target="_blank" class="text-secondary small" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="{{ $linkedinUrl }}" target="_blank" class="text-secondary small" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
                 </div>
 
                 @include('partial/theme_switcher')

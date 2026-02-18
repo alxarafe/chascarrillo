@@ -18,6 +18,19 @@
                     @if(!empty($post->meta_description))
                         <p class="lead text-secondary mt-3 mx-auto" style="max-width: 80%;">{{ $post->meta_description }}</p>
                     @endif
+
+                    <div class="mt-4 mb-2">
+                        @foreach($post->tags->where('type', 'category') as $category)
+                            <a href="/blog?category={{ $category->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none me-2 p-2 px-3">
+                                <i class="fas fa-folder me-1"></i>{{ $category->name }}
+                            </a>
+                        @endforeach
+                        @foreach($post->tags->where('type', 'tag') as $tag)
+                            <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary text-decoration-none me-2 p-2 px-3">
+                                <i class="fas fa-tag me-1"></i>{{ $tag->name }}
+                            </a>
+                        @endforeach
+                    </div>
                 </header>
                 
                 <div class="post-content fs-5" style="line-height: 1.8; color: inherit;">

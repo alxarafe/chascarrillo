@@ -18,7 +18,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "alxarafe/alxarafe": "v0.1.5"
+        "alxarafe/alxarafe": "v0.1.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",

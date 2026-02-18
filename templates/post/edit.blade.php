@@ -4,8 +4,8 @@
 <div class="container-fluid mt-4">
     <div class="row justify-content-center">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
                     <h5 class="mb-0 fw-bold">
                         <i class="fas fa-edit me-2 text-primary"></i> 
                         {{ $recordId === 'new' ? 'Nuevo Chascarrillo' : 'Editar Chascarrillo' }}
@@ -25,10 +25,46 @@
                             <!-- Left Column: Content -->
                             <div class="col-lg-8">
                                 <div class="mb-3">
-                                    @include('form.text', $fields['title']->jsonSerialize())
+                                    @include('form.text', array_merge($fields['title']->jsonSerialize(), ['value' => $data['title'] ?? '']))
                                 </div>
-                                <div class="mb-3">
-                                    @include('form.textarea', array_merge($fields['content']->jsonSerialize(), ['rows' => 20]))
+
+                                <!-- Tabs for Markdown/Preview -->
+                                <ul class="nav nav-pills mb-3" id="postContentTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-pane" type="button" role="tab">
+                                            <i class="fas fa-code me-1"></i> Markdown
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-pane" type="button" role="tab" onclick="updatePreview()">
+                                            <i class="fas fa-eye me-1"></i> Visualización
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content" id="postContentTabsContent">
+                                    <!-- Markdown Editor -->
+                                    <div class="tab-pane fade show active" id="edit-pane" role="tabpanel">
+                                        <div class="mb-3">
+                                            @include('form.textarea', array_merge($fields['content']->jsonSerialize(), [
+                                                'rows' => 20,
+                                                'id' => 'post_content_editor',
+                                                'value' => $data['content'] ?? ''
+                                            ]))
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- HTML Preview -->
+                                    <div class="tab-pane fade" id="preview-pane" role="tabpanel">
+                                        <div id="markdown-preview" class="border rounded bg-white p-4 shadow-sm markdown-body" style="min-height: 500px; max-height: 800px; overflow-y: auto;">
+                                            <div class="text-center py-5">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Cargando...</span>
+                                                </div>
+                                                <p class="mt-2 text-muted">Generando previsualización...</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -38,13 +74,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">Publicación</h6>
                                         <div class="mb-3">
-                                            @include('form.text', $fields['slug']->jsonSerialize())
+                                            @include('form.text', array_merge($fields['slug']->jsonSerialize(), ['value' => $data['slug'] ?? '']))
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.boolean', $fields['is_published']->jsonSerialize())
+                                            @include('form.boolean', array_merge($fields['is_published']->jsonSerialize(), ['value' => $data['is_published'] ?? false]))
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.datetime', $fields['published_at']->jsonSerialize())
+                                            @include('form.datetime', array_merge($fields['published_at']->jsonSerialize(), ['value' => $data['published_at'] ?? '']))
                                         </div>
                                     </div>
                                 </div>
@@ -79,13 +115,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">SEO (Opcional)</h6>
                                         <div class="mb-3">
-                                            @include('form.text', $fields['meta_title']->jsonSerialize())
+                                            @include('form.text', array_merge($fields['meta_title']->jsonSerialize(), ['value' => $data['meta_title'] ?? '']))
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.textarea', array_merge($fields['meta_description']->jsonSerialize(), ['rows' => 3]))
+                                            @include('form.textarea', array_merge($fields['meta_description']->jsonSerialize(), ['rows' => 3, 'value' => $data['meta_description'] ?? '']))
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.text', $fields['meta_keywords']->jsonSerialize())
+                                            @include('form.text', array_merge($fields['meta_keywords']->jsonSerialize(), ['value' => $data['meta_keywords'] ?? '']))
                                         </div>
                                     </div>
                                 </div>
@@ -105,6 +141,41 @@
 </div>
 
 <script>
+function updatePreview() {
+    const content = document.querySelector('textarea[name="data[content]"]').value;
+    const previewContainer = document.getElementById('markdown-preview');
+    
+    // Show loading
+    previewContainer.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Generando previsualización...</p>
+        </div>
+    `;
+
+    fetch('index.php?module=Chascarrillo&controller=Post&ajax=render_markdown', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'content=' + encodeURIComponent(content)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            previewContainer.innerHTML = data.html;
+        } else {
+            previewContainer.innerHTML = '<div class="alert alert-danger">Error al generar la previsualización</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        previewContainer.innerHTML = '<div class="alert alert-danger">Error de conexión al generar la previsualización</div>';
+    });
+}
+
 function uploadFeaturedImage(input) {
     if (!input.files || !input.files[0]) return;
 
@@ -129,7 +200,7 @@ function uploadFeaturedImage(input) {
             document.getElementById('image-preview-container').classList.remove('d-none');
             
             // Generate Markdown code for easy copy-paste
-            document.getElementById('markdown-code').value = '![' + document.getElementById('fields[title]').value + '](' + data.url + ')';
+            document.getElementById('markdown-code').value = '![' + document.getElementById('data[title]').value + '](' + data.url + ')';
             document.getElementById('markdown-copy-container').classList.remove('d-none');
 
             // Trigger Change for autosave frameworks if any

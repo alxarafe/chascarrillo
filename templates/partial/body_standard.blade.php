@@ -1,12 +1,12 @@
 <div id="id_container" class="id_container {{ \Alxarafe\Lib\Auth::isLogged() ? 'auth-mode' : 'public-mode' }}">
     
-    {{-- Solo mostramos el menú lateral si el usuario está identificado --}}
+    {{-- Show sidebar only if user is logged in --}}
     @if(\Alxarafe\Lib\Auth::isLogged())
         @include('partial.main_menu')
     @endif
 
     <div id="id-right" class="w-100">
-        {{-- El menú superior (Header) es siempre visible y centralizado en el proyecto --}}
+        {{-- Main navigation header (Project Menu) is always visible --}}
         @include('partial.project_menu')
         
         <!-- Alerts/Messages -->
@@ -19,12 +19,12 @@
 </div>
 
 <style>
-    .id_container { display: flex; min-height: 100vh; overflow-x: hidden; }
+    .id_container { display: flex; min-height: 100vh; }
     
-    /* Modo Público: Barra lateral oculta */
+    /* Public Mode: Sidebars hidden */
     .public-mode .sidebar { display: none !important; }
 
-    /* Modo Auth: Barra lateral a la izquierda */
+    /* Auth Mode: Sidebar on the left */
     .auth-mode .sidebar { 
         display: block !important;
         width: 250px !important; 

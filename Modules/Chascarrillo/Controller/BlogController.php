@@ -1,5 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * Copyright (C) 2024-2026 Rafael San José <rsanjose@alxarafe.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Base\Controller\GenericPublicController;
@@ -31,24 +50,45 @@ class BlogController extends GenericPublicController
     public function doIndex(): bool
     {
         $this->title = 'Chascarrillo Blog';
+        $tagSlug = $_GET['tag'] ?? null;
+        $catSlug = $_GET['category'] ?? null;
 
         try {
-            $posts = Post::where('is_published', true)
+            /** @var \Illuminate\Database\Eloquent\Builder $query */
+            $query = Post::where('is_published', true)
                 ->where('published_at', '<=', date('Y-m-d H:i:s'))
-                ->orderBy('published_at', 'DESC')
-                ->get();
+                ->orderBy('published_at', 'DESC');
+
+            if ($tagSlug) {
+                $query->whereHas('tags', function ($q) use ($tagSlug) {
+                    $q->where('slug', $tagSlug)->where('type', 'tag');
+                });
+                $tag = \Modules\Chascarrillo\Model\Tag::where('slug', $tagSlug)->first();
+                $this->title = 'Posts con el tag: ' . ($tag ? $tag->name : $tagSlug);
+            }
+
+            if ($catSlug) {
+                $query->whereHas('tags', function ($q) use ($catSlug) {
+                    $q->where('slug', $catSlug)->where('type', 'category');
+                });
+                $cat = \Modules\Chascarrillo\Model\Tag::where('slug', $catSlug)->first();
+                $this->title = 'Posts en la categoría: ' . ($cat ? $cat->name : $catSlug);
+            }
+
+            $posts = $query->get();
         } catch (\Exception $e) {
             $posts = collect();
         }
 
         // Diferenciamos si estamos en la home o en el índice del blog (Laboratorio)
-        $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog');
+        $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog') || $tagSlug || $catSlug;
 
         if ($isBlogIndex) {
             $this->title = 'Laboratorio de Chascarrillos';
             $this->setDefaultTemplate('blog/index');
         }
 
+        /** @var Post $post */
         foreach ($posts as $post) {
             // We only need this for the excerpt if meta_description is missing
             if (empty($post->meta_description)) {

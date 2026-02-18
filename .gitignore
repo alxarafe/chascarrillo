@@ -6,3 +6,4 @@ config.json
 .phpunit.cache
 .idea
 .vscode
+/Content/

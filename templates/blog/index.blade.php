@@ -25,6 +25,19 @@
                             <small class="text-muted text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
                                 {{ \Carbon\Carbon::parse($post->published_at)->format('d F, Y') }}
                             </small>
+
+                            <div class="mt-2">
+                                @foreach($post->tags->where('type', 'category') as $category)
+                                    <a href="/blog?category={{ $category->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none me-1" style="font-size: 0.7rem;">
+                                        <i class="fas fa-folder me-1"></i>{{ $category->name }}
+                                    </a>
+                                @endforeach
+                                @foreach($post->tags->where('type', 'tag') as $tag)
+                                    <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary text-decoration-none me-1" style="font-size: 0.7rem;">
+                                        <i class="fas fa-tag me-1"></i>{{ $tag->name }}
+                                    </a>
+                                @endforeach
+                            </div>
                         </header>
                         
                         @if(!empty($post->featured_image))

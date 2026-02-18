@@ -7,7 +7,7 @@ use Alxarafe\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.6.1';
+    public const VERSION = 'v0.6.8';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -34,6 +34,15 @@ class UpdateService
         /** @var array|null $data */
         $data = json_decode($response, true);
         if (is_array($data) && isset($data['tag_name']) && version_compare($data['tag_name'], self::VERSION, '>')) {
+            // Find the deployment ZIP in assets instead of the source code zip
+            if (isset($data['assets']) && is_array($data['assets'])) {
+                foreach ($data['assets'] as $asset) {
+                    if (str_starts_with($asset['name'], 'chascarrillo-deploy-') && str_ends_with($asset['name'], '.zip')) {
+                        $data['zipball_url'] = $asset['browser_download_url'];
+                        break;
+                    }
+                }
+            }
             return $data;
         }
 

@@ -5,7 +5,7 @@
  * Lee los archivos en Content/pages y Content/posts y los sincroniza con la base de datos.
  */
 
-define('BASE_PATH', __DIR__ . '/../public');
+define('BASE_PATH', __DIR__ . '/../public_html');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -108,8 +108,53 @@ function syncDirectory($dir, $type)
     }
 }
 
+function syncAssets($dir, $type)
+{
+    $source = __DIR__ . '/../Content/' . $dir;
+    $target = BASE_PATH . '/uploads/' . $dir;
+
+    if (!is_dir($source)) {
+        return;
+    }
+
+    if (!is_dir($target)) {
+        mkdir($target, 0755, true);
+    }
+
+    echo "Sincronizando recursos de $dir... ";
+    $files = glob($source . '/*.*');
+    $count = 0;
+    foreach ($files as $file) {
+        $filename = basename($file);
+        $dest = $target . '/' . $filename;
+        if (!file_exists($dest) || filemtime($file) > filemtime($dest)) {
+            copy($file, $dest);
+        }
+
+        // Sync with Database
+        $relativePath = $dir . '/' . $filename;
+        $media = \Modules\Chascarrillo\Model\Media::where('path', $relativePath)->first();
+        if (!$media) {
+            $media = new \Modules\Chascarrillo\Model\Media();
+            $media->path = $relativePath;
+        }
+        $media->filename = $filename;
+        $media->type = $type;
+        $media->size = filesize($file);
+        $media->mime_type = mime_content_type($file);
+        $media->save();
+
+        $count++;
+    }
+    echo "OK ($count archivos procesados)\n";
+}
+
 echo "--- Sincronizando Contenido Markdown ---\n";
 syncDirectory('pages', 'page');
 syncDirectory('posts', 'post');
+
+echo "\n--- Sincronizando Multimedia ---\n";
+syncAssets('images', 'image');
+syncAssets('videos', 'video');
 
 echo "\nProceso finalizado.\n";

@@ -205,19 +205,23 @@ class PostController extends ResourceController
     {
         $contentBase = constant('APP_PATH') . '/Content';
 
-        // Ensure Content directories exist by copying from module examples if needed
+        // Ensure Content directories exist
         $this->ensureContentDirectory($contentBase . '/posts', constant('APP_PATH') . '/Modules/Chascarrillo/posts');
         $this->ensureContentDirectory($contentBase . '/pages', constant('APP_PATH') . '/Modules/Chascarrillo/pages');
+        if (!is_dir($contentBase . '/images')) mkdir($contentBase . '/images', 0755, true);
+        if (!is_dir($contentBase . '/videos')) mkdir($contentBase . '/videos', 0755, true);
 
         $results = [];
 
-        // Sync Posts (MarkdownSyncService expects string for matchKey)
+        // Sync Content
         $results['posts'] = \Alxarafe\Service\MarkdownSyncService::sync($contentBase . '/posts', Post::class);
-
-        // Sync Pages
         $results['pages'] = \Alxarafe\Service\MarkdownSyncService::sync($contentBase . '/pages', Post::class);
 
-        \Alxarafe\Lib\Messages::addMessage("Sincronización completada.");
+        // Sync Assets
+        $mediaController = new MediaController();
+        $mediaController->doSync();
+
+        \Alxarafe\Lib\Messages::addMessage("Sincronización completa: Contenido y Multimedia.");
 
         if (isset($_GET['ajax'])) {
             $this->jsonResponse(['status' => 'success', 'results' => $results]);

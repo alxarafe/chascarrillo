@@ -4,20 +4,26 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6aa5da88d5104b5d8c9811c657ab4d0",
+    "content-hash": "7e3a2cee0f0f75576e5eeabb8a72f23d",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "0.1.5",
+            "version": "v0.1.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/alxarafe/alxarafe.git",
+                "reference": "997c04872278d056771db953a86ca831b5a1701a"
+            },
             "dist": {
-                "type": "path",
-                "url": "../alxarafe",
-                "reference": "cb80eaf6bcbc9ab0b54588762f2418d1603203cd"
+                "type": "zip",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/997c04872278d056771db953a86ca831b5a1701a",
+                "reference": "997c04872278d056771db953a86ca831b5a1701a",
+                "shasum": ""
             },
             "require": {
                 "erusev/parsedown": "^1.7",
                 "ext-pdo": "*",
-                "firebase/php-jwt": "^6.10",
+                "firebase/php-jwt": "^7.0",
                 "illuminate/database": "^10.48",
                 "illuminate/events": "^10.48",
                 "illuminate/view": "^10.48",
@@ -78,10 +84,7 @@
                 "issues": "https://github.com/alxarafe/alxarafe/issues",
                 "source": "https://github.com/alxarafe/alxarafe"
             },
-            "transport-options": {
-                "symlink": false,
-                "relative": true
-            }
+            "time": "2026-02-18T21:34:44+00:00"
         },
         {
             "name": "brick/math",
@@ -360,16 +363,16 @@
         },
         {
             "name": "firebase/php-jwt",
-            "version": "v6.11.1",
+            "version": "v7.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/firebase/php-jwt.git",
-                "reference": "d1e91ecf8c598d073d0995afa8cd5c75c6e19e66"
+                "reference": "5645b43af647b6947daac1d0f659dd1fbe8d3b65"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/d1e91ecf8c598d073d0995afa8cd5c75c6e19e66",
-                "reference": "d1e91ecf8c598d073d0995afa8cd5c75c6e19e66",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/5645b43af647b6947daac1d0f659dd1fbe8d3b65",
+                "reference": "5645b43af647b6947daac1d0f659dd1fbe8d3b65",
                 "shasum": ""
             },
             "require": {
@@ -417,9 +420,9 @@
             ],
             "support": {
                 "issues": "https://github.com/firebase/php-jwt/issues",
-                "source": "https://github.com/firebase/php-jwt/tree/v6.11.1"
+                "source": "https://github.com/firebase/php-jwt/tree/v7.0.2"
             },
-            "time": "2025-04-09T20:32:01+00:00"
+            "time": "2025-12-16T22:17:28+00:00"
         },
         {
             "name": "illuminate/bus",

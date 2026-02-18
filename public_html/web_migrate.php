@@ -12,6 +12,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Alxarafe\Base\Config;
 use Alxarafe\Lib\Messages;
 
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 // Simple security check: Only allow if a secret key matches (optional)
 // Or just inform the user to delete it.
 

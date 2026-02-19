@@ -306,6 +306,47 @@ body {
     font-weight: bold;
 }
 
+/* Page Content */
+.page-content,
+.post-content {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #334155;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.page-content blockquote,
+.post-content blockquote {
+    margin: 3rem 0;
+    padding: 2rem 2.5rem;
+    background: #f8fafc;
+    border-left: 5px solid var(--alx-primary);
+    border-radius: 0 1rem 1rem 0;
+    font-size: 1.35rem;
+    font-style: italic;
+    color: #1e293b;
+    position: relative;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.page-content blockquote p,
+.post-content blockquote p {
+    margin-bottom: 0;
+}
+
+.page-content blockquote::before,
+.post-content blockquote::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 5rem;
+    color: var(--alx-primary);
+    opacity: 0.1;
+    font-family: serif;
+}
+
 /* Homogeneity for internal H1 titles (Markdown) */
 .post-content h1,
 .page-content h1,

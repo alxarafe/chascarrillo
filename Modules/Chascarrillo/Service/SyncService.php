@@ -30,8 +30,8 @@ class SyncService
             self::ensureDirectory($contentBase . '/videos');
 
             // Sync Content
-            $results['posts'] = MarkdownSyncService::sync($contentBase . '/posts', \Modules\Chascarrillo\Model\Post::class);
-            $results['pages'] = MarkdownSyncService::sync($contentBase . '/pages', \Modules\Chascarrillo\Model\Post::class);
+            $results['posts'] = self::syncContent($contentBase . '/posts', 'post');
+            $results['pages'] = self::syncContent($contentBase . '/pages', 'page');
 
             // Sync Assets
             $results['assets'] = self::syncAssets($contentBase);
@@ -42,6 +42,61 @@ class SyncService
         }
 
         return $results;
+    }
+
+    private static function syncContent(string $directoryPath, string $type): array
+    {
+        $summary = [
+            'processed' => 0,
+            'created' => 0,
+            'updated' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+
+        if (!is_dir($directoryPath)) {
+            return $summary;
+        }
+
+        $files = glob($directoryPath . '/*.md');
+
+        foreach ($files as $file) {
+            try {
+                $data = \Alxarafe\Service\MarkdownService::parse($file);
+                $meta = $data['meta'];
+
+                $slug = $meta['slug'] ?? pathinfo($file, PATHINFO_FILENAME);
+
+                // Map attributes to DB schema
+                $attributes = [
+                    'title' => $meta['title'] ?? ucfirst(str_replace('-', ' ', $slug)),
+                    'slug' => $slug,
+                    'content' => $data['content'],
+                    'type' => $type,
+                    'is_published' => $meta['published'] ?? $meta['is_published'] ?? true,
+                    'published_at' => $meta['date'] ?? $meta['published_at'] ?? date('Y-m-d H:i:s'),
+                    'meta_description' => $meta['summary'] ?? $meta['meta_description'] ?? null,
+                    'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? null,
+                ];
+
+                $record = Post::where('slug', $slug)->first();
+
+                if ($record) {
+                    $record->update($attributes);
+                    $summary['updated']++;
+                } else {
+                    Post::create($attributes);
+                    $summary['created']++;
+                }
+
+                $summary['processed']++;
+            } catch (\Throwable $t) {
+                $summary['failed']++;
+                $summary['errors'][] = "Error en " . basename($file) . ": " . $t->getMessage();
+            }
+        }
+
+        return $summary;
     }
 
     private static function ensureContentDirectory(string $target, string $source): void

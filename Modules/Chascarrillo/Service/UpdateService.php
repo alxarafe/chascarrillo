@@ -7,7 +7,7 @@ use Alxarafe\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.6.9';
+    public const VERSION = 'v0.6.10';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -33,17 +33,21 @@ class UpdateService
 
         /** @var array|null $data */
         $data = json_decode($response, true);
-        if (is_array($data) && isset($data['tag_name']) && version_compare($data['tag_name'], self::VERSION, '>')) {
-            // Find the deployment ZIP in assets instead of the source code zip
-            if (isset($data['assets']) && is_array($data['assets'])) {
-                foreach ($data['assets'] as $asset) {
-                    if (str_starts_with($asset['name'], 'chascarrillo-deploy-') && str_ends_with($asset['name'], '.zip')) {
-                        $data['zipball_url'] = $asset['browser_download_url'];
-                        break;
+        if (is_array($data) && isset($data['tag_name'])) {
+            $latest = ltrim($data['tag_name'], 'v');
+            $current = ltrim(self::VERSION, 'v');
+            if (version_compare($latest, $current, '>')) {
+                // Find the deployment ZIP in assets instead of the source code zip
+                if (isset($data['assets']) && is_array($data['assets'])) {
+                    foreach ($data['assets'] as $asset) {
+                        if (str_starts_with($asset['name'], 'chascarrillo-deploy-') && str_ends_with($asset['name'], '.zip')) {
+                            $data['zipball_url'] = $asset['browser_download_url'];
+                            break;
+                        }
                     }
                 }
+                return $data;
             }
-            return $data;
         }
 
         return null;
@@ -86,12 +90,9 @@ class UpdateService
             return false;
         }
 
-        // 3. Replace Files (This is the critical part)
-        // For a simple implementation, we copy everything from extracted folder to APP_PATH
-        // We might want to skip config.json and .env
+        // 3. Replace Files
         $source = $extractPath;
-        // GitHub zips often contain a subfolder 'repo-name-tag/'
-        $subfolders = array_diff(scandir($source), ['.', '..']);
+        $subfolders = array_diff(scandir($source), ['.', '..', '__MACOSX']);
         if (count($subfolders) === 1) {
             $first = reset($subfolders);
             if (is_dir($source . '/' . $first)) {
@@ -99,13 +100,20 @@ class UpdateService
             }
         }
 
-        $publicDir = defined('PUBLIC_DIR') ? PUBLIC_DIR : 'public';
-        $success = self::recursiveCopy($source, APP_PATH, ['config.json', '.env', "$publicDir/.htaccess"]);
+        $publicDir = defined('PUBLIC_DIR') ? constant('PUBLIC_DIR') : 'public';
+        $success = self::recursiveCopy($source, constant('APP_PATH'), [
+            'config.json',
+            '.env',
+            "$publicDir/.htaccess",
+            "storage",
+            "var",
+            "vendor" // Usually vendor should be handled by composer, but if it is a deploy zip it might be there
+        ]);
 
         if ($success) {
             // 4. Run Migrations
             Config::doRunMigrations();
-            Messages::addMessage("¡Actualización aplicada con éxito!");
+            Messages::addMessage("¡Actualización aplicada con éxito a " . self::VERSION . "!");
             return true;
         }
 
@@ -115,30 +123,52 @@ class UpdateService
 
     private static function recursiveCopy(string $src, string $dst, array $skip = []): bool
     {
+        if (!is_dir($dst)) {
+            if (!@mkdir($dst, 0755, true)) {
+                error_log("No se pudo crear el directorio: $dst");
+                return false;
+            }
+        }
+
         $dir = opendir($src);
-        @mkdir($dst);
+        $allSuccess = true;
+
         while (($file = readdir($dir)) !== false) {
             if ($file === '.' || $file === '..') {
                 continue;
             }
+
             if (in_array($file, $skip)) {
                 continue;
             }
 
-            // Check nested skip (e.g. public/.htaccess)
-            $relativePath = ltrim(str_replace(APP_PATH, '', $dst . '/' . $file), '/');
+            $srcFile = $src . '/' . $file;
+            $dstFile = $dst . '/' . $file;
+
+            // Check nested skip
+            $relativePath = ltrim(str_replace(constant('APP_PATH'), '', $dstFile), '/');
             if (in_array($relativePath, $skip)) {
                 continue;
             }
 
-            if (is_dir($src . '/' . $file)) {
-                self::recursiveCopy($src . '/' . $file, $dst . '/' . $file, $skip);
+            if (is_dir($srcFile)) {
+                if (!self::recursiveCopy($srcFile, $dstFile, $skip)) {
+                    $allSuccess = false;
+                }
             } else {
-                copy($src . '/' . $file, $dst . '/' . $file);
+                if (!@copy($srcFile, $dstFile)) {
+                    error_log("Error al copiar $srcFile -> $dstFile");
+                    $allSuccess = false;
+                } else {
+                    // Invalidate OPcache if possible
+                    if (function_exists('opcache_invalidate')) {
+                        @opcache_invalidate($dstFile, true);
+                    }
+                }
             }
         }
         closedir($dir);
-        return true;
+        return $allSuccess;
     }
 
     private static function recursiveRmdir(string $dir): bool

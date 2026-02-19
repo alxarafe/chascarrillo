@@ -76,7 +76,11 @@ class SyncService
                     'is_published' => $meta['published'] ?? $meta['is_published'] ?? true,
                     'published_at' => $meta['date'] ?? $meta['published_at'] ?? date('Y-m-d H:i:s'),
                     'meta_description' => $meta['summary'] ?? $meta['meta_description'] ?? null,
+                    'meta_title' => $meta['meta_title'] ?? $meta['title'] ?? null,
+                    'meta_keywords' => $meta['meta_keywords'] ?? $meta['keywords'] ?? null,
                     'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? null,
+                    'in_menu' => $meta['in_menu'] ?? ($type === 'page' ? true : false),
+                    'menu_order' => $meta['menu_order'] ?? 0,
                 ];
 
                 $record = Post::where('slug', $slug)->first();

@@ -25,7 +25,6 @@ class PageController extends GenericPublicController
 
         try {
             $page = Post::where('slug', $slug)
-                ->where('type', 'page')
                 ->where('is_published', true)
                 ->first();
         } catch (\Exception $e) {

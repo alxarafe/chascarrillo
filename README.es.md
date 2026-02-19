@@ -22,11 +22,11 @@ Construido sobre el **Alxarafe Framework**, Chascarrillo aprovecha su robustez p
 
 - **Minimalista**: Foco absoluto en el contenido.
 - **Código Ingenioso**: Implementación eficiente y elegante.
-- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.4 para servicios centrales y enrutamiento.
+- **Potencia Alxarafe**: Utiliza Alxarafe v0.1.9 para servicios centrales y enrutamiento.
 
 ## Requisitos
 - PHP >= 8.2
-- Alxarafe Framework v0.1.4
+- Alxarafe Framework v0.1.9
 - Composer
 
 ## Instalación
@@ -57,8 +57,7 @@ Chascarrillo incluye un entorno completo de desarrollo con Docker basado en los 
    ```
 
 5. **Acceder a la aplicación**:
-   Abre [http://localhost:8082](http://localhost:8082) en tu navegador.
-   También puedes acceder a phpMyAdmin en [http://localhost:9082](http://localhost:9082).
+   Abre [https://alxarafe.es](https://alxarafe.es) en producción o [http://localhost:8082](http://localhost:8082) en desarrollo.
 
 ### Instalación manual
 

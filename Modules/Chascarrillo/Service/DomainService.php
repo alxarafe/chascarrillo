@@ -3,15 +3,36 @@
 namespace Modules\Chascarrillo\Service;
 
 /**
- * Service to manage multi-domain logic (chascarrillo.es vs chascarrillo.com).
- * Handles region detection and SEO hreflang tags.
+ * Service to manage multi-domain logic based on configuration.
+ * Handles region detection and site suggestions.
  */
 class DomainService
 {
-    private const DOMAINS = [
-        'es' => 'chascarrillo.es',
-        'en' => 'chascarrillo.com',
-    ];
+    /**
+     * Gets the configured sites and their domains.
+     * Expected structure in config.json:
+     * "sites": {
+     *    "es": { "domain": "alxarafe.es", "message": "¿Prefieres ver el sitio en Español?" },
+     *    "en": { "domain": "alxarafe.com", "message": "Would you prefer to view the site in English?" }
+     * }
+     */
+    public static function getSites(): array
+    {
+        $config = \Alxarafe\Base\Config::getConfig();
+        $sites = $config->sites ?? [];
+
+        // Ensure it's an array of objects/arrays
+        return json_decode(json_encode($sites), true);
+    }
+
+    /**
+     * Gets the domain for a specific language.
+     */
+    public static function getTargetDomain(string $lang): ?string
+    {
+        $sites = self::getSites();
+        return $sites[$lang]['domain'] ?? null;
+    }
 
     /**
      * Gets the current host.
@@ -22,69 +43,83 @@ class DomainService
     }
 
     /**
-     * Gets the domain for a specific language.
-     */
-    public static function getTargetDomain(string $lang): ?string
-    {
-        return self::DOMAINS[$lang] ?? null;
-    }
-
-    /**
      * Detects if the user should be invited to switch domains based on browser language.
      * Returns suggestion data or null.
      */
     public static function getSuggestion(): ?array
     {
+        $config = \Alxarafe\Base\Config::getConfig();
+        if (!($config->main->enableWorldsites ?? false)) {
+            return null;
+        }
+
         // Don't suggest if user already dismissed it
         if (isset($_COOKIE['skip_domain_suggestion'])) {
             return null;
         }
 
-        $currentDomain = self::getCurrentDomain();
-        $browserLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
-
-        $preferredLang = self::detectBrowserLang($browserLangs);
-
-        if (!$preferredLang) {
+        $sites = self::getSites();
+        if (empty($sites)) {
             return null;
         }
 
-        $targetDomain = self::getTargetDomain($preferredLang);
+        $currentDomain = self::getCurrentDomain();
+        $browserLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $availableLangs = array_keys($sites);
+        $preferredLang = self::detectBrowserLang($browserLangs, $availableLangs);
 
-        // If we are NOT in the preferred domain, suggest switching
-        if ($targetDomain && $targetDomain !== $currentDomain) {
-            // Special case: if we are in localhost/dev, we might want to skip this or mock it
-            if ($currentDomain === 'localhost' || str_contains($currentDomain, '127.0.0.1')) {
-                // For development, we only show if explicitly requested or just skip
-                return null;
+        // Case A: User has a specific language that matches one of our sites
+        if ($preferredLang) {
+            $target = $sites[$preferredLang] ?? null;
+            if ($target && isset($target['domain']) && $target['domain'] !== $currentDomain) {
+                return self::formatSuggestion($preferredLang, $target);
             }
+        } else {
+            // Case B: User doesn't speak the local language (e.g., visits .es but speaks English/Other)
+            // If we are on a regional domain (like .es), suggest the international one (.en / .com)
+            $esDomain = $sites['es']['domain'] ?? null;
+            $enTarget = $sites['en'] ?? null;
 
-            return [
-                'lang' => $preferredLang,
-                'domain' => $targetDomain,
-                'url' => self::buildAlternateUrl($targetDomain),
-                'message' => $preferredLang === 'es'
-                    ? '¿Prefieres ver el sitio en Español? Visita chascarrillo.es'
-                    : 'Would you prefer to view the site in English? Visit chascarrillo.com'
-            ];
+            if ($currentDomain === $esDomain && $enTarget) {
+                return self::formatSuggestion('en', $enTarget);
+            }
         }
 
         return null;
     }
 
     /**
-     * Generates hreflang links for SEO.
+     * Helper to format the suggestion response.
      */
+    private static function formatSuggestion(string $lang, array $target): ?array
+    {
+        $currentDomain = self::getCurrentDomain();
+
+        // Skip in localhost unless testing
+        if (($currentDomain === 'localhost' || str_contains($currentDomain, '127.0.0.1')) && !isset($_GET['test_suggestion'])) {
+            return null;
+        }
+
+        return [
+            'lang' => $lang,
+            'domain' => $target['domain'],
+            'url' => self::buildAlternateUrl($target['domain']),
+            'message' => $target['message'] ?? "Switch to {$target['domain']}?"
+        ];
+    }
+
     public static function getHreflangs(): array
     {
         $links = [];
-        foreach (self::DOMAINS as $lang => $domain) {
-            $links[$lang] = self::buildAlternateUrl($domain);
+        foreach (self::getSites() as $lang => $data) {
+            if (isset($data['domain'])) {
+                $links[$lang] = self::buildAlternateUrl($data['domain']);
+            }
         }
         return $links;
     }
 
-    private static function detectBrowserLang(string $acceptLang): ?string
+    private static function detectBrowserLang(string $acceptLang, array $availableLangs): ?string
     {
         if (empty($acceptLang)) {
             return null;
@@ -93,20 +128,23 @@ class DomainService
         $langs = explode(',', $acceptLang);
         foreach ($langs as $lang) {
             $code = substr(trim(strtolower($lang)), 0, 2);
-            if (isset(self::DOMAINS[$code])) {
+            if (in_array($code, $availableLangs)) {
                 return $code;
             }
         }
         return null;
     }
 
-    private static function buildAlternateUrl(string $targetDomain): string
+    public static function getTargetUrl(string $lang): ?string
+    {
+        $domain = self::getTargetDomain($lang);
+        return $domain ? self::buildAlternateUrl($domain) : null;
+    }
+
+    public static function buildAlternateUrl(string $targetDomain): string
     {
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
-
-        // In local development, we don't really have the other domain active, 
-        // but for the sake of the link, we build it correctly.
         return "{$protocol}://{$targetDomain}{$uri}";
     }
 }

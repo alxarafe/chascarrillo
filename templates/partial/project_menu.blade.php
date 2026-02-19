@@ -33,7 +33,7 @@
     <div class="container">
         <!-- Brand / Logo -->
         <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <span class="brand-text">Chascarrillo</span>
+            <span class="brand-text">{{ $config->main->appName ?? 'Chascarrillo' }}</span>
         </a>
 
         <!-- Toggler for mobile -->
@@ -71,8 +71,8 @@
                         {{ \Alxarafe\Lib\Trans::_('documentation') }}
                     </a>
                     <ul class="dropdown-menu shadow border-0" aria-labelledby="docsDropdown">
-                        <li><a class="dropdown-item" href="https://docs.alxarafe.com" target="_blank">Framework</a></li>
-                        <li><a class="dropdown-item" href="https://github.com/alxarafe/alxarafe" target="_blank">Código Fuente</a></li>
+                        <li><a class="dropdown-item" href="https://alxarafe.com/es" target="_blank">{{ \Alxarafe\Lib\Trans::_('spanish') ?? 'Español' }}</a></li>
+                        <li><a class="dropdown-item" href="https://alxarafe.com/en" target="_blank">{{ \Alxarafe\Lib\Trans::_('english') ?? 'Inglés' }}</a></li>
                     </ul>
                 </li>
             </ul>

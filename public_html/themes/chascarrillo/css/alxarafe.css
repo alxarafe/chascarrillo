@@ -10,7 +10,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Manrope', sans-serif;
     background-color: var(--alx-bg);
     color: var(--alx-secondary);
     line-height: 1.6;
@@ -47,7 +47,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-    padding: 6rem 0;
+    padding: 6rem 0 4rem 0;
     background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
     text-align: center;
 }
@@ -57,6 +57,7 @@ body {
     font-weight: 800;
     margin-bottom: 1.5rem;
     letter-spacing: -0.025em;
+    color: #000;
 }
 
 .hero-subtitle {
@@ -69,46 +70,54 @@ body {
 /* Feature Cards */
 .feature-card {
     background: white;
-    padding: 2.5rem;
+    padding: 3rem 2rem;
     border-radius: 1.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     height: 100%;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.1), 0 18px 36px -18px rgba(0, 0, 0, 0.15);
 }
 
 .icon-wrapper {
-    width: 3.5rem;
-    height: 3.5rem;
-    background: #eff6ff;
-    color: var(--alx-primary);
-    border-radius: 1rem;
+    width: 4rem;
+    height: 4rem;
+    background: transparent;
+    color: #333;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     margin-bottom: 1.5rem;
 }
 
 .feature-title {
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-weight: 800;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: #000;
 }
 
 .feature-description {
-    color: var(--alx-gray);
-    font-size: 0.95rem;
+    color: #444;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    flex-grow: 1;
 }
 
 /* Buttons */
 .btn-alx {
     background: var(--alx-primary);
     color: white;
-    padding: 0.75rem 2rem;
+    padding: 0.75rem 2.5rem;
     border-radius: 0.75rem;
     font-weight: 600;
     text-decoration: none;
@@ -124,19 +133,32 @@ body {
 }
 
 .btn-outline-alx {
-    border: 2px solid var(--alx-primary);
-    color: var(--alx-primary);
-    padding: 0.5rem 1.5rem;
+    border: 2px solid #2563eb;
+    color: #2563eb;
+    padding: 0.75rem 2rem;
     border-radius: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
     transition: all 0.2s;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 160px;
+    justify-content: center;
 }
 
 .btn-outline-alx:hover {
-    background: var(--alx-primary);
+    background: #2563eb;
     color: white;
+    transform: scale(1.02);
+}
+
+.btn-outline-alx i {
+    transition: transform 0.2s;
+}
+
+.btn-outline-alx:hover i {
+    transform: translateX(3px);
 }
 
 /* Utilities */
@@ -208,4 +230,101 @@ body {
     border-radius: 1rem;
     margin: 2rem 0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Split Section */
+.split-image-wrapper {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.split-image-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+.split-text-content h2 {
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    color: var(--alx-blue);
+}
+
+.split-text-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.split-text-content ul li {
+    position: relative;
+    padding: 0.5rem 0 0.5rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.split-text-content ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--alx-accent);
+}
+
+@media (max-width: 768px) {
+    .flex-md-row-reverse {
+        flex-direction: column !important;
+    }
+}
+
+/* Feature Item General styles */
+.feature-item-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item-content h2 {
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    color: var(--alx-secondary);
+}
+
+.feature-item-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.feature-item-content ul li {
+    position: relative;
+    padding: 0.5rem 0 0.5rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.feature-item-content ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--alx-primary);
+    font-weight: bold;
+}
+
+/* Homogeneity for internal H1 titles (Markdown) */
+.post-content h1,
+.page-content h1,
+.content-body h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    letter-spacing: -0.025em;
+    color: var(--alx-secondary);
+    /* Dark but with character */
+    text-align: center;
+    /* As in Alxarafe.es home */
+}
+
+@media (max-width: 768px) {
+
+    .post-content h1,
+    .page-content h1,
+    .content-body h1 {
+        font-size: 2.5rem;
+    }
 }

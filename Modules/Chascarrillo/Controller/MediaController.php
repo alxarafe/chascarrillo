@@ -18,10 +18,10 @@ use Alxarafe\Lib\Messages;
 use Alxarafe\Lib\Functions;
 
 #[Menu(
-    menu: 'main_menu',
+    menu: 'admin_sidebar',
     label: 'Multimedia',
     icon: 'fas fa-photo-video',
-    order: 45,
+    order: 48,
     permission: 'Chascarrillo.Media.doIndex'
 )]
 class MediaController extends ResourceController
@@ -36,6 +36,13 @@ class MediaController extends ResourceController
     public static function getControllerName(): string
     {
         return 'Media';
+    }
+
+    #[\Override]
+    protected function beforeList()
+    {
+        $this->setDefaultTemplate('media/index');
+        $this->addVariable('media', Media::orderBy('created_at', 'DESC')->get());
     }
 
     #[\Override]

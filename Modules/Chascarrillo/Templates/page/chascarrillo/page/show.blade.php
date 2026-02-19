@@ -5,6 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <article class="page-content">
+                @if($page->slug !== 'index' && !str_contains($page->content, '# ' . $page->title))
                 <header class="mb-5 text-center">
                     <h1 class="display-4 fw-800 text-secondary mb-3">{{ $page->title }}</h1>
                     @if($me->isAdmin())
@@ -15,6 +16,7 @@
                         </div>
                     @endif
                 </header>
+                @endif
 
                 <div class="content-body">
                     {!! $page->getRenderedContent() !!}

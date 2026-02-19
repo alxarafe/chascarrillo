@@ -75,25 +75,23 @@ class_alias(\Illuminate\Support\Str::class, 'Str');
 // Step 2: Custom Multi-domain / Language Logic (App Specific)
 if ($config && isset($config->main->language)) {
     $lang = $config->main->language;
-    if (class_exists(\Modules\Chascarrillo\Service\DomainService::class)) {
-        $currentDomain = \Modules\Chascarrillo\Service\DomainService::getCurrentDomain();
-        if (str_contains($currentDomain, 'chascarrillo.com')) {
+    // Simple language detection if requested or needed
+    if (isset($_SERVER['HTTP_HOST'])) {
+        $host = $_SERVER['HTTP_HOST'];
+        if (str_ends_with($host, '.com')) {
             $lang = 'en';
-        } elseif (str_contains($currentDomain, 'chascarrillo.es')) {
+        } elseif (str_ends_with($host, '.es')) {
             $lang = 'es';
         }
-    }
-    // Ensure the main module is set for Trans to load its translations
-    if (!isset($_GET['module'])) {
-        $_GET['module'] = 'Chascarrillo';
     }
     Trans::setLang($lang);
 }
 
 // Step 3: Global Branding and Testing overrides
 if ($config && isset($config->main)) {
-    $config->main->appName = 'Alxarafe';
-    $config->main->appIcon = 'fas fa-cubes';
+    // Default branding if not set
+    $config->main->appName ??= 'Chascarrillo';
+    $config->main->appIcon ??= 'fas fa-feather-alt';
 
     // Check for theme in session first, then cookie
     $selectedTheme = $_SESSION['alx_theme_test'] ?? $_COOKIE['alx_theme_test'] ?? null;

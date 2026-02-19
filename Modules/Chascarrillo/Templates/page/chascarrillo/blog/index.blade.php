@@ -2,85 +2,69 @@
 
 @section('content')
 <div class="hero-section">
-    <div class="container">
-        <h1 class="hero-title">{{ \Alxarafe\Lib\Trans::_('hero_title') }}</h1>
-        <p class="hero-subtitle">
-            {{ \Alxarafe\Lib\Trans::_('hero_subtitle') }}<br>
-            <small class="text-muted">{{ \Alxarafe\Lib\Trans::_('no_cookies') }}</small>
-        </p>
-        <div class="mt-5">
-            <a href="/acerca-de-nosotros" class="btn-alx">{{ \Alxarafe\Lib\Trans::_('learn_more') }}</a>
-        </div>
+    <div class="container text-center">
+        <h1 class="hero-title">{{ \Alxarafe\Lib\Trans::_('laboratory_title') }}</h1>
+        <p class="hero-subtitle">{{ \Alxarafe\Lib\Trans::_('laboratory_subtitle') }}</p>
     </div>
 </div>
 
 <div class="container py-5">
-    <div class="row g-4 justify-content-center">
-        <!-- Simplicidad -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="icon-wrapper"><i class="fas fa-feather"></i></div>
-                <h3 class="feature-title">{{ \Alxarafe\Lib\Trans::_('simplicity') }}</h3>
-                <p class="feature-description">
-                    {{ \Alxarafe\Lib\Trans::_('simplicity_description') }}
-                </p>
-                <a href="/acerca-de-nosotros" class="btn-outline-alx">{{ \Alxarafe\Lib\Trans::_('philosophy') }} <i class="fas fa-arrow-right ms-2"></i></a>
-            </div>
-        </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-        <!-- Markdown -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="icon-wrapper"><i class="fas fa-code"></i></div>
-                <h3 class="feature-title">{{ \Alxarafe\Lib\Trans::_('markdown_native') }}</h3>
-                <p class="feature-description">
-                    {{ \Alxarafe\Lib\Trans::_('markdown_description') }}
-                </p>
-                <a href="/blog" class="btn-outline-alx">{{ \Alxarafe\Lib\Trans::_('view_examples') }} <i class="fas fa-arrow-right ms-2"></i></a>
-            </div>
-        </div>
+            @if(isset($posts) && count($posts) > 0)
+                <div class="d-grid gap-5">
+                    @foreach($posts as $post)
+                    <article class="blog-post pb-5 border-bottom">
+                        <header class="mb-4">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <span class="text-primary fw-bold small text-uppercase" style="letter-spacing: 1px;">
+                                    {{ \Carbon\Carbon::parse($post->published_at)->format('d F, Y') }}
+                                </span>
+                                <div class="vr" style="height: 15px;"></div>
+                                <div class="d-flex gap-2">
+                                    @foreach($post->tags as $tag)
+                                        <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none" style="font-size: 0.75rem;">
+                                            #{{ $tag->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <h2 class="h2 fw-800 mb-3">
+                                <a href="/blog/{{ $post->slug }}" class="text-decoration-none text-dark">
+                                    {{ $post->title }}
+                                </a>
+                            </h2>
+                        </header>
+                        
+                        @if(!empty($post->featured_image))
+                        <div class="mb-4">
+                            <a href="/blog/{{ $post->slug }}">
+                                <img src="{{ $post->featured_image }}" class="img-fluid rounded-4 shadow-sm" alt="{{ $post->title }}" style="max-height: 400px; width: 100%; object-fit: cover;">
+                            </a>
+                        </div>
+                        @endif
+                        
+                        <div class="post-excerpt mb-4 text-secondary" style="font-size: 1.1rem; line-height: 1.8;">
+                            <p>
+                                {{ $post->meta_description ?? $post->getExcerpt(250) }}
+                            </p>
+                        </div>
 
-        <!-- Rendimiento -->
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="icon-wrapper"><i class="fas fa-bolt"></i></div>
-                <h3 class="feature-title">{{ \Alxarafe\Lib\Trans::_('performance') }}</h3>
-                <p class="feature-description">
-                    {{ \Alxarafe\Lib\Trans::_('performance_description') }}
-                </p>
-                <a href="/blog" class="btn-outline-alx">{{ \Alxarafe\Lib\Trans::_('laboratory') }} <i class="fas fa-arrow-right ms-2"></i></a>
-            </div>
+                        <a href="/blog/{{ $post->slug }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                            {{ \Alxarafe\Lib\Trans::_('read_on') }} <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="py-5 text-center">
+                    <i class="fas fa-flask fa-3x text-light mb-4"></i>
+                    <p class="text-muted fs-5">{{ \Alxarafe\Lib\Trans::_('no_posts_yet') }}</p>
+                    <a href="/" class="btn btn-primary rounded-pill mt-3">Volver al inicio</a>
+                </div>
+            @endif
         </div>
     </div>
-
-    @if(!$posts->isEmpty())
-        <div class="mt-5 pt-5 border-top">
-            <div class="d-flex justify-content-between align-items-end mb-5">
-                <div>
-                    <h2 class="h1 fw-800 text-secondary mb-0">{{ \Alxarafe\Lib\Trans::_('latest_posts') }}</h2>
-                    <p class="text-muted">{{ \Alxarafe\Lib\Trans::_('news_from_lab') }}</p>
-                </div>
-                <a href="/blog" class="btn btn-link text-primary fw-bold text-decoration-none p-0">
-                    {{ \Alxarafe\Lib\Trans::_('view_all') }} <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-            <div class="row g-4">
-                @foreach($posts->take(3) as $post)
-                    <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-hover">
-                            <div class="card-body p-4">
-                                <span class="badge bg-primary-soft text-primary mb-3">{{ $post->published_at ? $post->published_at->format('d M, Y') : 'Borrador' }}</span>
-                                <h4 class="card-title fw-bold mb-3 h5">{{ $post->title }}</h4>
-                                <p class="card-text text-muted small mb-4">{{ $post->getExcerpt(140) }}</p>
-                                <a href="/blog/{{ $post->slug }}" class="text-decoration-none fw-bold small">
-                                    {{ \Alxarafe\Lib\Trans::_('read_on') }} <i class="fas fa-chevron-right ms-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
 </div>
 @endsection

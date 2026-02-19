@@ -89,8 +89,27 @@ class SyncService
                     $record->update($attributes);
                     $summary['updated']++;
                 } else {
-                    Post::create($attributes);
+                    $record = Post::create($attributes);
                     $summary['created']++;
+                }
+
+                // Sincronizar tags si existen en el meta
+                if (isset($meta['tags'])) {
+                    $tags = is_array($meta['tags']) ? $meta['tags'] : explode(',', (string)$meta['tags']);
+                    $tagIds = [];
+                    foreach ($tags as $tagName) {
+                        $tagName = trim($tagName);
+                        if (empty($tagName)) {
+                            continue;
+                        }
+                        $tagSlug = \Illuminate\Support\Str::slug($tagName);
+                        $tag = \Modules\Chascarrillo\Model\Tag::firstOrCreate(
+                            ['slug' => $tagSlug],
+                            ['name' => $tagName, 'type' => 'tag']
+                        );
+                        $tagIds[] = $tag->id;
+                    }
+                    $record->tags()->sync($tagIds);
                 }
 
                 $summary['processed']++;

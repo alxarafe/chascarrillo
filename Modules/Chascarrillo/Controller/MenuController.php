@@ -26,10 +26,10 @@ use Modules\Chascarrillo\Model\Menu;
 use Alxarafe\Attribute\Menu as MenuAttr;
 
 #[MenuAttr(
-    menu: 'main_menu',
+    menu: 'admin_sidebar',
     label: 'Menús del Sitio',
     icon: 'fas fa-bars',
-    order: 45,
+    order: 47,
     permission: 'Chascarrillo.Menu.doIndex'
 )]
 class MenuController extends ResourceController
@@ -69,12 +69,72 @@ class MenuController extends ResourceController
             'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
             'name' => new \Alxarafe\Component\Fields\Text('name', 'Nombre'),
             'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-            'items' => new \Alxarafe\Component\Fields\RelationList('items', 'Elementos del Menú', [
-                ['field' => 'label', 'label' => 'Etiqueta'],
-                ['field' => 'url', 'label' => 'URL'],
-                ['field' => 'icon', 'label' => 'Icono'],
-                ['field' => 'order', 'label' => 'Orden', 'type' => 'integer'],
-            ]),
         ];
+    }
+
+    #[\Override]
+    protected function beforeEdit()
+    {
+        $this->setDefaultTemplate('menu/edit');
+
+        if ($this->recordId && $this->recordId !== 'new') {
+            $menu = Menu::find($this->recordId);
+            if ($menu) {
+                $data = $menu->toArray();
+                $data['items'] = $menu->items()->get()->toArray();
+                $this->addVariable('data', $data);
+            }
+        }
+    }
+
+    #[\Override]
+    protected function saveRecord()
+    {
+        $id = $_POST['id'] ?? null;
+        $data = $_POST['data'] ?? [];
+        $items = $data['items'] ?? [];
+        unset($data['items']);
+
+        if ($id === 'new') {
+            $menu = new Menu();
+        } else {
+            $menu = Menu::find($id);
+        }
+
+        if (!$menu) {
+            $this->jsonResponse(['status' => 'error', 'message' => 'Menú no encontrado']);
+            return;
+        }
+
+        $menu->fill($data);
+        if ($menu->save()) {
+            // Sync items
+            $existingIds = [];
+            foreach ($items as $itemData) {
+                $itemId = $itemData['id'] ?? null;
+                if ($itemId) {
+                    $item = \Modules\Chascarrillo\Model\MenuItem::find($itemId);
+                } else {
+                    $item = new \Modules\Chascarrillo\Model\MenuItem();
+                    $item->menu_id = $menu->id;
+                }
+
+                if ($item) {
+                    $item->fill($itemData);
+                    $item->is_active = true;
+                    $item->save();
+                    $existingIds[] = $item->id;
+                }
+            }
+
+            // Remove items not in the list
+            \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)
+                ->whereNotIn('id', $existingIds)
+                ->delete();
+
+            $this->jsonResponse(['status' => 'success', 'message' => 'Menú guardado correctamente']);
+        } else {
+            $this->jsonResponse(['status' => 'error', 'message' => 'Error al guardar el menú']);
+        }
     }
 }

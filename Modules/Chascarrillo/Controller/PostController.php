@@ -34,9 +34,9 @@ use Modules\Chascarrillo\Model\Tag;
 use Modules\Chascarrillo\Service\SyncService;
 
 #[Menu(
-    menu: 'main_menu',
-    label: 'Gestión Chascarrillos',
-    icon: 'fas fa-laugh-squint',
+    menu: 'admin_sidebar',
+    label: 'Chascarrillos (Posts)',
+    icon: 'fas fa-newspaper',
     order: 40,
     permission: 'Chascarrillo.Post.doIndex'
 )]
@@ -75,7 +75,10 @@ class PostController extends ResourceController
     protected function getModelClass(): array
     {
         return [
-            'general' => Post::class,
+            'general' => [
+                'model' => Post::class,
+                'conditions' => ['type' => 'post']
+            ],
         ];
     }
 
@@ -173,6 +176,8 @@ class PostController extends ResourceController
 
                 $this->addVariable('data', $data);
             }
+        } elseif ($this->recordId === 'new') {
+            $this->addVariable('data', ['type' => 'post', 'is_published' => false]);
         }
     }
 

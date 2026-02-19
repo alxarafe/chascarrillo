@@ -71,8 +71,8 @@
                         {{ \Alxarafe\Lib\Trans::_('documentation') }}
                     </a>
                     <ul class="dropdown-menu shadow border-0" aria-labelledby="docsDropdown">
-                        <li><a class="dropdown-item" href="https://docs.alxarafe.es" target="_blank">{{ \Alxarafe\Lib\Trans::_('spanish') ?? 'Español' }}</a></li>
-                        <li><a class="dropdown-item" href="https://docs.alxarafe.com" target="_blank">{{ \Alxarafe\Lib\Trans::_('english') ?? 'Inglés' }}</a></li>
+                        <li><a class="dropdown-item" href="https://docs.alxarafe.com/es" target="_blank">{{ \Alxarafe\Lib\Trans::_('spanish') ?? 'Español' }}</a></li>
+                        <li><a class="dropdown-item" href="https://docs.alxarafe.com/en" target="_blank">{{ \Alxarafe\Lib\Trans::_('english') ?? 'Inglés' }}</a></li>
                     </ul>
                 </li>
             </ul>

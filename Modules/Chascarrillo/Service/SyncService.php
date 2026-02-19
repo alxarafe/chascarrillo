@@ -82,7 +82,7 @@ class SyncService
                     'meta_title' => $meta['meta_title'] ?? $meta['title'] ?? null,
                     'meta_keywords' => $meta['meta_keywords'] ?? $meta['keywords'] ?? null,
                     'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? null,
-                    'in_menu' => $meta['in_menu'] ?? ($type === 'page' ? true : false),
+                    'in_menu' => $meta['in_menu'] ?? false,
                     'menu_order' => $meta['menu_order'] ?? 0,
                 ];
 
@@ -221,6 +221,9 @@ class SyncService
         // Add pages marked as 'in_menu'
         $pages = Post::where('type', 'page')->where('in_menu', true)->get();
         foreach ($pages as $page) {
+            if ($page->slug === 'index') {
+                continue;
+            }
             $exists = \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)
                 ->where('url', 'index.php?module=Chascarrillo&controller=Page&action=show&slug=' . $page->slug)
                 ->exists();

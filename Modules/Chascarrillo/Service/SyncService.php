@@ -35,6 +35,9 @@ class SyncService
 
             // Sync Assets
             $results['assets'] = self::syncAssets($contentBase);
+
+            // Sync Menus
+            self::syncMenus();
         } catch (\Throwable $t) {
             $results['success'] = false;
             $results['error'] = $t->getMessage();
@@ -190,5 +193,46 @@ class SyncService
             $count++;
         }
         return $count;
+    }
+
+    private static function syncMenus(): void
+    {
+        $menu = \Modules\Chascarrillo\Model\Menu::firstOrCreate(
+            ['slug' => 'header-menu'],
+            ['name' => 'Menú Principal']
+        );
+
+        // Always ensure Home and Blog are there if empty
+        if ($menu->items()->count() === 0) {
+            \Modules\Chascarrillo\Model\MenuItem::create([
+                'menu_id' => $menu->id,
+                'label' => 'Inicio',
+                'url' => 'index.php',
+                'order' => 0
+            ]);
+            \Modules\Chascarrillo\Model\MenuItem::create([
+                'menu_id' => $menu->id,
+                'label' => 'Laboratorio',
+                'url' => 'index.php?module=Chascarrillo&controller=Blog',
+                'order' => 10
+            ]);
+        }
+
+        // Add pages marked as 'in_menu'
+        $pages = Post::where('type', 'page')->where('in_menu', true)->get();
+        foreach ($pages as $page) {
+            $exists = \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)
+                ->where('url', 'index.php?module=Chascarrillo&controller=Page&action=show&slug=' . $page->slug)
+                ->exists();
+
+            if (!$exists) {
+                \Modules\Chascarrillo\Model\MenuItem::create([
+                    'menu_id' => $menu->id,
+                    'label' => $page->title,
+                    'url' => 'index.php?module=Chascarrillo&controller=Page&action=show&slug=' . $page->slug,
+                    'order' => 20 + ($page->menu_order * 5)
+                ]);
+            }
+        }
     }
 }

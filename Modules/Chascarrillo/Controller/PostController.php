@@ -72,21 +72,16 @@ class PostController extends ResourceController
     }
 
     #[\Override]
-    protected function getModelClass(): array
+    protected function getModelClass(): string
     {
-        return [
-            'general' => [
-                'model' => Post::class,
-                'conditions' => ['type' => 'post']
-            ],
-        ];
+        return Post::class;
     }
 
     #[\Override]
     protected function beforeList()
     {
         $status = $_GET['filter_general_status'] ?? '';
-        $query = Post::query();
+        $query = Post::where('type', 'post');
 
         if ($status === 'published') {
             $query->where('is_published', true)

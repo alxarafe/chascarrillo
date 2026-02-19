@@ -30,14 +30,9 @@ class PageAdminController extends ResourceController
     }
 
     #[\Override]
-    protected function getModelClass(): array
+    protected function getModelClass(): string
     {
-        return [
-            'general' => [
-                'model' => Post::class,
-                'conditions' => ['type' => 'page']
-            ],
-        ];
+        return Post::class;
     }
 
     #[\Override]

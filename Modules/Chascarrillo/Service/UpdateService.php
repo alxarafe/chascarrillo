@@ -7,7 +7,7 @@ use Alxarafe\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.6.13';
+    public const VERSION = 'v0.6.14';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -105,6 +105,8 @@ class UpdateService
             'config.json',
             '.env',
             "$publicDir/.htaccess",
+            "$publicDir/uploads",
+            "Content",
             "storage",
             "var",
             "vendor" // Usually vendor should be handled by composer, but if it is a deploy zip it might be there

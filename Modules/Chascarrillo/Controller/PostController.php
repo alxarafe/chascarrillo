@@ -21,10 +21,17 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
+if (is_dir(__DIR__ . '/../../../Content')) {
+    define('CHASCARRILLO_SYNC_MENU', 'main_menu');
+} else {
+    define('CHASCARRILLO_SYNC_MENU', 'none');
+}
+
+use Alxarafe\Attribute\Menu;
 use Alxarafe\Base\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Tag;
-use Alxarafe\Attribute\Menu;
+use Modules\Chascarrillo\Service\SyncService;
 
 #[Menu(
     menu: 'main_menu',
@@ -48,7 +55,7 @@ class PostController extends ResourceController
             'info',
             'right',
             'url',
-            'index.php?module=Chascarrillo&controller=Post&method=sync'
+            'index.php?module=Chascarrillo&controller=Post&action=sync'
         );
     }
 
@@ -201,51 +208,38 @@ class PostController extends ResourceController
         parent::handleRequest();
     }
 
+    #[Menu(
+        menu: CHASCARRILLO_SYNC_MENU,
+        label: 'Sincronizar Markdown',
+        icon: 'fas fa-sync',
+        order: 45,
+        url: 'index.php?module=Chascarrillo&controller=Post&action=sync',
+        permission: 'Chascarrillo.Post.doSync'
+    )]
     public function doSync(): bool
     {
-        $contentBase = constant('APP_PATH') . '/Content';
+        $confirm = $_POST['confirm'] ?? $_GET['confirm'] ?? false;
 
-        // Ensure Content directories exist
-        $this->ensureContentDirectory($contentBase . '/posts', constant('APP_PATH') . '/Modules/Chascarrillo/posts');
-        $this->ensureContentDirectory($contentBase . '/pages', constant('APP_PATH') . '/Modules/Chascarrillo/pages');
-        if (!is_dir($contentBase . '/images')) mkdir($contentBase . '/images', 0755, true);
-        if (!is_dir($contentBase . '/videos')) mkdir($contentBase . '/videos', 0755, true);
+        if (!$confirm) {
+            $this->setDefaultTemplate('post/sync');
+            return true;
+        }
 
-        $results = [];
+        $results = SyncService::syncAll();
 
-        // Sync Content
-        $results['posts'] = \Alxarafe\Service\MarkdownSyncService::sync($contentBase . '/posts', Post::class);
-        $results['pages'] = \Alxarafe\Service\MarkdownSyncService::sync($contentBase . '/pages', Post::class);
+        if (!$results['success']) {
+            \Alxarafe\Lib\Messages::addError("Error crítico: " . $results['error']);
+        } else {
+            \Alxarafe\Lib\Messages::addMessage("Sincronización completa: Contenido y Multimedia.");
+        }
 
-        // Sync Assets
-        $mediaController = new MediaController();
-        $mediaController->doSync();
-
-        \Alxarafe\Lib\Messages::addMessage("Sincronización completa: Contenido y Multimedia.");
+        $this->addVariable('results', $results);
 
         if (isset($_GET['ajax'])) {
-            $this->jsonResponse(['status' => 'success', 'results' => $results]);
+            $this->jsonResponse(['status' => $results['success'] ? 'success' : 'error', 'results' => $results]);
         } else {
-            \Alxarafe\Lib\Functions::httpRedirect(static::url());
+            $this->setDefaultTemplate('post/sync');
         }
         return true;
-    }
-
-    /**
-     * Ensures a content directory exists. If not, copies content from an example directory.
-     */
-    private function ensureContentDirectory(string $target, string $source): void
-    {
-        if (!is_dir($target)) {
-            mkdir($target, 0755, true);
-        }
-
-        // If empty, copy from source
-        if (count(array_diff(scandir($target), ['.', '..'])) === 0 && is_dir($source)) {
-            $files = array_diff(scandir($source), ['.', '..']);
-            foreach ($files as $file) {
-                copy($source . '/' . $file, $target . '/' . $file);
-            }
-        }
     }
 }

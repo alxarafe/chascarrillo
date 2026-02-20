@@ -26,7 +26,7 @@ class SyncService
             // Ensure directories and initial content
             self::ensureContentDirectory($contentBase . '/posts', constant('APP_PATH') . '/Modules/Chascarrillo/posts');
             self::ensureContentDirectory($contentBase . '/pages', constant('APP_PATH') . '/Modules/Chascarrillo/pages');
-            self::ensureDirectory($contentBase . '/images');
+            self::ensureContentDirectory($contentBase . '/images', constant('APP_PATH') . '/Modules/Chascarrillo/images');
             self::ensureDirectory($contentBase . '/videos');
 
             // Sync Content
@@ -83,6 +83,7 @@ class SyncService
                     'meta_keywords' => $meta['meta_keywords'] ?? $meta['keywords'] ?? null,
                     'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? null,
                     'in_menu' => $meta['in_menu'] ?? false,
+                    'menu_label' => $meta['menu_label'] ?? null,
                     'menu_order' => $meta['menu_order'] ?? 0,
                 ];
 
@@ -202,40 +203,42 @@ class SyncService
             ['name' => 'Menú Principal']
         );
 
-        // Always ensure Home and Blog are there if empty
-        if ($menu->items()->count() === 0) {
-            \Modules\Chascarrillo\Model\MenuItem::create([
-                'menu_id' => $menu->id,
-                'label' => 'Inicio',
-                'url' => 'index.php',
-                'order' => 0
-            ]);
-            \Modules\Chascarrillo\Model\MenuItem::create([
-                'menu_id' => $menu->id,
-                'label' => 'Laboratorio',
-                'url' => 'index.php?module=Chascarrillo&controller=Blog',
-                'order' => 10
-            ]);
-        }
+        // Clear existing items for a fresh sync
+        \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)->delete();
 
-        // Add pages marked as 'in_menu'
-        $pages = Post::where('type', 'page')->where('in_menu', true)->get();
+        // 1. Home (Inicio) - We use the 'index' page if it exists
+        $indexPage = Post::where('slug', 'index')->first();
+        \Modules\Chascarrillo\Model\MenuItem::create([
+            'menu_id' => $menu->id,
+            'label' => $indexPage->menu_label ?? 'Inicio',
+            'url' => '/',
+            'order' => 1
+        ]);
+
+        // 2. Add pages marked as 'in_menu' (except index as it's already 'Inicio')
+        $pages = Post::where('type', 'page')
+            ->where('in_menu', true)
+            ->where('slug', '!=', 'index')
+            ->orderBy('menu_order', 'ASC')
+            ->get();
+
+        $order = 10;
         foreach ($pages as $page) {
-            if ($page->slug === 'index') {
-                continue;
-            }
-            $exists = \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)
-                ->where('url', 'index.php?module=Chascarrillo&controller=Page&action=show&slug=' . $page->slug)
-                ->exists();
-
-            if (!$exists) {
-                \Modules\Chascarrillo\Model\MenuItem::create([
-                    'menu_id' => $menu->id,
-                    'label' => $page->title,
-                    'url' => 'index.php?module=Chascarrillo&controller=Page&action=show&slug=' . $page->slug,
-                    'order' => 20 + ($page->menu_order * 5)
-                ]);
-            }
+            \Modules\Chascarrillo\Model\MenuItem::create([
+                'menu_id' => $menu->id,
+                'label' => $page->menu_label ?? $page->title,
+                'url' => '/' . $page->slug,
+                'order' => $order
+            ]);
+            $order += 10;
         }
+
+        // 3. Laboratorio (Blog)
+        \Modules\Chascarrillo\Model\MenuItem::create([
+            'menu_id' => $menu->id,
+            'label' => 'Laboratorio',
+            'url' => '/blog',
+            'order' => $order
+        ]);
     }
 }

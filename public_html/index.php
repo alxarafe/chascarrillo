@@ -104,4 +104,4 @@ if ($config && isset($config->main)) {
 }
 
 // Step 4: Run the Application!
-WebDispatcher::dispatch('Chascarrillo', 'Blog', 'index');
+WebDispatcher::dispatch('Chascarrillo', 'Page', 'show');

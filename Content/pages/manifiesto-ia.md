@@ -4,7 +4,8 @@ slug: manifiesto-ia
 type: page
 meta_description: La IA es el obrero, no el arquitecto. Mi enfoque para integrar la generación de código sin comprometer la escalabilidad.
 in_menu: true
-menu_order: 10
+menu_label: Manifiesto IA
+menu_order: 3
 ---
 
 # Manifiesto IA. La plomada del arquitecto

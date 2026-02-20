@@ -1,6 +1,15 @@
 @extends('partial.layout.main')
 
 @section('content')
+@if(isset($page))
+<div class="hero-section">
+    <div class="container">
+        <div class="page-content">
+            {!! $page->getRenderedContent() !!}
+        </div>
+    </div>
+</div>
+@else
 <div class="hero-section">
     <div class="container">
         <h1 class="hero-title">{{ \Alxarafe\Lib\Trans::_('hero_title') }}</h1>
@@ -8,11 +17,9 @@
             {{ \Alxarafe\Lib\Trans::_('hero_subtitle') }}<br>
             <small class="text-muted">{{ \Alxarafe\Lib\Trans::_('no_cookies') }}</small>
         </p>
-        <div class="mt-5">
-            <a href="/el-framework-alxarafe" class="btn-alx">{{ \Alxarafe\Lib\Trans::_('learn_more') }}</a>
-        </div>
     </div>
 </div>
+@endif
 
 <div class="container py-5">
     <div class="row g-4 justify-content-center">

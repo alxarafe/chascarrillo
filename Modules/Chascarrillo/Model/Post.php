@@ -29,6 +29,7 @@ use Alxarafe\Base\Model\Model;
  * @property string $slug
  * @property string $type
  * @property bool $in_menu
+ * @property string|null $menu_label
  * @property int $menu_order
  * @property string|null $meta_title
  * @property string|null $meta_description
@@ -49,6 +50,7 @@ class Post extends Model
         'slug',
         'type', // post, page
         'in_menu',
+        'menu_label',
         'menu_order',
         'meta_title',
         'meta_description',

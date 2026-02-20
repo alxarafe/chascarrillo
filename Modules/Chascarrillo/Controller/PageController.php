@@ -21,7 +21,7 @@ class PageController extends GenericPublicController
 
     public function doShow(): bool
     {
-        $slug = $_GET['slug'] ?? '';
+        $slug = $_GET['slug'] ?? 'index';
 
         try {
             $page = Post::where('slug', $slug)
@@ -32,8 +32,23 @@ class PageController extends GenericPublicController
         }
 
         if (!$page) {
-            \Alxarafe\Lib\Functions::httpRedirect(\CoreModules\Admin\Controller\ErrorController::url(true));
+            \Alxarafe\Lib\Messages::addError("Página no encontrada: $slug");
+            \Alxarafe\Lib\Functions::httpRedirect('index.php?module=Chascarrillo&controller=Blog');
             return false;
+        }
+
+        if ($slug === 'index') {
+            $this->setDefaultTemplate('index');
+            // Load latest posts for the home page
+            $posts = Post::where('type', 'post')
+                ->where('is_published', true)
+                ->where('published_at', '<=', date('Y-m-d H:i:s'))
+                ->orderBy('published_at', 'DESC')
+                ->take(3)
+                ->get();
+            $this->addVariable('posts', $posts);
+        } else {
+            $this->setDefaultTemplate('page/show');
         }
 
         $this->title = !empty($page->meta_title) ? $page->meta_title : $page->title;

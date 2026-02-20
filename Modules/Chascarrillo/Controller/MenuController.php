@@ -79,7 +79,7 @@ class MenuController extends ResourceController
 
         if ($this->recordId && $this->recordId !== 'new') {
             $menu = Menu::find($this->recordId);
-            if ($menu) {
+            if ($menu instanceof Menu) {
                 $data = $menu->toArray();
                 $data['items'] = $menu->items()->get()->toArray();
                 $this->addVariable('data', $data);
@@ -107,7 +107,7 @@ class MenuController extends ResourceController
         }
 
         $menu->fill($data);
-        if ($menu->save()) {
+        if ($menu instanceof Menu && $menu->save()) {
             // Sync items
             $existingIds = [];
             foreach ($items as $itemData) {
@@ -116,10 +116,10 @@ class MenuController extends ResourceController
                     $item = \Modules\Chascarrillo\Model\MenuItem::find($itemId);
                 } else {
                     $item = new \Modules\Chascarrillo\Model\MenuItem();
-                    $item->menu_id = $menu->id;
+                    $item->menu_id = (int)$menu->id;
                 }
 
-                if ($item) {
+                if ($item instanceof \Modules\Chascarrillo\Model\MenuItem) {
                     $item->fill($itemData);
                     $item->is_active = true;
                     $item->save();

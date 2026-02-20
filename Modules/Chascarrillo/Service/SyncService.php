@@ -87,9 +87,10 @@ class SyncService
                     'menu_order' => $meta['menu_order'] ?? 0,
                 ];
 
+                /** @var \Modules\Chascarrillo\Model\Post|null $record */
                 $record = Post::where('slug', $slug)->first();
 
-                if ($record) {
+                if ($record instanceof Post) {
                     $record->update($attributes);
                     $summary['updated']++;
                 } else {
@@ -107,13 +108,16 @@ class SyncService
                             continue;
                         }
                         $tagSlug = \Illuminate\Support\Str::slug($tagName);
+                        /** @var \Modules\Chascarrillo\Model\Tag $tag */
                         $tag = \Modules\Chascarrillo\Model\Tag::firstOrCreate(
                             ['slug' => $tagSlug],
                             ['name' => $tagName, 'type' => 'tag']
                         );
                         $tagIds[] = $tag->id;
                     }
-                    $record->tags()->sync($tagIds);
+                    if ($record instanceof Post) {
+                        $record->tags()->sync($tagIds);
+                    }
                 }
 
                 $summary['processed']++;
@@ -198,6 +202,7 @@ class SyncService
 
     private static function syncMenus(): void
     {
+        /** @var \Modules\Chascarrillo\Model\Menu $menu */
         $menu = \Modules\Chascarrillo\Model\Menu::firstOrCreate(
             ['slug' => 'header-menu'],
             ['name' => 'Menú Principal']
@@ -207,6 +212,7 @@ class SyncService
         \Modules\Chascarrillo\Model\MenuItem::where('menu_id', $menu->id)->delete();
 
         // 1. Home (Inicio) - We use the 'index' page if it exists
+        /** @var \Modules\Chascarrillo\Model\Post|null $indexPage */
         $indexPage = Post::where('slug', 'index')->first();
         \Modules\Chascarrillo\Model\MenuItem::create([
             'menu_id' => $menu->id,

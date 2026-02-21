@@ -20,6 +20,15 @@
                     @endif
 
                     <div class="mt-4 mb-2">
+                        <!-- Debug: Admin check -->
+                        @if(\Alxarafe\Lib\Auth::isLogged() && \Alxarafe\Lib\Auth::$user->is_admin)
+                            <div class="alert alert-info py-1 px-3 d-inline-block small mb-3">Modo Administrador activo</div>
+                            <div class="mb-4">
+                                <a href="/index.php?module=Chascarrillo&controller=Post&action=edit&id={{ $post->id }}" class="btn btn-warning rounded-pill px-4 shadow-sm">
+                                    <i class="fas fa-edit me-2"></i> Editar este Chascarrillo
+                                </a>
+                            </div>
+                        @endif
                         @foreach($post->tags->where('type', 'category') as $category)
                             <a href="/blog?category={{ $category->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none me-2 p-2 px-3">
                                 <i class="fas fa-folder me-1"></i>{{ $category->name }}

@@ -34,7 +34,7 @@ use Modules\Chascarrillo\Model\Tag;
 use Modules\Chascarrillo\Service\SyncService;
 
 #[Menu(
-    menu: 'admin_sidebar',
+    menu: 'main_menu',
     label: 'Chascarrillos (Posts)',
     icon: 'fas fa-newspaper',
     order: 40,
@@ -55,7 +55,7 @@ class PostController extends ResourceController
             'info',
             'right',
             'url',
-            'index.php?module=Chascarrillo&controller=Post&action=sync'
+            '/index.php?module=Chascarrillo&controller=Post&action=sync'
         );
     }
 
@@ -213,19 +213,20 @@ class PostController extends ResourceController
         label: 'Sincronizar Markdown',
         icon: 'fas fa-sync',
         order: 45,
-        url: 'index.php?module=Chascarrillo&controller=Post&action=sync',
+        url: '/index.php?module=Chascarrillo&controller=Post&action=sync',
         permission: 'Chascarrillo.Post.doSync'
     )]
     public function doSync(): bool
     {
         $confirm = $_POST['confirm'] ?? $_GET['confirm'] ?? false;
+        $rebuild = $_POST['rebuild'] ?? $_GET['rebuild'] ?? false;
 
         if (!$confirm) {
             $this->setDefaultTemplate('post/sync');
             return true;
         }
 
-        $results = SyncService::syncAll();
+        $results = SyncService::syncAll((bool)$rebuild);
 
         if (!$results['success']) {
             \Alxarafe\Lib\Messages::addError("Error crítico: " . $results['error']);

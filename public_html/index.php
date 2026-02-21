@@ -18,7 +18,7 @@ $config = Config::getConfig();
 
 // --- Stability Guardian: If no config exists, redirect to the Installation/Config page ---
 if (!$config && (($_GET['controller'] ?? '') !== 'Config')) {
-    header('Location: index.php?module=Admin&controller=Config');
+    header('Location: /index.php?module=Admin&controller=Config');
     exit;
 }
 

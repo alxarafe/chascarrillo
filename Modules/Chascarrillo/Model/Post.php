@@ -102,6 +102,17 @@ class Post extends Model
     }
 
     /**
+     * Devuelve la URL pública del post o página.
+     */
+    public function getUrl(): string
+    {
+        if ($this->type === 'page') {
+            return '/' . $this->slug;
+        }
+        return '/blog/' . $this->slug;
+    }
+
+    /**
      * Relación con los tags.
      */
     public function tags(): \Illuminate\Database\Eloquent\Relations\BelongsToMany

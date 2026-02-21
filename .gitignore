@@ -1,9 +1,9 @@
 /vendor/
 /var/
 /tmp/
+/Content/
 .env
-config.json
 .phpunit.cache
 .idea
 .vscode
-/Content/
+config.json

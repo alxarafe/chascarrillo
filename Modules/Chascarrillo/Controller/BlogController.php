@@ -31,7 +31,7 @@ use Alxarafe\Attribute\Menu;
     icon: 'fas fa-newspaper',
     order: 41,
     visibility: 'public',
-    url: 'index.php?module=Chascarrillo&controller=Blog&action=index'
+    url: '/index.php?module=Chascarrillo&controller=Blog&action=index'
 )]
 class BlogController extends GenericPublicController
 {
@@ -108,9 +108,15 @@ class BlogController extends GenericPublicController
         $slug = $_GET['slug'] ?? '';
 
         try {
-            $post = Post::where('slug', $slug)
-                ->where('is_published', true)
-                ->first();
+            $query = Post::where('slug', $slug);
+
+            // Si no es admin, solo ver publicados
+            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+                $query->where('is_published', true)
+                    ->where('published_at', '<=', date('Y-m-d H:i:s'));
+            }
+
+            $post = $query->first();
         } catch (\Exception $e) {
             $post = null;
         }
@@ -125,6 +131,7 @@ class BlogController extends GenericPublicController
         $this->addVariable('meta_keywords', $post->meta_keywords);
         $this->addVariable('post', $post);
         $this->addVariable('content', $post->getRenderedContent());
+        $this->setDefaultTemplate('blog/show');
 
         return true;
     }

@@ -19,26 +19,36 @@ class PageController extends GenericPublicController
         return 'Page';
     }
 
+    public function doIndex(): bool
+    {
+        return $this->doShow();
+    }
+
     public function doShow(): bool
     {
         $slug = $_GET['slug'] ?? 'index';
 
         try {
-            $page = Post::where('slug', $slug)
-                ->where('is_published', true)
-                ->first();
+            $query = Post::where('slug', $slug);
+
+            // Si no es admin, solo ver publicados
+            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+                $query->where('is_published', true);
+            }
+
+            $page = $query->first();
         } catch (\Exception $e) {
             $page = null;
         }
 
         if (!$page) {
             \Alxarafe\Lib\Messages::addError("Página no encontrada: $slug");
-            \Alxarafe\Lib\Functions::httpRedirect('index.php?module=Chascarrillo&controller=Blog');
+            \Alxarafe\Lib\Functions::httpRedirect('/index.php?module=Chascarrillo&controller=Blog');
             return false;
         }
 
         if ($slug === 'index') {
-            $this->setDefaultTemplate('index');
+            $this->setDefaultTemplate('page/chascarrillo/index');
             // Load latest posts for the home page
             $posts = Post::where('type', 'post')
                 ->where('is_published', true)

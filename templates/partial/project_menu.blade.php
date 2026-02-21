@@ -66,15 +66,6 @@
                     @endif
                 @endforeach
                 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ \Alxarafe\Lib\Trans::_('documentation') }}
-                    </a>
-                    <ul class="dropdown-menu shadow border-0" aria-labelledby="docsDropdown">
-                        <li><a class="dropdown-item" href="https://docs.alxarafe.com/es" target="_blank">{{ \Alxarafe\Lib\Trans::_('spanish') ?? 'Español' }}</a></li>
-                        <li><a class="dropdown-item" href="https://docs.alxarafe.com/en" target="_blank">{{ \Alxarafe\Lib\Trans::_('english') ?? 'Inglés' }}</a></li>
-                    </ul>
-                </li>
             </ul>
 
             <!-- Right Side Tools -->

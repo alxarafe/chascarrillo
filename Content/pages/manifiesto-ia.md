@@ -19,10 +19,19 @@ Delegar la construcción de software en una IA sin una supervisión sénior conl
 - **Falta de Memoria Arquitectónica**: La herramienta no entiende cómo debe evolucionar el software a dos o cinco años vista; solo entiende el prompt actual.
 
 ## Poner los ladrillos derechos
+
+:::: feature-grid
+::: feature-item width="6"
 En Alxarafe aplicamos lo que llamamos la «Plomada Técnica». Al igual que un albañil experimentado no confía ciegamente en la velocidad de quien pone los ladrillos, nosotros supervisamos cada línea generada:
 - **Nivelación desde la base**: Si un ladrillo se pone torcido en la primera hilada, el muro entero colapsará cuando alcance su altura máxima. El diseño de la base es exclusivamente humano.
 - **Refactorización Obligatoria**: Todo código sugerido por la IA es revisado, limpiado y adaptado a los estándares PSR y a la arquitectura propia del framework.
 - **Orientación, no delegación**: La IA es un obrero excelente, pero requiere una orientación constante para seguir el camino arquitectónico más apropiado.
+:::
+
+::: feature-item width="6" order="reverse"
+![Poniendo los ladrillos derechos con IA](/uploads/images/creando-un-muro-perfecto.png)
+:::
+::::
 
 ## El factor humano como garantía
 Nuestra metodología no rechaza la IA, la domestica. El valor de un desarrollador sénior hoy no reside en escribir código más rápido, sino en tener el criterio para decidir qué código debe permanecer y cuál debe ser descartado por el bien del proyecto.

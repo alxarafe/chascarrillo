@@ -9,7 +9,7 @@ use Alxarafe\Base\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Post;
 
 #[Menu(
-    menu: 'admin_sidebar',
+    menu: 'main_menu',
     label: 'Páginas Estáticas',
     icon: 'fas fa-file-alt',
     order: 42,

@@ -18,7 +18,7 @@ use Alxarafe\Lib\Messages;
 use Alxarafe\Lib\Functions;
 
 #[Menu(
-    menu: 'admin_sidebar',
+    menu: 'main_menu',
     label: 'Multimedia',
     icon: 'fas fa-photo-video',
     order: 48,

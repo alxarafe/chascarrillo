@@ -25,4 +25,9 @@
         </div>
     </div>
 </div>
+
+<style>
+    .content-body h1 { font-size: calc(1.475rem + 2.7vw); font-weight: 800; color: var(--bs-secondary); margin-bottom: 1.5rem; }
+    .content-body h2 { font-weight: 700; color: var(--alx-secondary); margin-top: 2.5rem; margin-bottom: 1.25rem; }
+</style>
 @endsection

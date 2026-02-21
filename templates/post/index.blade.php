@@ -90,9 +90,14 @@
                                     {{ $post->published_at ? $post->published_at->format('d-m-Y H:i') : '-' }}
                                 </td>
                                 <td class="pe-4 text-end">
-                                    <a href="index.php?module=Chascarrillo&controller=Post&id={{ $post->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar">
-                                        <i class="fas fa-pen text-primary"></i>
-                                    </a>
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{{ $post->getUrl() }}" target="_blank" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Ver (Preview)">
+                                            <i class="fas fa-eye text-info"></i>
+                                        </a>
+                                        <a href="index.php?module=Chascarrillo&controller=Post&id={{ $post->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar">
+                                            <i class="fas fa-pen text-primary"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

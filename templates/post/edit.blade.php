@@ -10,7 +10,12 @@
                         <i class="fas fa-edit me-2 text-primary"></i> 
                         {{ $recordId === 'new' ? 'Nuevo Chascarrillo' : 'Editar Chascarrillo' }}
                     </h5>
-                    <div>
+                    <div class="d-flex gap-2">
+                        @if($recordId !== 'new')
+                            <a href="{{ \Modules\Chascarrillo\Model\Post::find($recordId)?->getUrl() }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye me-1"></i> Ver post
+                            </a>
+                        @endif
                         <a href="{{ $me::url() }}" class="btn btn-outline-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i> Volver
                         </a>

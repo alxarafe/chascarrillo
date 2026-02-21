@@ -13,7 +13,7 @@ use Alxarafe\Component\Fields\Text;
 use stdClass;
 
 #[Menu(
-    menu: 'admin_sidebar',
+    menu: 'main_menu',
     parent: 'config',
     label: 'Worldsites',
     icon: 'fas fa-globe',

@@ -26,7 +26,7 @@ use Modules\Chascarrillo\Model\Menu;
 use Alxarafe\Attribute\Menu as MenuAttr;
 
 #[MenuAttr(
-    menu: 'admin_sidebar',
+    menu: 'main_menu',
     label: 'Menús del Sitio',
     icon: 'fas fa-bars',
     order: 47,

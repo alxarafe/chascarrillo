@@ -29,8 +29,19 @@
                         </div>
 
                         <div class="d-grid mt-4">
-                            <form action="index.php?module=Chascarrillo&controller=Post&action=sync" method="POST">
+                            <form action="/index.php?module=Chascarrillo&controller=Post&action=sync" method="POST">
                                 <input type="hidden" name="confirm" value="1">
+                                
+                                <div class="form-check mb-4 p-3 border rounded-3 bg-light">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="rebuild" value="1" id="rebuildCheck">
+                                    <label class="form-check-label fw-bold text-danger" for="rebuildCheck">
+                                        <i class="fas fa-trash-alt me-1"></i> Reconstrucción Total
+                                    </label>
+                                    <div class="form-text small">
+                                        Si marcas esta opción, se vaciará la base de datos de posts y páginas antes de importar los archivos MD. Útil para eliminar "enlaces fantasma" o contenido antiguo que ya no existe en tus archivos.
+                                    </div>
+                                </div>
+
                                 <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm w-100">
                                     <i class="fas fa-sync me-2"></i> Iniciar Sincronización Ahora
                                 </button>

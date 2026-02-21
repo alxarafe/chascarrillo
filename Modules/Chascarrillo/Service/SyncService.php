@@ -11,7 +11,7 @@ use Alxarafe\Lib\Messages;
 
 class SyncService
 {
-    public static function syncAll(): array
+    public static function syncAll(bool $clean = false): array
     {
         $contentBase = constant('APP_PATH') . '/Content';
         $results = [
@@ -19,10 +19,24 @@ class SyncService
             'pages' => ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'errors' => []],
             'assets' => 0,
             'success' => true,
-            'error' => null
+            'error' => null,
+            'cleaned' => $clean
         ];
 
         try {
+            if ($clean) {
+                // Clear existing content tables
+                $connection = \Illuminate\Database\Capsule\Manager::connection();
+                $connection->statement('SET FOREIGN_KEY_CHECKS=0;');
+                \Modules\Chascarrillo\Model\MenuItem::truncate();
+                \Modules\Chascarrillo\Model\Menu::truncate();
+                \Modules\Chascarrillo\Model\Tag::truncate();
+                $connection->table('post_tag')->truncate();
+                \Modules\Chascarrillo\Model\Post::truncate();
+                \Modules\Chascarrillo\Model\Media::truncate();
+                $connection->statement('SET FOREIGN_KEY_CHECKS=1;');
+            }
+
             // Ensure directories and initial content
             self::ensureContentDirectory($contentBase . '/posts', constant('APP_PATH') . '/Modules/Chascarrillo/posts');
             self::ensureContentDirectory($contentBase . '/pages', constant('APP_PATH') . '/Modules/Chascarrillo/pages');
@@ -81,7 +95,7 @@ class SyncService
                     'meta_description' => $meta['summary'] ?? $meta['meta_description'] ?? null,
                     'meta_title' => $meta['meta_title'] ?? $meta['title'] ?? null,
                     'meta_keywords' => $meta['meta_keywords'] ?? $meta['keywords'] ?? null,
-                    'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? null,
+                    'featured_image' => $meta['image'] ?? $meta['featured_image'] ?? $meta['feature_image'] ?? null,
                     'in_menu' => $meta['in_menu'] ?? false,
                     'menu_label' => $meta['menu_label'] ?? null,
                     'menu_order' => $meta['menu_order'] ?? 0,
@@ -100,24 +114,16 @@ class SyncService
 
                 // Sincronizar tags si existen en el meta
                 if (isset($meta['tags'])) {
-                    $tags = is_array($meta['tags']) ? $meta['tags'] : explode(',', (string)$meta['tags']);
-                    $tagIds = [];
-                    foreach ($tags as $tagName) {
-                        $tagName = trim($tagName);
-                        if (empty($tagName)) {
-                            continue;
-                        }
-                        $tagSlug = \Illuminate\Support\Str::slug($tagName);
-                        /** @var \Modules\Chascarrillo\Model\Tag $tag */
-                        $tag = \Modules\Chascarrillo\Model\Tag::firstOrCreate(
-                            ['slug' => $tagSlug],
-                            ['name' => $tagName, 'type' => 'tag']
-                        );
-                        $tagIds[] = $tag->id;
-                    }
-                    if ($record instanceof Post) {
-                        $record->tags()->sync($tagIds);
-                    }
+                    self::syncTags($record, $meta['tags'], 'tag');
+                }
+
+                // Sincronizar categorías si existen en el meta
+                if (isset($meta['categories'])) {
+                    self::syncTags($record, $meta['categories'], 'category');
+                }
+
+                if (isset($meta['category'])) {
+                    self::syncTags($record, $meta['category'], 'category');
                 }
 
                 $summary['processed']++;
@@ -246,5 +252,42 @@ class SyncService
             'url' => '/blog',
             'order' => $order
         ]);
+
+        $order += 10;
+
+        // 4. Documentación (Links externos)
+        \Modules\Chascarrillo\Model\MenuItem::create([
+            'menu_id' => $menu->id,
+            'label' => 'Documentación',
+            'url' => 'https://docs.alxarafe.com/es',
+            'target' => '_blank',
+            'order' => $order
+        ]);
+    }
+
+    private static function syncTags(Post $record, mixed $tags, string $type): void
+    {
+        $tags = is_array($tags) ? $tags : explode(',', (string)$tags);
+        $tagIds = [];
+        foreach ($tags as $tagName) {
+            $tagName = trim($tagName);
+            if (empty($tagName)) {
+                continue;
+            }
+            $tagSlug = \Illuminate\Support\Str::slug($tagName);
+            /** @var \Modules\Chascarrillo\Model\Tag $tag */
+            $tag = \Modules\Chascarrillo\Model\Tag::firstOrCreate(
+                ['slug' => $tagSlug],
+                ['name' => $tagName, 'type' => $type]
+            );
+            $tagIds[] = $tag->id;
+        }
+
+        if ($type === 'tag') {
+            $record->tags()->where('type', 'tag')->detach();
+        } else {
+            $record->tags()->where('type', 'category')->detach();
+        }
+        $record->tags()->attach($tagIds);
     }
 }

@@ -147,7 +147,7 @@
 
 <script>
 function updatePreview() {
-    const content = document.querySelector('textarea[name="data[content]"]').value;
+    const content = document.getElementById('post_content_editor').value;
     const previewContainer = document.getElementById('markdown-preview');
     
     // Show loading
@@ -205,7 +205,8 @@ function uploadFeaturedImage(input) {
             document.getElementById('image-preview-container').classList.remove('d-none');
             
             // Generate Markdown code for easy copy-paste
-            document.getElementById('markdown-code').value = '![' + document.getElementById('data[title]').value + '](' + data.url + ')';
+            const titleValue = document.getElementById('title')?.value || 'Imagen';
+            document.getElementById('markdown-code').value = '![' + titleValue + '](' + data.url + ')';
             document.getElementById('markdown-copy-container').classList.remove('d-none');
 
             // Trigger Change for autosave frameworks if any

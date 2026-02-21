@@ -139,7 +139,7 @@
 
 <script>
 function updatePreview() {
-    const content = document.querySelector('textarea[name="data[content]"]').value;
+    const content = document.getElementById('post_content_editor').value;
     const previewContainer = document.getElementById('markdown-preview');
     
     previewContainer.innerHTML = `

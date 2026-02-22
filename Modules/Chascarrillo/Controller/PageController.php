@@ -33,7 +33,8 @@ class PageController extends GenericPublicController
 
             // Si no es admin, solo ver publicados
             if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
-                $query->where('is_published', true);
+                $query->where('is_published', true)
+                    ->where('published_at', '<=', date('Y-m-d H:i:s'));
             }
 
             $page = $query->first();
@@ -50,12 +51,15 @@ class PageController extends GenericPublicController
         if ($slug === 'index') {
             $this->setDefaultTemplate('page/chascarrillo/index');
             // Load latest posts for the home page
-            $posts = Post::where('type', 'post')
-                ->where('is_published', true)
-                ->where('published_at', '<=', date('Y-m-d H:i:s'))
-                ->orderBy('published_at', 'DESC')
-                ->take(3)
-                ->get();
+            $query = Post::where('type', 'post')
+                ->orderBy('published_at', 'DESC');
+
+            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+                $query->where('is_published', true)
+                    ->where('published_at', '<=', date('Y-m-d H:i:s'));
+            }
+
+            $posts = $query->take(3)->get();
             $this->addVariable('posts', $posts);
         } else {
             $this->setDefaultTemplate('page/show');

@@ -8,6 +8,12 @@
                 <header class="mb-5 text-center">
                     <div class="text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 2px;">
                         {{ \Carbon\Carbon::parse($post->published_at)->format('d F, Y') }}
+                        
+                        @if(!$post->is_published)
+                            <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem; letter-spacing: 0;"><i class="fas fa-pencil-alt me-1"></i> BORRADOR</span>
+                        @elseif(\Carbon\Carbon::parse($post->published_at)->isFuture())
+                            <span class="badge bg-info text-dark ms-2" style="font-size: 0.7rem; letter-spacing: 0;"><i class="fas fa-clock me-1"></i> PROGRAMADO ({{ \Carbon\Carbon::parse($post->published_at)->format('H:i') }})</span>
+                        @endif
                     </div>
                     <h1 class="display-4 fw-bold mb-3" style="letter-spacing: -1px;">{{ $post->title }}</h1>
                     @if(!empty($post->featured_image))

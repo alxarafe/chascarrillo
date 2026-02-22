@@ -56,9 +56,12 @@ class BlogController extends GenericPublicController
         try {
             /** @var \Illuminate\Database\Eloquent\Builder $query */
             $query = Post::where('type', 'post')
-                ->where('is_published', true)
-                ->where('published_at', '<=', date('Y-m-d H:i:s'))
                 ->orderBy('published_at', 'DESC');
+
+            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+                $query->where('is_published', true)
+                    ->where('published_at', '<=', date('Y-m-d H:i:s'));
+            }
 
             if ($tagSlug) {
                 $query->whereHas('tags', function ($q) use ($tagSlug) {

@@ -26,6 +26,12 @@
                                 {{ \Carbon\Carbon::parse($post->published_at)->format('d F, Y') }}
                             </small>
 
+                            @if(!$post->is_published)
+                                <span class="badge bg-warning text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-pencil-alt me-1"></i> BORRADOR</span>
+                            @elseif(\Carbon\Carbon::parse($post->published_at)->isFuture())
+                                <span class="badge bg-info text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-clock me-1"></i> PROGRAMADO ({{ \Carbon\Carbon::parse($post->published_at)->format('H:i') }})</span>
+                            @endif
+
                             <div class="mt-2">
                                 @foreach($post->tags->where('type', 'category') as $category)
                                     <a href="/blog?category={{ $category->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none me-1" style="font-size: 0.7rem;">

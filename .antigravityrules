@@ -1,0 +1,4 @@
+# Antigravity Rules
+
+1. **Scripts and Testing**: Always create temporary or test scripts in the `/scripts/` folder. This folder is excluded from the Git repository. Never create scripts in the root directory or other tracked folders unless explicitly requested.
+2. **Commit Hygiene**: When pushing changes to Git, ensure that no temporary files, logs, or diagnostic scripts are included in the commit.

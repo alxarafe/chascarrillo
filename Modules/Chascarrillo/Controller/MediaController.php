@@ -62,7 +62,7 @@ class MediaController extends ResourceController
             'info',
             'right',
             'url',
-            'index.php?module=Chascarrillo&controller=Media&method=sync'
+            '/index.php?module=Chascarrillo&controller=Media&method=sync'
         );
     }
 

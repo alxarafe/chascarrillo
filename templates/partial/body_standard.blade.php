@@ -1,7 +1,10 @@
-<div id="id_container" class="id_container {{ \Alxarafe\Lib\Auth::isLogged() ? 'auth-mode' : 'public-mode' }}">
+@php
+    $hasSidebar = \Alxarafe\Lib\Auth::isLogged() && !empty($main_menu);
+@endphp
+<div id="id_container" class="id_container {{ $hasSidebar ? 'auth-mode' : 'public-mode' }}">
     
-    {{-- Show sidebar only if user is logged in --}}
-    @if(\Alxarafe\Lib\Auth::isLogged())
+    {{-- Show sidebar only if user is logged in and has menu items --}}
+    @if($hasSidebar)
         @include('partial.main_menu')
     @endif
 

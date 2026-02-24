@@ -46,7 +46,7 @@ class BackupController extends Controller
             exit;
         } catch (\Throwable $t) {
             Messages::addError("Error al exportar: " . $t->getMessage());
-            Functions::httpRedirect('index.php?module=Chascarrillo&controller=Backup');
+            Functions::httpRedirect(static::url());
         }
     }
 
@@ -63,7 +63,7 @@ class BackupController extends Controller
             Messages::addError("Por favor, selecciona un archivo ZIP.");
         }
 
-        Functions::httpRedirect('index.php?module=Chascarrillo&controller=Backup');
+        Functions::httpRedirect(static::url());
         return true;
     }
 
@@ -76,7 +76,7 @@ class BackupController extends Controller
             Messages::addError("Error al reiniciar desde Content: " . $t->getMessage());
         }
 
-        Functions::httpRedirect('index.php?module=Chascarrillo&controller=Backup');
+        Functions::httpRedirect(static::url());
         return true;
     }
 

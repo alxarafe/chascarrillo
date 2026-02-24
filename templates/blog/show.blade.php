@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8" style="max-width: 720px;">
+        <div class="col-lg-12">
             <article class="blog-post">
                 <header class="mb-5 text-center">
                     <div class="text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 2px;">

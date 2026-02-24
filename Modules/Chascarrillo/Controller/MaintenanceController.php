@@ -37,7 +37,7 @@ class MaintenanceController extends Controller
         $updateInfo = UpdateService::checkUpdate();
         if ($updateInfo && isset($updateInfo['zipball_url'])) {
             if (UpdateService::applyUpdate($updateInfo['zipball_url'])) {
-                Functions::httpRedirect('index.php?module=Chascarrillo&controller=Maintenance');
+                Functions::httpRedirect(static::url());
             }
         } else {
             \Alxarafe\Lib\Messages::addError("No hay actualizaciones disponibles.");

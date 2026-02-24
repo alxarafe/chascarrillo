@@ -30,7 +30,7 @@
     </div>
 
     <div class="mt-auto border-top p-4">
-        <a href="index.php?module=Admin&controller=Auth&action=logout" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
+        <a href="/index.php?module=Admin&controller=Auth&action=logout" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
             <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
         </a>
     </div>

@@ -91,13 +91,13 @@
                             <span class="small fw-bold d-none d-sm-inline">{{ \Alxarafe\Lib\Auth::$user->username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
-                            <li><a class="dropdown-item" href="index.php?module=Admin&controller=Dashboard"><i class="fas fa-cog me-2"></i> Dashboard Admin</a></li>
+                            <li><a class="dropdown-item" href="/index.php?module=Admin&controller=Dashboard"><i class="fas fa-cog me-2"></i> Dashboard Admin</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> {{ \Alxarafe\Lib\Trans::_('logout') }}</a></li>
+                            <li><a class="dropdown-item text-danger" href="/index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> {{ \Alxarafe\Lib\Trans::_('logout') }}</a></li>
                         </ul>
                     </div>
                 @else
-                    <a href="index.php?module=Admin&controller=Auth" class="btn btn-sm btn-outline-primary px-3 rounded-pill" title="Acceso Usuarios">
+                    <a href="/index.php?module=Admin&controller=Auth" class="btn btn-sm btn-outline-primary px-3 rounded-pill" title="Acceso Usuarios">
                         <i class="fas fa-lock small"></i>
                     </a>
                 @endif

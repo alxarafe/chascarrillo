@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-{{ isset($hasSidebar) && $hasSidebar ? '8' : '10' }}">
             <article class="post-content">
                 <header class="mb-5">
                     <div class="d-flex align-items-center gap-2 mb-3">

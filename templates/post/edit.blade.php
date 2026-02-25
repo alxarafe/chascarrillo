@@ -24,12 +24,13 @@
                 <div class="card-body p-4">
                     <x-form.form id="post-edit-form" method="POST" :action="$me::url('save')">
                         <input type="hidden" name="id" value="{{ $recordId }}">
+                        <input type="hidden" name="action" value="save">
 
                         <div class="row">
                             <!-- Left Column: Content -->
                             <div class="col-lg-8">
                                 <div class="mb-3">
-                                    <x-form.text :field="'title'" :label="$fields['title']->label" :value="$data['title'] ?? ''" />
+                                    <x-form.text :field="'title'" :label="$fields['title']->getLabel()" :value="$data['title'] ?? ''" />
                                 </div>
 
                                 <!-- Tabs for Markdown/Preview -->
@@ -50,7 +51,7 @@
                                     <!-- Markdown Editor -->
                                     <div class="tab-pane fade show active" id="edit-pane" role="tabpanel">
                                         <div class="mb-3">
-                                            <x-form.textarea :field="'content'" :label="$fields['content']->label" 
+                                            <x-form.textarea :field="'content'" :label="$fields['content']->getLabel()" 
                                                             :rows="20" id="post_content_editor" 
                                                             :value="$data['content'] ?? ''" />
                                         </div>
@@ -76,13 +77,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">Publicación</h6>
                                         <div class="mb-3">
-                                            <x-form.text :field="'slug'" :label="$fields['slug']->label" :value="$data['slug'] ?? ''" />
+                                            <x-form.text :field="'slug'" :label="$fields['slug']->getLabel()" :value="$data['slug'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            <x-form.boolean :field="'is_published'" :label="$fields['is_published']->label" :value="$data['is_published'] ?? false" />
+                                            <x-form.boolean :field="'is_published'" :label="$fields['is_published']->getLabel()" :value="$data['is_published'] ?? false" />
                                         </div>
                                         <div class="mb-3">
-                                            <x-form.datetime :field="'published_at'" :label="$fields['published_at']->label" :value="$data['published_at'] ?? ''" />
+                                            <x-form.datetime :field="'published_at'" :label="$fields['published_at']->getLabel()" :value="$data['published_at'] ?? ''" />
                                         </div>
                                     </div>
                                 </div>
@@ -117,13 +118,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">SEO (Opcional)</h6>
                                         <div class="mb-3">
-                                            <x-form.text :field="'meta_title'" :label="$fields['meta_title']->label" :value="$data['meta_title'] ?? ''" />
+                                            <x-form.text :field="'meta_title'" :label="$fields['meta_title']->getLabel()" :value="$data['meta_title'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            <x-form.textarea :field="'meta_description'" :label="$fields['meta_description']->label" :rows="3" :value="$data['meta_description'] ?? ''" />
+                                            <x-form.textarea :field="'meta_description'" :label="$fields['meta_description']->getLabel()" :rows="3" :value="$data['meta_description'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            <x-form.text :field="'meta_keywords'" :label="$fields['meta_keywords']->label" :value="$data['meta_keywords'] ?? ''" />
+                                            <x-form.text :field="'meta_keywords'" :label="$fields['meta_keywords']->getLabel()" :value="$data['meta_keywords'] ?? ''" />
                                         </div>
                                     </div>
                                 </div>

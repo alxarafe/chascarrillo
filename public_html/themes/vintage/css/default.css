@@ -1,0 +1,97 @@
+/* Vintage Theme for Alxarafe */
+:root {
+    --vtg-bg: #f4ecd8;
+    --vtg-sidebar: #e8dfc4;
+    --vtg-text: #4e342e;
+    --vtg-accent: #8d6e63;
+    --vtg-border: #d7ccc8;
+    --vtg-primary: #5d4037;
+}
+
+body {
+    background-color: var(--vtg-bg);
+    color: var(--vtg-text);
+    font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: var(--vtg-sidebar) !important;
+    border-right: 2px solid var(--vtg-accent);
+}
+
+.sidebar-heading {
+    color: var(--vtg-primary) !important;
+    border-bottom-color: var(--vtg-accent) !important;
+    font-variant: small-caps;
+}
+
+.sidebar .nav-link {
+    color: var(--vtg-text) !important;
+    border-bottom: 1px dashed transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--vtg-bg) !important;
+    color: var(--vtg-primary) !important;
+    border-bottom: 1px dashed var(--vtg-accent);
+}
+
+/* Header / Top Bar */
+header.bg-light {
+    background-color: var(--vtg-sidebar) !important;
+    border-bottom: 2px solid var(--vtg-accent) !important;
+}
+
+/* Cards */
+.card {
+    background-color: #fff9f0;
+    border: 1px solid var(--vtg-border);
+    box-shadow: 3px 3px 0px var(--vtg-accent) !important;
+}
+
+.card-header {
+    background-color: var(--vtg-bg);
+    border-bottom: 1px solid var(--vtg-border);
+    font-weight: bold;
+    color: var(--vtg-primary);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--vtg-primary);
+    border-color: var(--vtg-primary);
+    color: #fff;
+    border-radius: 0;
+    box-shadow: 2px 2px 0px #000;
+}
+
+.btn-primary:hover {
+    background-color: var(--vtg-accent);
+    border-color: var(--vtg-accent);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #000;
+}
+
+/* Tables */
+.table {
+    color: var(--vtg-text);
+}
+
+.table thead th {
+    background-color: var(--vtg-bg);
+    border-bottom: 2px solid var(--vtg-accent);
+    color: var(--vtg-primary);
+}
+
+/* Inputs */
+.form-control, .form-select {
+    background-color: #fffcf5;
+    border: 1px solid var(--vtg-accent);
+    border-radius: 0;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(141, 110, 99, 0.25);
+    border-color: var(--vtg-primary);
+}

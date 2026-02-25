@@ -1,40 +1,37 @@
 <!DOCTYPE html>
 <html lang="{!! $me->config->main->language ?? 'es' !!}" data-theme="chascarrillo">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{!! $me->title !!} | Chascarrillo</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    {{-- Chascarrillo-specific: Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script
-        src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
-        integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
-        crossorigin="anonymous"></script>
-    
-    <!-- Theme CSS -->
-    <link href="/themes/chascarrillo/css/alxarafe.css?v={{ time() }}" rel="stylesheet">
+    {{-- Override theme_css section to load Chascarrillo CSS instead of default --}}
+    @section('theme_css')
+        <link href="/themes/chascarrillo/css/alxarafe.css?v={{ time() }}" rel="stylesheet">
+    @endsection
+
+    {{-- Framework head: Bootstrap, Font Awesome, DebugBar, sidebar CSS --}}
+    @include('partial.head')
+
+    {{-- Chascarrillo-specific: Content styles --}}
     <link href="/css/alxarafe-content.css?v={{ time() }}" rel="stylesheet">
 
+    {{-- SEO: Hreflang Tags --}}
     @if(class_exists(\Modules\Chascarrillo\Service\DomainService::class))
         @foreach(\Modules\Chascarrillo\Service\DomainService::getHreflangs() as $lang => $url)
             <link rel="alternate" hreflang="{{ $lang }}" href="{{ $url }}" />
         @endforeach
         <link rel="alternate" hreflang="x-default" href="{{ \Modules\Chascarrillo\Service\DomainService::getTargetUrl('en') }}" />
     @endif
-
-    {!! $me->getRenderHeader() !!}
 </head>
 <body class="chascarrillo-theme theme-chascarrillo">
+    @include('partial.domain_suggestion')
     @php
         $_body = 'body_' . ($empty ?? false ? 'empty' : 'standard');
     @endphp
-    @include('partial.domain_suggestion')
     @include('partial.' . $_body)
     @include('partial.footer')
 </body>
 </html>
+

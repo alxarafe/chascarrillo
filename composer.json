@@ -33,5 +33,13 @@
         "psr-4": {
             "Modules\\": "Modules/"
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php scripts/publish_theme_assets.php"
+        ],
+        "post-update-cmd": [
+            "php scripts/publish_theme_assets.php"
+        ]
     }
 }

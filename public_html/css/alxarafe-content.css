@@ -200,3 +200,124 @@
     border: 2px solid #FFF;
     border-radius: 0;
 }
+
+/* Feature Grid (Homepage Cards) */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin: 2.5rem 0;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 991px) {
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 575px) {
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feature-card {
+    background: #fff;
+    border: 1px solid var(--alx-content-border, #f1f1f2);
+    border-radius: 1rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--alx-content-primary, #2235dd);
+}
+
+.feature-card h2,
+.feature-card h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--alx-content-secondary, #05060f);
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #6b7280;
+    flex-grow: 1;
+}
+
+.feature-card a {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.8rem;
+    border: 2px solid var(--alx-content-primary, #2235dd);
+    border-radius: 9999px;
+    color: var(--alx-content-primary, #2235dd);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.feature-card a:hover {
+    background: var(--alx-content-primary, #2235dd);
+    color: #fff;
+}
+
+/* Theme Overrides for Feature Cards */
+[data-theme="cyberpunk"] .feature-card {
+    background: rgba(31, 40, 51, 0.9);
+    border-color: #1f2833;
+}
+
+[data-theme="cyberpunk"] .feature-card h2,
+[data-theme="cyberpunk"] .feature-card h3 {
+    color: #66fcf1;
+}
+
+[data-theme="cyberpunk"] .feature-card p {
+    color: #c5c6c7;
+}
+
+[data-theme="high-contrast"] .feature-card {
+    background: #000;
+    border: 3px solid #fff;
+    border-radius: 0;
+}
+
+[data-theme="high-contrast"] .feature-card h2,
+[data-theme="high-contrast"] .feature-card h3 {
+    color: #fff;
+}
+
+[data-theme="high-contrast"] .feature-card p {
+    color: #ffff00;
+}
+
+[data-theme="high-contrast"] .feature-card a {
+    border-color: #ffff00;
+    color: #ffff00;
+    border-radius: 0;
+}
+
+[data-theme="high-contrast"] .feature-card a:hover {
+    background: #ffff00;
+    color: #000;
+}

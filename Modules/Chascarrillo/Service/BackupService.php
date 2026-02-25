@@ -19,11 +19,15 @@ class BackupService
      */
     public static function exportToZip(): string
     {
-        $zipPath = constant('APP_PATH') . '/tmp/backup_' . date('Ymd_His') . '.zip';
+        $tmpDir = constant('APP_PATH') . '/tmp';
+        if (!is_dir($tmpDir)) {
+            @mkdir($tmpDir, 0755, true);
+        }
+        $zipPath = $tmpDir . '/backup_' . date('Ymd_His') . '.zip';
         $zip = new ZipArchive();
 
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new \Exception("Cannot create zip file");
+            throw new \Exception("Cannot create zip file at $zipPath. Ensure the tmp directory is writable.");
         }
 
         // Add config.json
@@ -86,14 +90,15 @@ class BackupService
     public static function resetDbFromContent(): array
     {
         // Truncate tables
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        $capsule = \Illuminate\Database\Capsule\Manager::connection();
+        $capsule->statement('SET FOREIGN_KEY_CHECKS=0;');
         MenuItem::truncate();
         Menu::truncate();
-        \Illuminate\Support\Facades\DB::table('post_tag')->truncate();
+        $capsule->table('post_tag')->truncate();
         Tag::truncate();
         Media::truncate();
         Post::truncate();
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        $capsule->statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Run Sync
         return SyncService::syncAll();

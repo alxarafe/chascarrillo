@@ -1,18 +1,15 @@
 @php
     $hasSidebar = \Alxarafe\Lib\Auth::isLogged() && !empty($main_menu);
 @endphp
-<div id="id_container" class="id_container {{ $hasSidebar ? 'auth-mode' : 'public-mode' }}">
+<div id="id_container" class="id_container {{ $hasSidebar ? 'has-sidebar' : 'no-sidebar' }}">
     
-    {{-- Show sidebar only if user is logged in and has menu items --}}
     @if($hasSidebar)
         @include('partial.main_menu')
     @endif
 
     <div id="id-right" class="w-100">
-        {{-- Main navigation header (Project Menu) is always visible --}}
         @include('partial.project_menu')
         
-        <!-- Alerts/Messages -->
         <div class="container mt-3">
              @include('partial.alerts')
         </div>
@@ -24,11 +21,8 @@
 <style>
     .id_container { display: flex; min-height: 100vh; }
     
-    /* Public Mode: Sidebars hidden */
-    .public-mode .sidebar { display: none !important; }
-
-    /* Auth Mode: Sidebar on the left */
-    .auth-mode .sidebar { 
+    /* Chascarrillo Sidebar Customization */
+    .has-sidebar .sidebar { 
         display: block !important;
         width: 250px !important; 
         min-width: 250px !important;
@@ -41,14 +35,15 @@
         transition: all 0.3s ease;
     }
     
-    .auth-mode #id-right { 
+    .has-sidebar #id-right { 
         flex: 1 !important;
-        margin-left: 0 !important;
+        margin-left: 0 !important; /* Reset margin from head.blade.php since we use flex */
         min-width: 0;
     }
 
     @media (max-width: 991px) {
-        .auth-mode .sidebar { position: fixed !important; left: -250px !important; }
-        .auth-mode.toggled .sidebar { left: 0 !important; }
+        .has-sidebar .sidebar { position: fixed !important; left: -250px !important; }
+        .has-sidebar.toggled .sidebar { left: 0 !important; }
     }
 </style>
+

@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d730eeb95f72610ca9ddc75538c1169d",
+    "content-hash": "7e99cf568154455e67d95a451f7524bd",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "dev-main",
+            "version": "v0.3.0",
             "dist": {
                 "type": "path",
                 "url": "../alxarafe",
-                "reference": "123bfc7f33bbc7d50671b181015b91c2b26ae627"
+                "reference": "7474ac9be484a3918fcdedecfb975050e7b06a7d"
             },
             "require": {
                 "erusev/parsedown": "^1.7",
@@ -7602,9 +7602,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "alxarafe/alxarafe": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

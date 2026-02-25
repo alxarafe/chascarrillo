@@ -1,7 +1,13 @@
+@props([
+    'field' => null,
+    'name' => null,
+    'label' => '',
+    'value' => '',
+    'help' => '',
+])
+
 @php
-    $name = $name ?? "data[" . ($field ?? "") . "]";
-    $label = $label ?? "";
-    $value = $value ?? "";
+    $name = $name ?? ($field ? "data[" . $field . "]" : '');
     
     // Format value for datetime-local input (YYYY-MM-DDTHH:MM)
     if ($value) {
@@ -13,9 +19,12 @@
     }
 @endphp
 
-<div class="mb-3">
-    @if($label)
-        <label for="{{ $name }}" class="form-label">{{ $label }}</label>
-    @endif
-    <input type="datetime-local" name="{{ $name }}" id="{{ $name }}" class="form-control" value="{{ $value }}">
-</div>
+<x-form.input 
+    type="datetime-local" 
+    :name="$name" 
+    :label="$label" 
+    :value="$value" 
+    :help="$help" 
+    {{ $attributes }} 
+/>
+

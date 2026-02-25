@@ -1,16 +1,21 @@
-@extends('layout.clean')
+@extends('partial.layout.main')
 
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
-                <div class="card-header bg-primary text-white p-4 border-0 d-flex align-items-center">
-                    <i class="fas fa-file-archive fa-2x me-3"></i>
-                    <div>
-                        <h2 class="mb-0 fw-bold">Gestión de Copias de Seguridad</h2>
-                        <p class="mb-0 opacity-75">Importación, exportación y sincronización de contenidos</p>
+                <div class="card-header bg-primary text-white p-4 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-archive fa-2x me-3"></i>
+                        <div>
+                            <h2 class="mb-0 fw-bold">Gestión de Copias de Seguridad</h2>
+                            <p class="mb-0 opacity-75">Importación, exportación y sincronización de contenidos</p>
+                        </div>
                     </div>
+                    <a href="/" class="btn btn-light rounded-pill px-4 fw-bold">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+                    </a>
                 </div>
                 <div class="card-body p-5">
                     

@@ -22,15 +22,14 @@
                     </div>
                 </div>
                 <div class="card-body p-4">
-                    <form id="post-edit-form" method="POST" action="{{ $me::url('save') }}">
-                        <input type="hidden" name="action" value="save">
+                    <x-form.form id="post-edit-form" method="POST" :action="$me::url('save')">
                         <input type="hidden" name="id" value="{{ $recordId }}">
 
                         <div class="row">
                             <!-- Left Column: Content -->
                             <div class="col-lg-8">
                                 <div class="mb-3">
-                                    @include('form.text', array_merge($fields['title']->jsonSerialize(), ['value' => $data['title'] ?? '']))
+                                    <x-form.text :field="'title'" :label="$fields['title']->label" :value="$data['title'] ?? ''" />
                                 </div>
 
                                 <!-- Tabs for Markdown/Preview -->
@@ -51,11 +50,9 @@
                                     <!-- Markdown Editor -->
                                     <div class="tab-pane fade show active" id="edit-pane" role="tabpanel">
                                         <div class="mb-3">
-                                            @include('form.textarea', array_merge($fields['content']->jsonSerialize(), [
-                                                'rows' => 20,
-                                                'id' => 'post_content_editor',
-                                                'value' => $data['content'] ?? ''
-                                            ]))
+                                            <x-form.textarea :field="'content'" :label="$fields['content']->label" 
+                                                            :rows="20" id="post_content_editor" 
+                                                            :value="$data['content'] ?? ''" />
                                         </div>
                                     </div>
                                     
@@ -79,13 +76,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">Publicación</h6>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['slug']->jsonSerialize(), ['value' => $data['slug'] ?? '']))
+                                            <x-form.text :field="'slug'" :label="$fields['slug']->label" :value="$data['slug'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.boolean', array_merge($fields['is_published']->jsonSerialize(), ['value' => $data['is_published'] ?? false]))
+                                            <x-form.boolean :field="'is_published'" :label="$fields['is_published']->label" :value="$data['is_published'] ?? false" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.datetime', array_merge($fields['published_at']->jsonSerialize(), ['value' => $data['published_at'] ?? '']))
+                                            <x-form.datetime :field="'published_at'" :label="$fields['published_at']->label" :value="$data['published_at'] ?? ''" />
                                         </div>
                                     </div>
                                 </div>
@@ -120,13 +117,13 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">SEO (Opcional)</h6>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['meta_title']->jsonSerialize(), ['value' => $data['meta_title'] ?? '']))
+                                            <x-form.text :field="'meta_title'" :label="$fields['meta_title']->label" :value="$data['meta_title'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.textarea', array_merge($fields['meta_description']->jsonSerialize(), ['rows' => 3, 'value' => $data['meta_description'] ?? '']))
+                                            <x-form.textarea :field="'meta_description'" :label="$fields['meta_description']->label" :rows="3" :value="$data['meta_description'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['meta_keywords']->jsonSerialize(), ['value' => $data['meta_keywords'] ?? '']))
+                                            <x-form.text :field="'meta_keywords'" :label="$fields['meta_keywords']->label" :value="$data['meta_keywords'] ?? ''" />
                                         </div>
                                     </div>
                                 </div>
@@ -138,7 +135,7 @@
                                 <i class="fas fa-save me-2"></i> Guardar Chascarrillo
                             </button>
                         </div>
-                    </form>
+                    </x-form.form>
                 </div>
             </div>
         </div>

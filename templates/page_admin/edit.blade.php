@@ -17,8 +17,7 @@
                     </div>
                 </div>
                 <div class="card-body p-4">
-                    <form id="page-edit-form" method="POST" action="{{ $me::url('save') }}">
-                        <input type="hidden" name="action" value="save">
+                    <x-form.form id="page-edit-form" method="POST" :action="$me::url('save')">
                         <input type="hidden" name="id" value="{{ $recordId }}">
                         <input type="hidden" name="data[type]" value="page">
 
@@ -26,7 +25,7 @@
                             <!-- Left Column: Content -->
                             <div class="col-lg-8">
                                 <div class="mb-3">
-                                    @include('form.text', array_merge($fields['title']->jsonSerialize(), ['value' => $data['title'] ?? '']))
+                                    <x-form.text :field="'title'" :label="$fields['title']->label" :value="$data['title'] ?? ''" />
                                 </div>
 
                                 <!-- Tabs for Markdown/Preview -->
@@ -47,11 +46,9 @@
                                     <!-- Markdown Editor -->
                                     <div class="tab-pane fade show active" id="edit-pane" role="tabpanel">
                                         <div class="mb-3">
-                                            @include('form.textarea', array_merge($fields['content']->jsonSerialize(), [
-                                                'rows' => 20,
-                                                'id' => 'post_content_editor',
-                                                'value' => $data['content'] ?? ''
-                                            ]))
+                                            <x-form.textarea :field="'content'" :label="$fields['content']->label" 
+                                                            :rows="20" id="post_content_editor" 
+                                                            :value="$data['content'] ?? ''" />
                                         </div>
                                     </div>
                                     
@@ -75,10 +72,10 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">Publicación</h6>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['slug']->jsonSerialize(), ['value' => $data['slug'] ?? '']))
+                                            <x-form.text :field="'slug'" :label="$fields['slug']->label" :value="$data['slug'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.boolean', array_merge($fields['is_published']->jsonSerialize(), ['value' => $data['is_published'] ?? true]))
+                                            <x-form.boolean :field="'is_published'" :label="$fields['is_published']->label" :value="$data['is_published'] ?? true" />
                                         </div>
                                     </div>
                                 </div>
@@ -87,10 +84,10 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">Menú de Navegación</h6>
                                         <div class="mb-3">
-                                            @include('form.boolean', array_merge($fields['in_menu']->jsonSerialize(), ['value' => $data['in_menu'] ?? false]))
+                                            <x-form.boolean :field="'in_menu'" :label="$fields['in_menu']->label" :value="$data['in_menu'] ?? false" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.integer', array_merge($fields['menu_order']->jsonSerialize(), ['value' => $data['menu_order'] ?? 0]))
+                                            <x-form.text type="number" :field="'menu_order'" :label="$fields['menu_order']->label" :value="$data['menu_order'] ?? 0" />
                                         </div>
                                         <small class="text-muted">Determina si la página aparece en el menú superior público y en qué orden.</small>
                                     </div>
@@ -100,7 +97,7 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold mb-3">SEO (Opcional)</h6>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['meta_title']->jsonSerialize(), ['value' => $data['meta_title'] ?? '']))
+                                            <x-form.text :field="'meta_title'" :label="$fields['meta_title']->label" :value="$data['meta_title'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Imagen Destacada (URL)</label>
@@ -115,10 +112,10 @@
                                             @endif
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.textarea', array_merge($fields['meta_description']->jsonSerialize(), ['rows' => 3, 'value' => $data['meta_description'] ?? '']))
+                                            <x-form.textarea :field="'meta_description'" :label="$fields['meta_description']->label" :rows="3" :value="$data['meta_description'] ?? ''" />
                                         </div>
                                         <div class="mb-3">
-                                            @include('form.text', array_merge($fields['meta_keywords']->jsonSerialize(), ['value' => $data['meta_keywords'] ?? '']))
+                                            <x-form.text :field="'meta_keywords'" :label="$fields['meta_keywords']->label" :value="$data['meta_keywords'] ?? ''" />
                                         </div>
                                     </div>
                                 </div>
@@ -130,7 +127,7 @@
                                 <i class="fas fa-save me-2"></i> Guardar Página
                             </button>
                         </div>
-                    </form>
+                    </x-form.form>
                 </div>
             </div>
         </div>

@@ -25,14 +25,6 @@ use Alxarafe\Base\Controller\GenericPublicController;
 use Modules\Chascarrillo\Model\Post;
 use Alxarafe\Attribute\Menu;
 
-#[Menu(
-    menu: 'main_menu',
-    label: 'Ver Chascarrillos',
-    icon: 'fas fa-newspaper',
-    order: 41,
-    visibility: 'public',
-    url: '/index.php?module=Chascarrillo&controller=Blog&action=index'
-)]
 class BlogController extends GenericPublicController
 {
     #[\Override]

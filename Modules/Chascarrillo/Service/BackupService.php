@@ -63,19 +63,26 @@ class BackupService
                 self::recursiveCopy($extractPath . '/Content', constant('APP_PATH') . '/Content');
             }
 
-            // 2. Update config.json (Merge logic if needed, or just replace)
-            // Warning: replacing config.json might break DB connection if the zip has different credentials.
-            // Let's at least keep a backup of the current one.
+            // 2. Update config.json (Safely merge)
+            // Warning: replacing config.json entirely breaks the app if paths or DB settings differ.
             if (file_exists($extractPath . '/config.json')) {
-                $currentConfig = json_decode(file_get_contents(constant('APP_PATH') . '/config.json'), true);
+                $currentFile = constant('APP_PATH') . '/config.json';
+                $currentConfig = file_exists($currentFile) ? json_decode(file_get_contents($currentFile), true) : [];
                 $newConfig = json_decode(file_get_contents($extractPath . '/config.json'), true);
 
-                // We preserve current DB settings to avoid disconnection issues during import
+                // Preserve CRITICAL environment-specific settings
                 if (isset($currentConfig['db'])) {
                     $newConfig['db'] = $currentConfig['db'];
                 }
 
-                file_put_contents(constant('APP_PATH') . '/config.json', json_encode($newConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                if (isset($currentConfig['main'])) {
+                    $newConfig['main']['path'] = $currentConfig['main']['path'] ?? $newConfig['main']['path'] ?? null;
+                    $newConfig['main']['url'] = $currentConfig['main']['url'] ?? $newConfig['main']['url'] ?? null;
+                    // We might also want to preserve the theme if it's environment-specific, 
+                    // but usually, the user wants to import the look.
+                }
+
+                file_put_contents($currentFile, json_encode($newConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             }
 
             self::recursiveRmdir($extractPath);

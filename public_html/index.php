@@ -64,7 +64,8 @@ if ($config && isset($config->db)) {
 if (!defined('BASE_URL')) {
     $baseUrl = $config->main->url ?? null;
     if (!$baseUrl && isset($_SERVER['HTTP_HOST'])) {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ||
+            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? "https" : "http";
         $baseUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
     }
     define('BASE_URL', rtrim($baseUrl ?? 'http://localhost', '/'));

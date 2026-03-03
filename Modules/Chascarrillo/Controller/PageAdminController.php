@@ -17,6 +17,8 @@ use Modules\Chascarrillo\Model\Post;
 )]
 class PageAdminController extends ResourceController
 {
+    protected bool $useTabs = true;
+
     #[\Override]
     public static function getModuleName(): string
     {
@@ -57,6 +59,10 @@ class PageAdminController extends ResourceController
                 'type' => 'boolean',
                 'label' => 'Publicada'
             ],
+            'status' => [
+                'type' => 'text',
+                'label' => 'Workflow'
+            ],
         ];
     }
 
@@ -64,24 +70,44 @@ class PageAdminController extends ResourceController
     protected function getEditFields(): array
     {
         return [
-            'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-            'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
-            'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-            'in_menu' => new \Alxarafe\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
-            'menu_order' => new \Alxarafe\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
-            'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicada'),
-            'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-            'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
-            'meta_keywords' => new \Alxarafe\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
-            'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
-            'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
+            'content' => [
+                'label' => 'Contenido',
+                'fields' => [
+                    'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
+                ]
+            ],
+            'settings' => [
+                'label' => 'Ajustes',
+                'fields' => [
+                    'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'in_menu' => new \Alxarafe\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
+                    'menu_order' => new \Alxarafe\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
+                    'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicada'),
+                    'status' => new \Alxarafe\Component\Fields\Select(
+                        'status',
+                        'Estado Workflow',
+                        collect((new Post())->getStates())->mapWithKeys(fn($s, $k) => [$k => $s['label']])->toArray()
+                    ),
+                    'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
+                ]
+            ],
+            'seo' => [
+                'label' => 'SEO',
+                'fields' => [
+                    'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                    'meta_keywords' => new \Alxarafe\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
+                ]
+            ]
         ];
     }
 
     #[\Override]
     protected function beforeEdit()
     {
-        $this->setDefaultTemplate('page_admin/edit');
+        // $this->setDefaultTemplate('page_admin/edit');
 
         if ($this->recordId === 'new') {
             $this->addVariable('data', ['type' => 'page', 'is_published' => true, 'in_menu' => false]);

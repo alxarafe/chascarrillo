@@ -23,3 +23,13 @@ spanish: Español
 english: Inglés
 documentation: Documentación
 choose_a_style: Elige un estilo
+themes: Temas
+
+# Configuración
+blog_settings: Ajustes del Blog
+blog_title: Título del Blog
+posts_per_page: Entradas por página
+excerpt_length: Longitud del extracto (caracteres)
+social_networks: Redes Sociales
+blog_settings_desc: Configura la apariencia y el comportamiento de tu laboratorio.
+social_networks_desc: Enlaces a tus perfiles sociales que aparecerán en el sitio.

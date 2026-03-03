@@ -7,14 +7,20 @@
         @include('partial.main_menu')
     @endif
 
-    <div id="id-right" class="w-100">
-        @include('partial.project_menu')
-        
-        <div class="container mt-3">
-             @include('partial.alerts')
-        </div>
+        <div id="id-right">
+            @include('partial.project_menu')
+            
+            <div class="container-fluid mt-3 px-4">
+                 <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0 fw-bold">{!! $me->title !!}</h2>
+                    <div class="d-flex gap-2">
+                        @yield('header_actions')
+                    </div>
+                 </div>
+                 @include('partial.alerts')
+            </div>
 
-        @yield('content')
-    </div>
+            @yield('content')
+        </div>
 </div>
 

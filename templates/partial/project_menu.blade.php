@@ -7,6 +7,9 @@
     // Social links from config
     $githubUrl = $config->social->github ?? 'https://github.com/alxarafe/alxarafe';
     $linkedinUrl = $config->social->linkedin ?? 'https://www.linkedin.com/in/rsanjose/';
+    $twitterUrl = $config->social->twitter ?? null;
+    $instagramUrl = $config->social->instagram ?? null;
+    $facebookUrl = $config->social->facebook ?? null;
 
     // Get menu pages dynamically (legacy / simple pages)
     // $menuPages = \Modules\Chascarrillo\Model\Post::getMenuPages();
@@ -72,8 +75,11 @@
             <div class="header-tools d-flex align-items-center gap-2 gap-xl-3 mt-3 mt-lg-0">
                 
                 <div class="d-none d-xxl-flex gap-3 me-2">
-                    <a href="{{ $githubUrl }}" target="_blank" class="text-secondary small" title="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="{{ $linkedinUrl }}" target="_blank" class="text-secondary small" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    @if($githubUrl)<a href="{{ $githubUrl }}" target="_blank" class="text-secondary small" title="GitHub"><i class="fab fa-github"></i></a>@endif
+                    @if($linkedinUrl)<a href="{{ $linkedinUrl }}" target="_blank" class="text-secondary small" title="LinkedIn"><i class="fab fa-linkedin"></i></a>@endif
+                    @if($twitterUrl)<a href="{{ $twitterUrl }}" target="_blank" class="text-secondary small" title="Twitter / X"><i class="fab fa-x-twitter"></i></a>@endif
+                    @if($instagramUrl)<a href="{{ $instagramUrl }}" target="_blank" class="text-secondary small" title="Instagram"><i class="fab fa-instagram"></i></a>@endif
+                    @if($facebookUrl)<a href="{{ $facebookUrl }}" target="_blank" class="text-secondary small" title="Facebook"><i class="fab fa-facebook"></i></a>@endif
                 </div>
 
                 @include('partial/theme_switcher')

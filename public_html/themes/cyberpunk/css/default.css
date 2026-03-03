@@ -159,6 +159,14 @@ body {
     text-transform: uppercase;
     transition: all 0.2s;
     border-left: 3px solid transparent;
+    font-size: 0.85rem;
+}
+
+.cyber-link i {
+    font-size: 1.25rem;
+    min-width: 1.5rem;
+    text-align: center;
+    filter: drop-shadow(0 0 2px #45a29e);
 }
 
 .cyber-link:hover {
@@ -168,6 +176,11 @@ body {
     color: #66fcf1 !important;
     border-left: 3px solid #66fcf1;
     text-shadow: 0 0 8px #66fcf1;
+}
+
+.cyber-link:hover i {
+    filter: drop-shadow(0 0 6px #66fcf1);
+    color: #66fcf1 !important;
 }
 
 .glitch {
@@ -238,7 +251,7 @@ body {
 .col-md-3 .sidebar {
     position: relative !important;
     /* Force static inside column */
-    height: 100vh;
+    min-height: 100%;
     border-right: 2px solid #66fcf1;
     background-color: rgba(31, 40, 51, 0.9) !important;
 }
@@ -465,6 +478,7 @@ span.phpdebugbar-badge,
     color: #0000ff !important;
     text-shadow: none !important;
 }
+
 /* --- RETRO ARCADE BUTTONS (Menu Items) --- */
 .cyber-retro-container {
     perspective: 1000px;
@@ -506,10 +520,26 @@ span.phpdebugbar-badge,
     background: #45a29e;
     opacity: 0.5;
 }
-.pixel-tl { top: -3px; left: -3px; }
-.pixel-tr { top: -3px; right: -3px; }
-.pixel-bl { bottom: -3px; left: -3px; }
-.pixel-br { bottom: -3px; right: -3px; }
+
+.pixel-tl {
+    top: -3px;
+    left: -3px;
+}
+
+.pixel-tr {
+    top: -3px;
+    right: -3px;
+}
+
+.pixel-bl {
+    bottom: -3px;
+    left: -3px;
+}
+
+.pixel-br {
+    bottom: -3px;
+    right: -3px;
+}
 
 /* HOVER EFFECT: Simulation of a pressed arcade button */
 .cyber-retro-button:hover {

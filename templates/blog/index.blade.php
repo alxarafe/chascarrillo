@@ -56,7 +56,7 @@
                         
                         <div class="post-excerpt mb-3 text-secondary">
                             <p class="mb-0">
-                                {{ \Illuminate\Support\Str::limit(strip_tags($post->meta_description ?? $post->content), 250) }}
+                                {{ $post->getExcerpt() }}
                             </p>
                         </div>
 

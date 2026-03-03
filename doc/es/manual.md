@@ -12,6 +12,7 @@ Este sistema ha sido diseñado para desarrolladores y creadores que buscan el co
 5. [Sincronización mediante Markdown](markdown.md)
 6. [Guía de Despliegue y Sustitución de WordPress](despliegue.md)
 7. [Actualizaciones del Sistema](actualizaciones.md)
+8. [Configuración del Sitio](configuracion.md)
 
 ---
 

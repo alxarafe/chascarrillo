@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Model;
 
 use Alxarafe\Base\Model\Model;
+use Alxarafe\Base\Model\Trait\HasWorkflow;
 
 /**
  * @property int $id
@@ -43,7 +44,18 @@ use Alxarafe\Base\Model\Model;
  */
 class Post extends Model
 {
+    use HasWorkflow;
+
     protected $table = 'posts';
+
+    protected string $stateField = 'status';
+
+    protected array $states = [
+        0 => ['label' => 'Borrador', 'transitions' => [1, 9]],
+        1 => ['label' => 'Validado', 'transitions' => [2, 0, 9]],
+        2 => ['label' => 'Publicado', 'transitions' => [9, 1]],
+        9 => ['label' => 'Archivado', 'transitions' => [0]],
+    ];
 
     protected $fillable = [
         'title',
@@ -59,6 +71,7 @@ class Post extends Model
         'content',
         'is_published',
         'published_at',
+        'status',
     ];
 
     protected $casts = [
@@ -66,6 +79,7 @@ class Post extends Model
         'in_menu' => 'boolean',
         'menu_order' => 'integer',
         'published_at' => 'datetime',
+        'status' => 'integer',
     ];
 
     /**
@@ -85,10 +99,14 @@ class Post extends Model
     }
 
     /**
-     * Devuelve un extracto del contenido.
+     * Devuelve un extracto del contenido basado en la configuración.
      */
-    public function getExcerpt(int $limit = 140): string
+    public function getExcerpt(?int $limit = null): string
     {
+        if ($limit === null) {
+            $config = \Alxarafe\Base\Config::getConfig();
+            $limit = (int)($config->blog->excerpt_length ?? 140);
+        }
         $text = strip_tags($this->content ?? '');
         return \Illuminate\Support\Str::limit($text, $limit);
     }

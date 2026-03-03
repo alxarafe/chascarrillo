@@ -262,10 +262,172 @@ body {
     color: #065f46;
 }
 
-.content-body img {
+.post-content img {
     max-width: 100%;
     height: auto;
     border-radius: 1rem;
-    margin: 2rem 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin: 2.5rem auto;
+    display: block;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Blog Post Specifics */
+.blog-post {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.post-content {
+    color: #334155;
+}
+
+.post-content p,
+.post-content li {
+    margin-bottom: 1.5rem;
+}
+
+.post-content h2,
+.post-content h3 {
+    margin-top: 3.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--alx-secondary);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* Feature Grid and Items */
+.feature-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 3.5rem 0;
+    align-items: stretch;
+}
+
+.feature-card {
+    flex: 1;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid var(--alx-border);
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(34, 53, 221, 0.05);
+    color: var(--alx-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-content h2,
+.feature-content h3 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.feature-item {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-item img {
+    margin: 0;
+    width: 100% !important;
+}
+
+.feature-item h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .feature-grid {
+        flex-direction: column;
+    }
+
+    .feature-card,
+    .feature-item {
+        width: 100%;
+    }
+}
+
+/* Administrative & Form UI Improvements */
+.alxarafe-resource-edit {
+    padding: 0 1rem;
+}
+
+.card,
+.panel {
+    background: #fff;
+    border: 1px solid var(--alx-border);
+    border-radius: 1rem;
+    transition: all 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+.card-header,
+.panel-heading {
+    border-bottom: 1px solid var(--alx-border);
+    padding: 1.25rem 1.5rem;
+    font-weight: 800;
+    color: var(--alx-secondary);
+}
+
+.card-body,
+.panel-body {
+    padding: 1.75rem;
+}
+
+.form-label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--alx-muted);
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    padding: 0.7rem 1.1rem;
+    font-size: 0.95rem;
+    border-color: var(--alx-border);
+    border-radius: 0.75rem;
+    color: var(--alx-text);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--alx-primary);
+    box-shadow: 0 0 0 4px rgba(34, 53, 221, 0.1);
+}
+
+.input-group-text {
+    border-radius: 0.75rem;
+    background-color: #f8fafc;
+    border-color: var(--alx-border);
+    padding: 0.7rem 1rem;
+}
+
+.input-group>.form-control,
+.input-group>.form-select {
+    border-radius: 0.75rem;
 }

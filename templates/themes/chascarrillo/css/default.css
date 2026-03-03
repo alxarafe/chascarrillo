@@ -1,0 +1,433 @@
+:root {
+    /* Brand Colors alxarafe.com */
+    --alx-primary: #2235dd;
+    --alx-secondary: #05060f;
+    --alx-bg: #ffffff;
+    --alx-text: #05060f;
+    --alx-border: #f1f1f2;
+    --alx-muted: #6b7280;
+}
+
+body {
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--alx-text);
+    background-color: var(--alx-bg);
+    line-height: 1.7;
+}
+
+/* Main Header Styling */
+.app-header {
+    background: #fff;
+    border-bottom: 1px solid var(--alx-border);
+    padding: 0.75rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.brand-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--alx-primary);
+    letter-spacing: -0.02em;
+}
+
+.app-header .nav-link {
+    color: var(--alx-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+    padding: 0.5rem 1rem !important;
+}
+
+.app-header .nav-link:hover {
+    color: var(--alx-primary);
+}
+
+.auth-mode .sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid var(--alx-border);
+    min-width: 250px;
+    padding: 2rem 0;
+}
+
+.auth-mode .sidebar .nav-link {
+    padding: 0.75rem 1.5rem;
+    color: var(--alx-muted);
+    font-weight: 500;
+}
+
+.auth-mode .sidebar .nav-link:hover {
+    color: var(--alx-primary);
+    background: rgba(34, 53, 221, 0.05);
+}
+
+/* Social & Tools */
+.header-tools .social-link {
+    font-size: 1.2rem;
+    color: var(--alx-muted);
+    transition: color 0.2s ease;
+}
+
+.header-tools .social-link:hover {
+    color: var(--alx-primary);
+    transform: translateY(-2px);
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 120px 0 80px;
+    text-align: center;
+    background: radial-gradient(circle at top, #fff 0%, var(--alx-bg) 100%);
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--alx-text);
+    margin-bottom: 2rem;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #475569;
+    max-width: 650px;
+    margin: 0 auto 3.5rem;
+    font-weight: 400;
+}
+
+/* Featured Cards */
+.feature-card {
+    background: #fff;
+    border: 1px solid var(--alx-border);
+    padding: 3.5rem 2rem;
+    border-radius: 1rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: #eff6ff;
+    color: var(--alx-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .icon-wrapper {
+    background: var(--alx-primary);
+    color: #fff;
+    transform: rotate(5deg) scale(1.1);
+}
+
+.feature-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    color: var(--alx-secondary);
+}
+
+.feature-description {
+    font-size: 1.05rem;
+    color: #64748b;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+}
+
+/* Buttons */
+.btn-alx {
+    background-color: var(--alx-primary);
+    color: #fff;
+    padding: 1rem 2.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.btn-alx:hover {
+    background-color: #1d4ed8;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+}
+
+.btn-outline-alx {
+    background: transparent;
+    border: 2px solid var(--alx-primary);
+    color: var(--alx-primary);
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.btn-outline-alx:hover {
+    background-color: var(--alx-primary);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.bg-primary-soft {
+    background-color: #eff6ff;
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fw-800 {
+    font-weight: 800;
+}
+
+/* Content Blocks (Callouts/Notes) */
+.callout {
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0.75rem;
+    border-left: 4px solid #e2e8f0;
+    background-color: #f8fafc;
+}
+
+.callout p:last-child {
+    margin-bottom: 0;
+}
+
+.callout-info {
+    border-left-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.callout-warn {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.callout-note {
+    border-left-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.callout-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--alx-secondary);
+}
+
+.callout-info .callout-title {
+    color: #1e40af;
+}
+
+.callout-warn .callout-title {
+    color: #854d0e;
+}
+
+.callout-note .callout-title {
+    color: #065f46;
+}
+
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin: 2.5rem auto;
+    display: block;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Blog Post Specifics */
+.blog-post {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.post-content {
+    color: #334155;
+}
+
+.post-content p,
+.post-content li {
+    margin-bottom: 1.5rem;
+}
+
+.post-content h2,
+.post-content h3 {
+    margin-top: 3.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--alx-secondary);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* Feature Grid and Items */
+.feature-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 3.5rem 0;
+    align-items: stretch;
+}
+
+.feature-card {
+    flex: 1;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid var(--alx-border);
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(34, 53, 221, 0.05);
+    color: var(--alx-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-content h2,
+.feature-content h3 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.feature-item {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-item img {
+    margin: 0;
+    width: 100% !important;
+}
+
+.feature-item h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .feature-grid {
+        flex-direction: column;
+    }
+
+    .feature-card,
+    .feature-item {
+        width: 100%;
+    }
+}
+
+/* Administrative & Form UI Improvements */
+.alxarafe-resource-edit {
+    padding: 0 1rem;
+}
+
+.card,
+.panel {
+    background: #fff;
+    border: 1px solid var(--alx-border);
+    border-radius: 1rem;
+    transition: all 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+.card-header,
+.panel-heading {
+    border-bottom: 1px solid var(--alx-border);
+    padding: 1.25rem 1.5rem;
+    font-weight: 800;
+    color: var(--alx-secondary);
+}
+
+.card-body,
+.panel-body {
+    padding: 1.75rem;
+}
+
+.form-label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--alx-muted);
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    padding: 0.7rem 1.1rem;
+    font-size: 0.95rem;
+    border-color: var(--alx-border);
+    border-radius: 0.75rem;
+    color: var(--alx-text);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--alx-primary);
+    box-shadow: 0 0 0 4px rgba(34, 53, 221, 0.1);
+}
+
+.input-group-text {
+    border-radius: 0.75rem;
+    background-color: #f8fafc;
+    border-color: var(--alx-border);
+    padding: 0.7rem 1rem;
+}
+
+.input-group>.form-control,
+.input-group>.form-select {
+    border-radius: 0.75rem;
+}

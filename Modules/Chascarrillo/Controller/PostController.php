@@ -42,6 +42,8 @@ use Modules\Chascarrillo\Service\SyncService;
 )]
 class PostController extends ResourceController
 {
+    protected bool $useTabs = true;
+
     protected array $with = ['tags'];
 
     #[\Override]
@@ -94,9 +96,6 @@ class PostController extends ResourceController
         }
 
         $this->addVariable('posts', $query->orderBy('published_at', 'DESC')->get());
-
-        // This will be used by our custom templates/post/index.blade.php
-        $this->setDefaultTemplate('post/index');
     }
 
     #[\Override]
@@ -114,6 +113,10 @@ class PostController extends ResourceController
                 'type' => 'datetime',
                 'label' => 'Fecha de Publicación'
             ],
+            'status' => [
+                'type' => 'text',
+                'label' => 'Workflow'
+            ],
         ];
     }
 
@@ -121,19 +124,34 @@ class PostController extends ResourceController
     protected function getEditFields(): array
     {
         return [
-            'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-            'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
-            'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-            'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicado'),
-            'published_at' => new \Alxarafe\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
-            'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-            'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
-            'meta_keywords' => new \Alxarafe\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
-            'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
-            'tags' => new \Alxarafe\Component\Fields\Select2('tags', 'Tags', Tag::where('type', 'tag')->pluck('name', 'id')->toArray(), ['multiple' => true]),
-            'categories' => new \Alxarafe\Component\Fields\Select2('categories', 'Categorías', Tag::where('type', 'category')->pluck('name', 'id')->toArray(), ['multiple' => true]),
-            'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido', ['rows' => 20]),
-            'created_at' => new \Alxarafe\Component\Fields\Text('created_at', 'Fecha de Creación', ['readonly' => true]),
+            'content' => [
+                'label' => 'Contenido',
+                'col'   => 'col-md-8',
+                'fields' => [
+                    'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido', ['rows' => 15]),
+                ]
+            ],
+            'settings' => [
+                'label' => 'Configuración',
+                'col'   => 'col-md-4',
+                'fields' => [
+                    'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicado'),
+                    'published_at' => new \Alxarafe\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
+                    'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
+                    'tags' => new \Alxarafe\Component\Fields\Select2('tags', 'Tags', Tag::where('type', 'tag')->pluck('name', 'id')->toArray(), ['multiple' => true]),
+                    'categories' => new \Alxarafe\Component\Fields\Select2('categories', 'Categorías', Tag::where('type', 'category')->pluck('name', 'id')->toArray(), ['multiple' => true]),
+                    'status' => new \Alxarafe\Component\Fields\Select(
+                        'status',
+                        'Estado Workflow',
+                        collect((new Post())->getStates())->mapWithKeys(fn($s, $k) => [$k => $s['label']])->toArray()
+                    ),
+                    'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                ]
+            ]
         ];
     }
 
@@ -155,9 +173,6 @@ class PostController extends ResourceController
     #[\Override]
     protected function beforeEdit()
     {
-        // This will be used by our custom templates/post/edit.blade.php
-        $this->setDefaultTemplate('post/edit');
-
         if ($this->recordId && $this->recordId !== 'new') {
             $post = Post::find($this->recordId);
             if ($post instanceof Post) {

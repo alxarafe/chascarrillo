@@ -1,6 +1,11 @@
 <?php
 
+use Alxarafe\Base\Config;
 use Alxarafe\Lib\Router;
+
+// Alxarafe Configuration Extensions for Chascarrillo
+Config::registerSection('blog', ['title', 'posts_per_page', 'excerpt_length']);
+Config::registerSection('social', ['twitter', 'instagram', 'facebook']);
 
 // Chascarrillo Routes
 $config = \Alxarafe\Base\Config::getConfig();

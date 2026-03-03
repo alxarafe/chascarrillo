@@ -71,7 +71,10 @@ class BlogController extends GenericPublicController
                 $this->title = 'Posts en la categoría: ' . ($cat ? $cat->name : $catSlug);
             }
 
-            $posts = $query->get();
+            $config = \Alxarafe\Base\Config::getConfig();
+            $postsPerPage = (int)($config->blog->posts_per_page ?? 10);
+
+            $posts = $query->limit($postsPerPage)->get();
         } catch (\Exception $e) {
             $posts = collect();
         }
@@ -80,7 +83,7 @@ class BlogController extends GenericPublicController
         $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog') || $tagSlug || $catSlug;
 
         if ($isBlogIndex) {
-            $this->title = 'Laboratorio de Chascarrillos';
+            $this->title = $config->blog->title ?? 'Laboratorio de Chascarrillos';
             $this->setDefaultTemplate('blog/index');
         }
 

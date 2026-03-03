@@ -8,7 +8,7 @@
 
     {{-- Override theme_css section to load Chascarrillo CSS instead of default --}}
     @section('theme_css')
-        <link href="/themes/chascarrillo/css/alxarafe.css?v={{ time() }}" rel="stylesheet">
+        <link href="/themes/chascarrillo/css/default.css?v={{ time() }}" rel="stylesheet">
     @endsection
 
     {{-- Framework head: Bootstrap, Font Awesome, DebugBar, sidebar CSS --}}

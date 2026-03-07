@@ -33,6 +33,7 @@ services:
             - chascarrillo_network
         volumes:
             - ".:/var/www/html:rw"
+            - "../alxarafe:/var/www/alxarafe:rw"
         extra_hosts:
             - "host.docker.internal:host-gateway"
 

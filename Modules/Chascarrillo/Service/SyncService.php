@@ -108,6 +108,7 @@ class SyncService
                     $record->update($attributes);
                     $summary['updated']++;
                 } else {
+                    /** @var \Modules\Chascarrillo\Model\Post $record */
                     $record = Post::create($attributes);
                     $summary['created']++;
                 }
@@ -284,8 +285,10 @@ class SyncService
         }
 
         if ($type === 'tag') {
+            /** @phpstan-ignore-next-line */
             $record->tags()->where('type', 'tag')->detach();
         } else {
+            /** @phpstan-ignore-next-line */
             $record->tags()->where('type', 'category')->detach();
         }
         $record->tags()->attach($tagIds);

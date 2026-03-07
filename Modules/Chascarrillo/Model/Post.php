@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Model;
 
 use Alxarafe\Base\Model\Model;
-use Alxarafe\Base\Model\Trait\HasWorkflow;
+use Modules\Chascarrillo\Traits\HasWorkflow;
 
 /**
  * @property int $id
@@ -41,6 +41,8 @@ use Alxarafe\Base\Model\Trait\HasWorkflow;
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int $status
+ * @property \Illuminate\Database\Eloquent\Collection|\Modules\Chascarrillo\Model\Tag[] $tags
  */
 class Post extends Model
 {
@@ -50,12 +52,24 @@ class Post extends Model
 
     protected string $stateField = 'status';
 
-    protected array $states = [
-        0 => ['label' => 'Borrador', 'transitions' => [1, 9]],
-        1 => ['label' => 'Validado', 'transitions' => [2, 0, 9]],
-        2 => ['label' => 'Publicado', 'transitions' => [9, 1]],
-        9 => ['label' => 'Archivado', 'transitions' => [0]],
-    ];
+    #[\Override]
+    protected function getWorkflowDefinition(): array
+    {
+        return [
+            'states' => [
+                0 => 'Borrador',
+                1 => 'Validado',
+                2 => 'Publicado',
+                9 => 'Archivado',
+            ],
+            'transitions' => [
+                'validate' => ['from' => [0, 2], 'to' => 1],
+                'publish' => ['from' => [1], 'to' => 2],
+                'draft' => ['from' => [1, 9], 'to' => 0],
+                'archive' => ['from' => [0, 1, 2], 'to' => 9],
+            ]
+        ];
+    }
 
     protected $fillable = [
         'title',

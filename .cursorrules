@@ -1,0 +1,6 @@
+# 🛡️ REGLA GLOBAL CRÍTICA: AISLAMIENTO DE WORKSPACE 🛡️
+
+1. **LÍMITE DE ÁREA DE TRABAJO:** Como agente de IA, tu área de trabajo estricta es ÚNICAMENTE el repositorio en el que has sido invocado (la carpeta raíz del proyecto actual).
+2. **MODO LECTURA PARA LIBRERÍAS/FRAMEWORKS:** Tienes ESTRICTAMENTE PROHIBIDO modificar, borrar, sobrescribir o sugerir cambios de código en archivos que se encuentren en directorios `vendor/`, `node_modules/`, o en repositorios base instalados como dependencias (ej. `../alxarafe` cuando operas dentro de `alixar`).
+3. **EXTENSIBILIDAD DE LA APP:** Si una aplicación necesita un comportamiento distinto al que provee el framework base, el Agente DEBE resolverlo aplicando patrones de diseño dentro de la propia aplicación (como inyección de dependencias, Traits propios, Clases extendidas o Decoradores), NUNCA modificando el núcleo del framework base.
+4. **EXCEPCIÓN DE SEGURIDAD:** Este candado global de espacio de trabajo es absoluto y solo se desactivará temporalmente si el usuario dicta explícitamente en su orden la frase: "Te autorizo a salir del workspace". En cualquier otro escenario rutinario, un fallo al respetar esta regla será considerado una falla crítica de tus instrucciones operativas.

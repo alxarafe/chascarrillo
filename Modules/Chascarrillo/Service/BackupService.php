@@ -126,6 +126,7 @@ class BackupService
         // Export Posts and Pages
         $posts = Post::with('tags')->get();
         foreach ($posts as $post) {
+            /** @var \Modules\Chascarrillo\Model\Post $post */
             $dir = ($post->type === 'page') ? 'pages' : 'posts';
             $filePath = $contentPath . '/' . $dir . '/' . $post->slug . '.md';
 
@@ -151,7 +152,6 @@ class BackupService
 
             $content = "---\n";
             foreach ($frontMatter as $key => $value) {
-                if ($value === null) continue;
                 if (is_array($value)) {
                     $content .= "$key: [" . implode(', ', array_map(fn($v) => '"' . str_replace('"', '\"', (string)$v) . '"', $value)) . "]\n";
                 } elseif (is_bool($value)) {

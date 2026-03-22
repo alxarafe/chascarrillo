@@ -11,7 +11,8 @@ menu_label: "Manifiesto IA"
 menu_order: "3"
 ---
 
-# Manifiesto IA. La plomada del arquitecto
+
+
 
 La Inteligencia Artificial es, sin duda, el programador más rápido que ha existido jamás. Sin embargo, la velocidad sin dirección suele conducir a estructuras defectuosas. En Alxarafe, entendemos que la IA es una herramienta de ejecución, no de diseño.
 

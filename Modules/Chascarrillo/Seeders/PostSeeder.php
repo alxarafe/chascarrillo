@@ -88,6 +88,5 @@ Echa un vistazo a nuestro [Laboratorio](/blog) para ver en qué estamos trabajan
             'type' => 'page',
         ]);
 
-        echo "Seeded/Updated Test Content: Bienvenido, Acerca de y Servicios\n";
     }
 }

@@ -52,13 +52,21 @@ class WorldsitesController extends ResourceController
     {
         return [
             'config_general' => [
-                new \Alxarafe\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
+                'label' => 'Configuración General',
+                'fields' => [
+                    'main.enableWorldsites' => new \Alxarafe\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
+                ]
             ],
-            'sites' => new RelationList('sites', 'Sitios Regionales (Worldsites)', [
-                ['field' => 'lang', 'label' => 'Cód. Idioma (es, en...)', 'type' => 'text'],
-                ['field' => 'domain', 'label' => 'Dominio (ej: misitio.es)', 'type' => 'text'],
-                ['field' => 'message', 'label' => 'Mensaje de sugerencia', 'type' => 'text'],
-            ]),
+            'sites_section' => [
+                'label' => 'Sitios Regionales (Worldsites)',
+                'fields' => [
+                    'sites' => new RelationList('sites', 'Sitios Regionales (Worldsites)', [
+                        ['field' => 'lang', 'label' => 'Cód. Idioma (es, en...)', 'type' => 'text'],
+                        ['field' => 'domain', 'label' => 'Dominio (ej: misitio.es)', 'type' => 'text'],
+                        ['field' => 'message', 'label' => 'Mensaje de sugerencia', 'type' => 'text'],
+                    ]),
+                ]
+            ],
         ];
     }
 
@@ -81,7 +89,8 @@ class WorldsitesController extends ResourceController
         return [
             'id' => 'current',
             'data' => [
-                'sites' => $sitesList
+                'sites' => $sitesList,
+                'main' => $config->main ?? null,
             ],
             'meta' => [
                 'model' => 'Worldsites'

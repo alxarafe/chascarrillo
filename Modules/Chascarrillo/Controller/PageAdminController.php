@@ -88,7 +88,7 @@ class PageAdminController extends ResourceController
                     'status' => new \Alxarafe\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
-                        collect((new Post())->getStates())->mapWithKeys(fn($s, $k) => [$k => $s['label']])->toArray()
+                        (new Post())->getStates()
                     ),
                     'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
                 ]

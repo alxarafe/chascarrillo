@@ -80,11 +80,7 @@ body {
 }
 
 /* Utilities */
-h1 {
-    font-weight: 300;
-    color: #343a40;
-    margin-bottom: 1.5rem;
-}
+
 
 /* SELECT2 FIXES */
 /* Fix Layout in Input Group - Handled by Blade Wrapper now */

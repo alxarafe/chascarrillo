@@ -146,7 +146,7 @@ class PostController extends ResourceController
                     'status' => new \Alxarafe\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
-                        collect((new Post())->getStates())->mapWithKeys(fn($s, $k) => [$k => $s['label']])->toArray()
+                        (new Post())->getStates()
                     ),
                     'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
                     'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),

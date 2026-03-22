@@ -58,6 +58,5 @@ class DefaultDataSeeder
             ]);
         }
 
-        echo "Seeded default Tags, Categories and Menus\n";
     }
 }

@@ -24,6 +24,7 @@ if (!$config && (($_GET['controller'] ?? '') !== 'Config')) {
 
 // --- Initial Guardian: Auto-Migration & Health Check ---
 if ($config && isset($config->db)) {
+    // 1. Ensure 'var' directory exists for flags
     $varDir = APP_PATH . '/var';
     if (!is_dir($varDir)) {
         @mkdir($varDir, 0755, true);
@@ -32,19 +33,58 @@ if ($config && isset($config->db)) {
     $appVersion = \Modules\Chascarrillo\Service\UpdateService::VERSION ?? 'unknown';
     $flagFile = $varDir . '/.migrated_' . $appVersion;
 
-    if (!file_exists($flagFile)) {
-        // Try to run migrations silently
-        if (Config::doRunMigrations()) {
-            @touch($flagFile);
+    // 2. Fast Health Check: See if migrations table exists
+    $dbIsInitialized = false;
+    try {
+        $capsule = \Alxarafe\Base\Database::createConnection($config->db);
+        $dbIsInitialized = $capsule->schema()->hasTable('migrations');
+    } catch (\Exception $e) {
+        // The server might be unreachable or database missing. Handled by UI below.
+    }
+
+    // 3. Handle Initialization Request (sent from the setup screen)
+    if (isset($_POST['alx_initialize_database'])) {
+        if (\Alxarafe\Base\Database::createDatabaseIfNotExists($config->db)) {
+            if (Config::doRunMigrations()) {
+                Config::runSeeders();
+                @touch($flagFile);
+                header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+                exit;
+            }
+        }
+    }
+
+    // 4. Evaluate First Run / Pending Migrations
+    if (!file_exists($flagFile) || !$dbIsInitialized) {
+        $silentSuccess = false;
+        // If the database core seems to exist but the flag is just missing (version update)
+        // Try to perform a silent migration to update schema
+        if ($dbIsInitialized && !file_exists($flagFile)) {
+            if (Config::doRunMigrations()) {
+                @touch($flagFile);
+                $silentSuccess = true;
+            }
+        }
+
+        // If STILL not initialized (missing 'migrations' table), we must stop and ask
+        if (!$dbIsInitialized && !$silentSuccess) {
+            $initScreen = __DIR__ . '/alxarafe/initialize_db.php';
+            if (file_exists($initScreen)) {
+                include $initScreen;
+                exit;
+            } else {
+                // Fallback: If no screen file, try auto-run as a last resort
+                if (Config::doRunMigrations()) {
+                    @touch($flagFile);
+                    Config::runSeeders();
+                }
+            }
         }
     }
 
     // --- Safety Seeder: Ensure at least one admin exists if the table is empty ---
     try {
-        // Initialize connection and get the Capsule instance
-        $capsule = \Alxarafe\Base\Database::createConnection($config->db);
-
-        if ($capsule->schema()->hasTable('users')) {
+        if ($dbIsInitialized && $capsule->schema()->hasTable('users')) {
             if (\CoreModules\Admin\Model\User::count() === 0) {
                 $admin = new \CoreModules\Admin\Model\User();
                 $admin->name = 'admin';
@@ -55,7 +95,6 @@ if ($config && isset($config->db)) {
             }
         }
     } catch (\Exception $e) {
-        // Log error and report if necessary
         @error_log("Guardian Safety Seeder Error: " . $e->getMessage());
     }
 }

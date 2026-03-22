@@ -3,15 +3,60 @@
     --alx-content-primary: #2563eb;
     --alx-content-secondary: #2c3e50;
     --alx-content-border: #e2e8f0;
+    --alx-content-bg-light: #f8fafc;
+    --alx-content-info: #0d6efd;
+    --alx-content-info-bg: #f0f7ff;
 }
 
-/* Content Blocks (Callouts/Notes) */
+/* Typography refinements for readability */
+.post-content h1, .post-content h2, .post-content h3,
+.markdown-showcase h1, .markdown-showcase h2, .markdown-showcase h3 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
+    color: var(--alx-content-secondary);
+}
+
+.markdown-showcase h1 {
+    font-size: 3rem;
+    text-align: center;
+}
+
+.markdown-showcase h3 {
+    font-weight: 400;
+    color: #4a5568;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Helpers & Utilities */
+.text-center { text-align: center !important; }
+.text-muted { color: #6c757d !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 2rem !important; }
+.mt-5 { margin-top: 4rem !important; }
+.mb-5 { margin-bottom: 4rem !important; }
+.my-5 { margin-top: 4rem !important; margin-bottom: 4rem !important; }
+
+/* Markdown Showcase Layout */
+.markdown-showcase {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+/* Callout Blocks */
 .callout {
     padding: 1.5rem;
     margin: 2rem 0;
     border-radius: 0.75rem;
-    border-left: 4px solid #e2e8f0;
-    background-color: #f8fafc;
+    border-left: 4px solid var(--alx-content-border);
+    background-color: var(--alx-content-bg-light);
     font-size: 1rem;
     line-height: 1.6;
 }
@@ -21,8 +66,8 @@
 }
 
 .callout-info {
-    border-left-color: #3b82f6 !important;
-    background-color: #eff6ff !important;
+    border-left-color: var(--alx-content-info) !important;
+    background-color: var(--alx-content-info-bg) !important;
 }
 
 .callout-warn {
@@ -37,73 +82,132 @@
 
 .callout-title {
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--alx-content-secondary);
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.05em;
+    color: var(--alx-content-secondary);
 }
 
-.callout-info .callout-title {
+.callout-info .callout-title { color: var(--alx-content-info); }
+.callout-warn .callout-title { color: #854d0e; }
+.callout-note .callout-title { color: #065f46; }
+
+.callout p {
+    color: #2c5282;
+}
+
+/* Feature Grid & Cards */
+.feature-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 3rem -1rem 4rem !important; /* Force bottom margin */
+}
+
+/* If no column classes are present, behave like a standard grid */
+.feature-grid:not(:has(.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12)) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 4rem !important; /* Force bottom spacing */
+}
+
+.feature-card {
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    margin: 1rem; /* Use margin for spacing when in flex mode */
+    flex: 1 1 300px;
+}
+
+.feature-grid:not(:has(.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12)) .feature-card {
+    margin: 0; /* No margin when in grid mode (uses gap) */
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--alx-content-secondary);
+}
+
+.feature-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #1a202c;
+}
+
+.feature-content p {
+    color: #718096;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.feature-item img {
+    margin: 1rem 0 !important;
+}
+
+/* Feature Card Links as Buttons */
+.feature-content a {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    border: 1.5px solid var(--alx-content-primary);
+    color: var(--alx-content-primary);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.feature-content a:hover {
+    background-color: #eff6ff;
     color: #1e40af;
 }
 
-.callout-warn .callout-title {
-    color: #854d0e;
-}
-
-.callout-note .callout-title {
-    color: #065f46;
-}
-
-/* Buttons inside content */
-.btn-alx {
-    background-color: var(--alx-content-primary);
-    color: #fff !important;
-    padding: 0.75rem 2rem;
-    border-radius: 9999px;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    border: none;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-}
-
-.btn-alx:hover {
-    background-color: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-}
-
-/* Generic Image styling in posts */
+/* Generic Image styling */
+.markdown-showcase img,
 .post-content img {
     max-width: 100%;
     height: auto;
     border-radius: 0.75rem;
-    margin: 2rem 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin: 3rem auto !important; /* Force margins */
+    display: block;
+    box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2);
 }
 
-/* Typography refinements for readability */
-.post-content h1,
-.post-content h2,
-.post-content h3 {
-    margin-top: 2.5rem;
-    margin-bottom: 1.25rem;
-    font-weight: 700;
+/* Adjust image inside columns to stay within them */
+.feature-item img {
+    max-height: 500px;
+    object-fit: contain;
 }
 
-.post-content p {
-    margin-bottom: 1.5rem;
-}
-
+/* Code Syntax */
 .post-content code {
     background: #f1f5f9;
     padding: 0.2rem 0.4rem;

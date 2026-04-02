@@ -28,5 +28,10 @@
         "post-update-cmd": [
             "php scripts/publish_theme_assets.php"
         ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.27"
+        }
     }
 }

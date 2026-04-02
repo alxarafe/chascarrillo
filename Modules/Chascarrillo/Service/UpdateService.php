@@ -109,7 +109,6 @@ class UpdateService
             "Content",
             "storage",
             "var",
-            "vendor" // Usually vendor should be handled by composer, but if it is a deploy zip it might be there
         ]);
 
         if ($success) {

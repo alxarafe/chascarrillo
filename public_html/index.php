@@ -4,6 +4,11 @@ session_start();
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// Load Alxarafe Legacy Aliases for Hexagonal Architecture backward compatibility
+if (file_exists(__DIR__ . '/../vendor/alxarafe/alxarafe/src/Infrastructure/Legacy/aliases.php')) {
+    require_once __DIR__ . '/../vendor/alxarafe/alxarafe/src/Infrastructure/Legacy/aliases.php';
+}
+
 use Alxarafe\Infrastructure\Tools\Dispatcher\WebDispatcher;
 use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Lib\Trans;

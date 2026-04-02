@@ -22,11 +22,11 @@ Built upon the **Alxarafe Framework**, Chascarrillo leverages its robustness to 
 
 - **Minimalist**: Focuses on content, not configuration.
 - **Witty Code**: Efficient and elegant implementation.
-- **Framework Powered**: Uses Alxarafe v0.8.0 for core services and routing.
+- **Framework Powered**: Uses Alxarafe v0.8.4 for core services and routing.
 
 ## Requirements
 - PHP >= 8.2
-- Alxarafe Framework v0.8.0
+- Alxarafe Framework v0.8.4
 - Composer
 
 ## Installation

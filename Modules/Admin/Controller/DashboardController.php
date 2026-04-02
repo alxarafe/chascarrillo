@@ -49,7 +49,7 @@ class DashboardController extends Controller
         $recentPosts = Post::where('type', 'post')->orderBy('created_at', 'DESC')->limit(5)->get();
 
         $this->addVariable('stats', $stats);
-        $this->addVariable('recent_posts', $recentPosts);
+        $this->addVariable('recentPosts', $recentPosts);
         $this->setDefaultTemplate('page/dashboard');
 
         return true;

@@ -7,7 +7,7 @@ use Alxarafe\Infrastructure\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.8.4';
+    public const VERSION = 'v0.8.5';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**

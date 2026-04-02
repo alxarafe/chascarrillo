@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Alxarafe\Base\Database;
+use Alxarafe\Infrastructure\Persistence\Database;
 
 return new class extends Migration
 {

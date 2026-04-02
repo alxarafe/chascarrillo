@@ -2,7 +2,7 @@
 
 namespace Modules\Chascarrillo\Seeders;
 
-use Alxarafe\Lib\Trans;
+use Alxarafe\Infrastructure\Lib\Trans;
 use Modules\Chascarrillo\Model\Post;
 
 class PostSeeder

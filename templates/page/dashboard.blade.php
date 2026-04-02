@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="row align-items-center mb-5">
         <div class="col">
-            <h1 class="h3 fw-800 mb-1">¡Bienvenido, {{ \Alxarafe\Lib\Auth::$user->name }}!</h1>
+            <h1 class="h3 fw-800 mb-1">¡Bienvenido, {{ \Alxarafe\Infrastructure\Auth\Auth::$user->name }}!</h1>
             <p class="text-muted mb-0">Aquí tienes un resumen de lo que está ocurriendo en tu blog.</p>
         </div>
         <div class="col-auto">
@@ -69,7 +69,7 @@
                         </div>
                         <h6 class="card-subtitle text-muted fw-bold text-uppercase small" style="letter-spacing: 0.1em;">Administradores</h6>
                     </div>
-                    <div class="h2 fw-800 mb-0">{{ \CoreModules\Admin\Model\User::count() }}</div>
+                    <div class="h2 fw-800 mb-0">{{ \Modules\Admin\Model\User::count() }}</div>
                     <p class="text-muted small mt-2 mb-0">Usuarios con acceso</p>
                 </div>
             </div>

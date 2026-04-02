@@ -6,8 +6,8 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Alxarafe\Base\Config;
-use Alxarafe\Lib\Messages;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Lib\Messages;
 
 define('BASE_PATH', __DIR__);
 define('APP_PATH', realpath(__DIR__ . '/../'));

@@ -2,7 +2,7 @@
 
 namespace Modules\Chascarrillo\Lib;
 
-use Alxarafe\Lib\Trans;
+use Alxarafe\Infrastructure\Lib\Trans;
 
 class UploadHelper
 {

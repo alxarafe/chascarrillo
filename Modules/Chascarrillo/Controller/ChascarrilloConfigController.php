@@ -1,13 +1,22 @@
 <?php
 
-namespace Modules\Admin\Controller;
+namespace Modules\Chascarrillo\Controller;
 
-use CoreModules\Admin\Controller\ConfigController as BaseConfigController;
-use Alxarafe\Component\Container\Tab;
-use Alxarafe\Component\Fields\Text;
-use Alxarafe\Lib\Trans;
+use Modules\Admin\Controller\ConfigController as BaseConfigController;
+use Alxarafe\Infrastructure\Component\Container\Tab;
+use Alxarafe\Infrastructure\Component\Fields\Text;
+use Alxarafe\Infrastructure\Lib\Trans;
+use Alxarafe\Infrastructure\Attribute\Menu;
 
-class ConfigController extends BaseConfigController
+#[Menu(
+    menu: 'main_menu',
+    label: 'blog_settings',
+    icon: 'fas fa-blog',
+    order: 15,
+    permission: 'Admin.Config.doIndex',
+    parent: 'Configuration'
+)]
+class ChascarrilloConfigController extends BaseConfigController
 {
     #[\Override]
     protected function getTabs(): array

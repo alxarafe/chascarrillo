@@ -2,7 +2,7 @@
 
 namespace Modules\Chascarrillo\Lib\Filter;
 
-use Alxarafe\Component\AbstractFilter;
+use Alxarafe\Infrastructure\Component\AbstractFilter;
 
 class PostStatusFilter extends AbstractFilter
 {

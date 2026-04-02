@@ -104,8 +104,8 @@ trait HasWorkflow
                     $label = $definition['states'][$targetId] ?? (string) $targetId;
                     
                     // Allow translation keys or fallback to the registered text
-                    if (class_exists('\Alxarafe\Lib\Trans')) {
-                        $label = (string) \Alxarafe\Lib\Trans::_('transition_' . $name);
+                    if (class_exists('\Alxarafe\Infrastructure\Lib\Trans')) {
+                        $label = (string) \Alxarafe\Infrastructure\Lib\Trans::_('transition_' . $name);
                         if ($label === 'transition_' . $name) {
                             $label = ucfirst($name); // Fallback if no translation
                         }

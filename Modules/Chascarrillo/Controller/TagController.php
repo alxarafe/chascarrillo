@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\ResourceController;
+use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Tag;
 use Alxarafe\Attribute\Menu;
 
@@ -70,10 +70,10 @@ class TagController extends ResourceController
     protected function getEditFields(): array
     {
         return [
-            'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-            'name' => new \Alxarafe\Component\Fields\Text('name', 'Nombre'),
-            'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-            'type' => new \Alxarafe\Component\Fields\Select('type', 'Tipo', [
+            'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+            'name' => new \Alxarafe\Infrastructure\Component\Fields\Text('name', 'Nombre'),
+            'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
+            'type' => new \Alxarafe\Infrastructure\Component\Fields\Select('type', 'Tipo', [
                 'tag' => 'Tag',
                 'category' => 'Categoría'
             ]),

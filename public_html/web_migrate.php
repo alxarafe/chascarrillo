@@ -9,8 +9,8 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Alxarafe\Base\Config;
-use Alxarafe\Lib\Messages;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Lib\Messages;
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');

@@ -8,14 +8,14 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link href="/alxarafe/assets/css/alxarafe-content.css?v=0.5.8" rel="stylesheet">
+<link href="/alxarafe/assets/css/alxarafe-content.css?v=0.8.0" rel="stylesheet">
 
 <!-- Dynamic Theme CSS -->
 @php
-    $activeTheme = (defined('THEME_SKIN') ? constant('THEME_SKIN') : null)
+    $activeTheme = $activeTheme ?? (defined('THEME_SKIN') ? constant('THEME_SKIN') : null)
         ?? $_SESSION['alx_theme_test'] 
         ?? $_COOKIE['alx_theme_test']
-        ?? \Alxarafe\Base\Config::getConfig()->main->theme
+        ?? \Alxarafe\Infrastructure\Persistence\Config::getConfig()->main->theme
         ?? 'chascarrillo';
 @endphp
 

@@ -18,7 +18,7 @@ class DomainService
      */
     public static function getSites(): array
     {
-        $config = \Alxarafe\Base\Config::getConfig();
+        $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
         $sites = $config->sites ?? [];
 
         // Ensure it's an array of objects/arrays
@@ -48,7 +48,7 @@ class DomainService
      */
     public static function getSuggestion(): ?array
     {
-        $config = \Alxarafe\Base\Config::getConfig();
+        $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
         if (!($config->main->enableWorldsites ?? false)) {
             return null;
         }

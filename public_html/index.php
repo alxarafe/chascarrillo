@@ -4,9 +4,9 @@ session_start();
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Alxarafe\Tools\Dispatcher\WebDispatcher;
-use Alxarafe\Base\Config;
-use Alxarafe\Lib\Trans;
+use Alxarafe\Infrastructure\Tools\Dispatcher\WebDispatcher;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Lib\Trans;
 
 // Step 1: Core Path and Environment definitions
 define('APP_PATH', realpath(__DIR__ . '/../'));
@@ -36,7 +36,7 @@ if ($config && isset($config->db)) {
     // 2. Fast Health Check: See if migrations table exists
     $dbIsInitialized = false;
     try {
-        $capsule = \Alxarafe\Base\Database::createConnection($config->db);
+        $capsule = \Alxarafe\Infrastructure\Persistence\Database::createConnection($config->db);
         $dbIsInitialized = $capsule->schema()->hasTable('migrations');
     } catch (\Exception $e) {
         // The server might be unreachable or database missing. Handled by UI below.
@@ -44,7 +44,7 @@ if ($config && isset($config->db)) {
 
     // 3. Handle Initialization Request (sent from the setup screen)
     if (isset($_POST['alx_initialize_database'])) {
-        if (\Alxarafe\Base\Database::createDatabaseIfNotExists($config->db)) {
+        if (\Alxarafe\Infrastructure\Persistence\Database::createDatabaseIfNotExists($config->db)) {
             if (Config::doRunMigrations()) {
                 Config::runSeeders();
                 @touch($flagFile);
@@ -85,8 +85,8 @@ if ($config && isset($config->db)) {
     // --- Safety Seeder: Ensure at least one admin exists if the table is empty ---
     try {
         if ($dbIsInitialized && $capsule->schema()->hasTable('users')) {
-            if (\CoreModules\Admin\Model\User::count() === 0) {
-                $admin = new \CoreModules\Admin\Model\User();
+            if (\Modules\Admin\Model\User::count() === 0) {
+                $admin = new \Modules\Admin\Model\User();
                 $admin->name = 'admin';
                 $admin->email = 'admin@' . ($_SERVER['HTTP_HOST'] ?? 'example.com');
                 $admin->password = password_hash('password', PASSWORD_DEFAULT);

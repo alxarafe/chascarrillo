@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\GenericPublicController;
+use Alxarafe\Infrastructure\Http\Controller\GenericPublicController;
 use Modules\Chascarrillo\Model\Post;
 use Alxarafe\Attribute\Menu;
 
@@ -50,7 +50,7 @@ class BlogController extends GenericPublicController
             $query = Post::where('type', 'post')
                 ->orderBy('published_at', 'DESC');
 
-            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+            if (!\Alxarafe\Infrastructure\Auth\Auth::$user?->is_admin) {
                 $query->where('is_published', true)
                     ->where('published_at', '<=', date('Y-m-d H:i:s'));
             }
@@ -71,7 +71,7 @@ class BlogController extends GenericPublicController
                 $this->title = 'Posts en la categoría: ' . ($cat ? $cat->name : $catSlug);
             }
 
-            $config = \Alxarafe\Base\Config::getConfig();
+            $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
             $postsPerPage = (int)($config->blog->posts_per_page ?? 10);
 
             $posts = $query->limit($postsPerPage)->get();
@@ -91,12 +91,13 @@ class BlogController extends GenericPublicController
         foreach ($posts as $post) {
             // We only need this for the excerpt if meta_description is missing
             if (empty($post->meta_description)) {
-                $post->content = \Alxarafe\Service\MarkdownService::render($post->content);
+                $post->content = \Alxarafe\Infrastructure\Service\MarkdownService::render($post->content);
             }
         }
 
         $this->addVariable('posts', $posts);
         $this->addVariable('is_blog_index', $isBlogIndex);
+        $this->addVariable('hide_page_title', true);
 
         return true;
     }
@@ -109,7 +110,7 @@ class BlogController extends GenericPublicController
             $query = Post::where('slug', $slug);
 
             // Si no es admin, solo ver publicados
-            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+            if (!\Alxarafe\Infrastructure\Auth\Auth::$user?->is_admin) {
                 $query->where('is_published', true)
                     ->where('published_at', '<=', date('Y-m-d H:i:s'));
             }
@@ -120,7 +121,7 @@ class BlogController extends GenericPublicController
         }
 
         if (!$post) {
-            \Alxarafe\Lib\Functions::httpRedirect(\CoreModules\Admin\Controller\ErrorController::url(true));
+            \Alxarafe\Infrastructure\Lib\Functions::httpRedirect(\Modules\Admin\Controller\ErrorController::url(true));
             return false;
         }
 
@@ -129,6 +130,7 @@ class BlogController extends GenericPublicController
         $this->addVariable('meta_keywords', $post->meta_keywords);
         $this->addVariable('post', $post);
         $this->addVariable('content', $post->getRenderedContent());
+        $this->addVariable('hide_page_title', true);
         $this->setDefaultTemplate('blog/show');
 
         return true;

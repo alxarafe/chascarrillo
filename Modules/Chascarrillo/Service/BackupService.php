@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Service;
 
-use Alxarafe\Lib\Functions;
+use Alxarafe\Infrastructure\Lib\Functions;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Media;
 use Modules\Chascarrillo\Model\Tag;

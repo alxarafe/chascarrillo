@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace Modules\Admin\Controller;
 
-use Alxarafe\Base\Controller\Controller;
+use Alxarafe\Infrastructure\Http\Controller\Controller;
 use Alxarafe\Attribute\Menu;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Tag;

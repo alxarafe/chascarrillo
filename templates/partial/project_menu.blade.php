@@ -1,7 +1,7 @@
 @php
-    $config = \Alxarafe\Base\Config::getConfig();
+    $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
     $companyTz = $config->main->timezone ?? 'UTC';
-    $userTz = (\Alxarafe\Lib\Auth::$user->timezone ?? null) ?: $companyTz;
+    $userTz = (\Alxarafe\Infrastructure\Auth\Auth::$user->timezone ?? null) ?: $companyTz;
     $currentTheme = $config->main->theme ?? 'default';
     
     // Social links from config
@@ -20,15 +20,15 @@
 
     // Security check: Default password alert
     $showPasswordWarning = false;
-    if (\Alxarafe\Lib\Auth::$user && \Alxarafe\Lib\Auth::$user->is_admin) {
-        $showPasswordWarning = password_verify('password', \Alxarafe\Lib\Auth::$user->password);
+    if (\Alxarafe\Infrastructure\Auth\Auth::$user && \Alxarafe\Infrastructure\Auth\Auth::$user->is_admin) {
+        $showPasswordWarning = password_verify('password', \Alxarafe\Infrastructure\Auth\Auth::$user->password);
     }
 @endphp
 
 @if($showPasswordWarning)
     <div class="alert alert-warning border-0 rounded-0 m-0 py-2 text-center" style="background: #ffc107; color: #000; font-size: 0.85em;">
         <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>{{ \Alxarafe\Lib\Trans::_('security') }}:</strong> {{ \Alxarafe\Lib\Trans::_('default_password_warning') }} <a href="index.php?module=Admin&controller=Profile" class="fw-bold text-dark text-decoration-underline">{{ \Alxarafe\Lib\Trans::_('change_it_now') }}</a>.
+        <strong>{{ \Alxarafe\Infrastructure\Lib\Trans::_('security') }}:</strong> {{ \Alxarafe\Infrastructure\Lib\Trans::_('default_password_warning') }} <a href="index.php?module=Admin&controller=Profile" class="fw-bold text-dark text-decoration-underline">{{ \Alxarafe\Infrastructure\Lib\Trans::_('change_it_now') }}</a>.
     </div>
 @endif
 
@@ -86,20 +86,20 @@
 
                 <div class="vr d-none d-lg-block text-gray-300" style="height: 20px;"></div>
 
-                @if(\Alxarafe\Lib\Auth::$user)
+                @if(\Alxarafe\Infrastructure\Auth\Auth::$user)
                     <div class="dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-0" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            @if(!empty(\Alxarafe\Lib\Auth::$user->avatar) && file_exists(\Alxarafe\Base\Config::getPublicRoot() . '/' . \Alxarafe\Lib\Auth::$user->avatar))
-                                <img src="{{ \Alxarafe\Lib\Auth::$user->avatar }}" class="rounded-circle border" style="width: 24px; height: 24px; object-fit: cover;">
+                            @if(!empty(\Alxarafe\Infrastructure\Auth\Auth::$user->avatar) && file_exists(\Alxarafe\Infrastructure\Persistence\Config::getPublicRoot() . '/' . \Alxarafe\Infrastructure\Auth\Auth::$user->avatar))
+                                <img src="{{ \Alxarafe\Infrastructure\Auth\Auth::$user->avatar }}" class="rounded-circle border" style="width: 24px; height: 24px; object-fit: cover;">
                             @else
                                 <i class="fas fa-user-circle text-secondary fa-lg"></i>
                             @endif
-                            <span class="small fw-bold d-none d-sm-inline">{{ \Alxarafe\Lib\Auth::$user->username }}</span>
+                            <span class="small fw-bold d-none d-sm-inline">{{ \Alxarafe\Infrastructure\Auth\Auth::$user->username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
                             <li><a class="dropdown-item" href="/index.php?module=Admin&controller=Dashboard"><i class="fas fa-cog me-2"></i> Dashboard Admin</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> {{ \Alxarafe\Lib\Trans::_('logout') }}</a></li>
+                            <li><a class="dropdown-item text-danger" href="/index.php?module=Admin&controller=Auth&action=logout"><i class="fas fa-sign-out-alt me-2"></i> {{ \Alxarafe\Infrastructure\Lib\Trans::_('logout') }}</a></li>
                         </ul>
                     </div>
                 @else

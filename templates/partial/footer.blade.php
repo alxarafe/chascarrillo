@@ -56,20 +56,20 @@
 @endif
 
 @php
-    $githubUrl = \Alxarafe\Base\Config::getConfig()->social->github ?? 'https://github.com/alxarafe/chascarrillo';
+    $githubUrl = \Alxarafe\Infrastructure\Persistence\Config::getConfig()->social->github ?? 'https://github.com/alxarafe/chascarrillo';
 @endphp
 
 <footer class="mt-auto py-5 border-top">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6 text-center text-md-start">
-                <span class="text-muted">Powered by <a href="{{ $githubUrl }}" target="_blank" class="text-secondary fw-bold text-decoration-none">Chascarrillo</a> 
-                <small class="ms-1 text-secondary-emphasis">{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</small>. 
-                Developed with <strong>Alxarafe Framework</strong></span>
+                <p class="mb-0 text-muted small">Powered by <a href="{{ $githubUrl }}" target="_blank" class="text-secondary fw-bold text-decoration-none">Chascarrillo</a>
+                <span class="ms-1 text-secondary-emphasis">{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</span>.
+                Developed with <strong>Alxarafe Framework</strong></p>
             </div>
             <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                 <p class="mb-0 text-muted small">
-                    <i class="fas fa-shield-halved me-1"></i> No cookies, no tracking, no noise. 
+                    <i class="fas fa-shield-halved me-1"></i> No cookies, no tracking, no noise.
                     <span class="d-block d-md-inline ms-md-2 mt-1 mt-md-0">Privacy by design.</span>
                 </p>
             </div>

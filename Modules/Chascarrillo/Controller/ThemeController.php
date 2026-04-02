@@ -2,8 +2,8 @@
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\GenericPublicController;
-use Alxarafe\Lib\Functions;
+use Alxarafe\Infrastructure\Http\Controller\GenericPublicController;
+use Alxarafe\Infrastructure\Lib\Functions;
 
 class ThemeController extends GenericPublicController
 {
@@ -27,8 +27,8 @@ class ThemeController extends GenericPublicController
         $_SESSION['alx_theme_test'] = $theme;
 
         // If the user is logged in, save preference to the database
-        if (\Alxarafe\Lib\Auth::isLogged()) {
-            $user = \Alxarafe\Lib\Auth::$user;
+        if (\Alxarafe\Infrastructure\Auth\Auth::isLogged()) {
+            $user = \Alxarafe\Infrastructure\Auth\Auth::$user;
             $user->theme = $theme;
             $user->save();
         }

@@ -2,12 +2,12 @@
 
 namespace Modules\Chascarrillo\Service;
 
-use Alxarafe\Base\Config;
-use Alxarafe\Lib\Messages;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.7.4';
+    public const VERSION = 'v0.8.0';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**

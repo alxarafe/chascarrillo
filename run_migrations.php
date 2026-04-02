@@ -2,7 +2,7 @@
 define('BASE_PATH', __DIR__ . '/public_html');
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Alxarafe\Base\Config;
+use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Lib\Messages;
 
 echo "--- Starting Migration Process ---\n";

@@ -7,7 +7,7 @@ namespace Modules\Chascarrillo\Service;
 use Alxarafe\Service\MarkdownSyncService;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Media;
-use Alxarafe\Lib\Messages;
+use Alxarafe\Infrastructure\Lib\Messages;
 
 class SyncService
 {
@@ -79,7 +79,7 @@ class SyncService
 
         foreach ($files as $file) {
             try {
-                $data = \Alxarafe\Service\MarkdownService::parse($file);
+                $data = \Alxarafe\Infrastructure\Service\MarkdownService::parse($file);
                 $meta = $data['meta'];
 
                 $slug = $meta['slug'] ?? pathinfo($file, PATHINFO_FILENAME);

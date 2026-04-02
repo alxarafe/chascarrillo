@@ -8,14 +8,14 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\ResourceController;
+use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Media;
 use Alxarafe\Attribute\Menu;
-use Alxarafe\Component\Fields\Text;
-use Alxarafe\Component\Fields\Textarea;
-use Alxarafe\Component\Fields\Select;
-use Alxarafe\Lib\Messages;
-use Alxarafe\Lib\Functions;
+use Alxarafe\Infrastructure\Component\Fields\Text;
+use Alxarafe\Infrastructure\Component\Fields\Textarea;
+use Alxarafe\Infrastructure\Component\Fields\Select;
+use Alxarafe\Infrastructure\Lib\Messages;
+use Alxarafe\Infrastructure\Lib\Functions;
 
 #[Menu(
     menu: 'main_menu',

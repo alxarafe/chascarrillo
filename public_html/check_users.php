@@ -2,10 +2,10 @@
 define('BASE_PATH', __DIR__);
 require __DIR__ . '/../vendor/autoload.php';
 
-use Alxarafe\Base\Config;
-use Alxarafe\Base\Database;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Persistence\Database;
 use Illuminate\Support\Facades\Schema;
-use CoreModules\Admin\Model\User;
+use Modules\Admin\Model\User;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

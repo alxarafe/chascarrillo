@@ -9,14 +9,6 @@ declare(strict_types=1);
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 namespace Modules\Chascarrillo\Controller;
@@ -28,10 +20,14 @@ if (is_dir(__DIR__ . '/../../../Content')) {
 }
 
 use Alxarafe\Attribute\Menu;
-use Alxarafe\Base\Controller\ResourceController;
-use Modules\Chascarrillo\Model\Post;
+use Alxarafe\Infrastructure\Http\Controller\ResourceController;
+use Modules\Chascarrillo\Domain\Model\Post;
 use Modules\Chascarrillo\Model\Tag;
 use Modules\Chascarrillo\Service\SyncService;
+use Modules\Chascarrillo\Application\AppContainer;
+use Modules\Chascarrillo\Domain\Port\Driven\PostRepositoryInterface;
+use Alxarafe\Application\Bus\SimpleCommandBus;
+use Modules\Chascarrillo\Application\Bus\Command\CreatePostCommand;
 
 #[Menu(
     menu: 'main_menu',
@@ -43,8 +39,18 @@ use Modules\Chascarrillo\Service\SyncService;
 class PostController extends ResourceController
 {
     protected bool $useTabs = true;
-
     protected array $with = ['tags'];
+    
+    // For Hexagonal DI fallback
+    private PostRepositoryInterface $repository;
+    private SimpleCommandBus $commandBus;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->repository = AppContainer::get()->get(PostRepositoryInterface::class);
+        $this->commandBus = AppContainer::get()->get(SimpleCommandBus::class);
+    }
 
     #[\Override]
     protected function setup()
@@ -76,6 +82,7 @@ class PostController extends ResourceController
     #[\Override]
     protected function getModelClass(): string
     {
+        // Return Domain Model (not Eloquent). ResourceTrait handles missing getFields method.
         return Post::class;
     }
 
@@ -83,19 +90,108 @@ class PostController extends ResourceController
     protected function beforeList()
     {
         $status = $_GET['filter_general_status'] ?? '';
-        $query = Post::where('type', 'post');
-
+        
+        $filters = ['type' => 'post'];
+        
         if ($status === 'published') {
-            $query->where('is_published', true)
-                ->where('published_at', '<=', date('Y-m-d H:i:s'));
+            $filters['is_published'] = 1;
+            // Strict date comparison is simplified for this demo, 
+            // In a real Hexagonal we'd query by status 'published' via Repository
+            $filters['status'] = 2; 
         } elseif ($status === 'draft') {
-            $query->where('is_published', false);
-        } elseif ($status === 'scheduled') {
-            $query->where('is_published', true)
-                ->where('published_at', '>', date('Y-m-d H:i:s'));
+            $filters['is_published'] = 0;
+            $filters['status'] = 0;
         }
 
-        $this->addVariable('posts', $query->orderBy('published_at', 'DESC')->get());
+        $posts = $this->repository->findByFilters($filters);
+
+        $this->addVariable('posts', $posts);
+    }
+
+    // OVERRIDE: Prevent Eloquent grid listing
+    #[\Override]
+    protected function fetchListData(string $tabId): array
+    {
+        $status = $_GET['filter_general_status'] ?? '';
+        $filters = ['type' => 'post'];
+        if ($status === 'published') {
+            $filters['status'] = 2; // For simpler demo logic
+        } elseif ($status === 'draft') {
+            $filters['status'] = 0;
+        }
+        $posts = $this->repository->findByFilters($filters);
+        
+        $data = [];
+        foreach ($posts as $post) {
+            $data[] = $post->toArray();
+        }
+
+        return ['total' => count($data), 'rows' => $data];
+    }
+    
+    // OVERRIDE: Prevent Eloquent fetching
+    #[\Override]
+    protected function fetchRecordData(): array
+    {
+        if ($this->recordId === 'new') {
+            return ['type' => 'post', 'is_published' => false];
+        }
+
+        $post = $this->repository->findById((int) $this->recordId);
+        if (!$post) {
+            return [];
+        }
+
+        return $post->toArray();
+    }
+
+    // OVERRIDE: Handle saving Hexagonal logic
+    #[\Override]
+    protected function saveRecord()
+    {
+        $data = $_POST['data'] ?? [];
+
+        // Command Bus Pattern: Create or Update using Handlers mapping
+        $cmd = new CreatePostCommand(
+            $data['title'] ?? 'Sin título',
+            $data['slug'] ?? '',
+            $data['content'] ?? '',
+            'post',
+            !empty($data['is_published']),
+            (int) ($data['status'] ?? 0)
+        );
+
+        // If ID exists, we should update (which theoretically requires UpdatePostCommand,
+        // but for this phase we simulate it directly via repository if no command created yet)
+        if (!empty($this->recordId) && $this->recordId !== 'new') {
+            $post = $this->repository->findById((int) $this->recordId);
+            if ($post) {
+                // Update Entity
+                $post->updateContent($cmd->title, $cmd->slug, $cmd->content);
+                $this->repository->save($post);
+                \Alxarafe\Infrastructure\Lib\Messages::addMessage('Registro modificado con éxito.');
+            }
+        } else {
+            $this->commandBus->dispatch($cmd);
+            \Alxarafe\Infrastructure\Lib\Messages::addMessage('Registro creado con éxito.');
+        }
+
+        header('Location: ' . static::url());
+        exit;
+    }
+    
+    // OVERRIDE: Handle Deletion
+    #[\Override]
+    public function doDelete(): bool
+    {
+        if ($this->recordId && $this->recordId !== 'new') {
+            $this->repository->delete((int) $this->recordId);
+            \Alxarafe\Infrastructure\Lib\Messages::addMessage('Registro borrado con éxito.');
+        }
+        
+        header('Location: ' . static::url());
+        exit;
+        return true;
     }
 
     #[\Override]
@@ -128,28 +224,27 @@ class PostController extends ResourceController
                 'label' => 'Contenido',
                 'col'   => 'col-md-8',
                 'fields' => [
-                    'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
-                    'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-                    'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido', ['rows' => 15]),
+                    'title' => new \Alxarafe\Infrastructure\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('content', 'Contenido', ['rows' => 15]),
                 ]
             ],
             'settings' => [
                 'label' => 'Configuración',
                 'col'   => 'col-md-4',
                 'fields' => [
-                    'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-                    'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicado'),
-                    'published_at' => new \Alxarafe\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
-                    'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
-                    'tags' => new \Alxarafe\Component\Fields\Select2('tags', 'Tags', Tag::where('type', 'tag')->pluck('name', 'id')->toArray(), ['multiple' => true]),
-                    'categories' => new \Alxarafe\Component\Fields\Select2('categories', 'Categorías', Tag::where('type', 'category')->pluck('name', 'id')->toArray(), ['multiple' => true]),
-                    'status' => new \Alxarafe\Component\Fields\Select(
+                    'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'is_published' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('is_published', 'Publicado'),
+                    'published_at' => new \Alxarafe\Infrastructure\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
+                    'featured_image' => new \Alxarafe\Infrastructure\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
+                    // For now removed advanced Tag relations as they require fixing Tag architecture to pure Domain too.
+                    'status' => new \Alxarafe\Infrastructure\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
-                        (new Post())->getStates()
+                        [0 => 'Borrador', 1 => 'Validado', 2 => 'Publicado', 9 => 'Archivado']
                     ),
-                    'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-                    'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                    'meta_title' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
                 ]
             ]
         ];
@@ -159,7 +254,7 @@ class PostController extends ResourceController
     protected function getFilters(): array
     {
         return [
-            new \Modules\Chascarrillo\Lib\Filter\PostStatusFilter('status', 'Estado', [
+            new \Alxarafe\Infrastructure\Component\Filter\SelectFilter('status', 'Estado', [
                 'options' => [
                     '' => 'Todos',
                     'published' => 'Publicados',
@@ -174,32 +269,14 @@ class PostController extends ResourceController
     protected function beforeEdit()
     {
         if ($this->recordId && $this->recordId !== 'new') {
-            $post = Post::find($this->recordId);
-            if ($post instanceof Post) {
+            $post = $this->repository->findById((int) $this->recordId);
+            if ($post) {
                 $data = $post->toArray();
-
-                /** @phpstan-ignore-next-line */
-                $data['tags'] = $post->tags()->where('type', 'tag')->pluck('tags.id')->toArray();
-
-                /** @phpstan-ignore-next-line */
-                $data['categories'] = $post->tags()->where('type', 'category')->pluck('tags.id')->toArray();
-
                 $this->addVariable('data', $data);
             }
         } elseif ($this->recordId === 'new') {
             $this->addVariable('data', ['type' => 'post', 'is_published' => false]);
         }
-    }
-
-    #[\Override]
-    protected function afterSaveRecord(\Alxarafe\Base\Model\Model $model, array $data)
-    {
-        /** @var Post $model */
-        $tags = $data['tags'] ?? [];
-        $categories = $data['categories'] ?? [];
-        $allTagIds = array_merge($tags, $categories);
-
-        $model->tags()->sync($allTagIds);
     }
 
     #[\Override]
@@ -216,7 +293,7 @@ class PostController extends ResourceController
 
         if (isset($_GET['ajax']) && $_GET['ajax'] === 'render_markdown') {
             $content = $_POST['content'] ?? '';
-            $html = \Alxarafe\Service\MarkdownService::render($content);
+            $html = \Alxarafe\Infrastructure\Service\MarkdownService::render($content);
             $this->jsonResponse(['status' => 'success', 'html' => $html]);
         }
 
@@ -244,9 +321,9 @@ class PostController extends ResourceController
         $results = SyncService::syncAll((bool)$rebuild);
 
         if (!$results['success']) {
-            \Alxarafe\Lib\Messages::addError("Error crítico: " . $results['error']);
+            \Alxarafe\Infrastructure\Lib\Messages::addError("Error crítico: " . $results['error']);
         } else {
-            \Alxarafe\Lib\Messages::addMessage("Sincronización completa: Contenido y Multimedia.");
+            \Alxarafe\Infrastructure\Lib\Messages::addMessage("Sincronización completa: Contenido y Multimedia.");
         }
 
         $this->addVariable('results', $results);

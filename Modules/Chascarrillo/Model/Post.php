@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Model;
 
-use Alxarafe\Base\Model\Model;
+use Alxarafe\Infrastructure\Persistence\Model\Model;
 use Modules\Chascarrillo\Traits\HasWorkflow;
 
 /**
@@ -118,7 +118,7 @@ class Post extends Model
     public function getExcerpt(?int $limit = null): string
     {
         if ($limit === null) {
-            $config = \Alxarafe\Base\Config::getConfig();
+            $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
             $limit = (int)($config->blog->excerpt_length ?? 140);
         }
         $text = strip_tags($this->content ?? '');
@@ -130,7 +130,7 @@ class Post extends Model
      */
     public function getRenderedContent(): string
     {
-        return \Alxarafe\Service\MarkdownService::render($this->content);
+        return \Alxarafe\Infrastructure\Service\MarkdownService::render($this->content);
     }
 
     /**

@@ -119,14 +119,14 @@
 
 .feature-card {
     background: #ffffff;
-    border: 1px solid #edf2f7;
+    border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
+    padding: 3rem 2rem;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
     height: 100%;
     margin: 1rem; /* Use margin for spacing when in flex mode */
     flex: 1 1 300px;
@@ -141,40 +141,39 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
-.feature-icon {
+.feature-icon,
+.icon-wrapper {
+    width: 4rem;
+    height: 4rem;
+    background: transparent;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
-    color: var(--alx-content-secondary);
 }
 
-.feature-content h2 {
+.feature-content h2,
+.feature-title {
+    font-weight: 800;
     font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #1a202c;
+    margin-bottom: 1.5rem;
+    color: #000;
 }
 
-.feature-content p {
-    color: #718096;
-    font-size: 1rem;
-    line-height: 1.6;
+.feature-content p,
+.feature-description {
+    color: #444;
+    font-size: 1.05rem;
+    line-height: 1.7;
     margin-bottom: 2rem;
-}
-
-.feature-item {
-    padding: 0 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-
-.feature-item img {
-    margin: 1rem 0 !important;
+    flex-grow: 1;
 }
 
 /* Feature Card Links as Buttons */
-.feature-content a {
+.feature-content a,
+.feature-card > .btn-outline-alx {
     display: inline-block;
     padding: 0.75rem 1.75rem;
     border: 1.5px solid var(--alx-content-primary);
@@ -183,9 +182,12 @@
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
+    margin-top: auto;
+    align-self: center;
 }
 
-.feature-content a:hover {
+.feature-content a:hover,
+.feature-card > .btn-outline-alx:hover {
     background-color: #eff6ff;
     color: #1e40af;
 }
@@ -223,4 +225,81 @@
     border-radius: 0.75rem;
     overflow-x: auto;
     margin: 2rem 0;
+}
+
+/* Content Body — Unified styles for pages and blog posts */
+.content-body h1 {
+    font-size: calc(1.475rem + 2.7vw);
+    font-weight: 800;
+    color: var(--bs-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.content-body h2 {
+    font-weight: 700;
+    color: var(--alx-secondary, var(--bs-secondary));
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.content-body p {
+    color: #4b5563;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.content-body ul,
+.content-body ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+    color: #4b5563;
+}
+
+.content-body li {
+    margin-bottom: 0.5rem;
+}
+
+.content-body blockquote {
+    border-left: 4px solid var(--alx-primary, var(--alx-content-primary));
+    padding-left: 1.5rem;
+    font-style: italic;
+    color: #6b7280;
+    margin: 2rem 0;
+}
+
+.content-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    margin: 3rem auto !important;
+    display: block;
+    box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2);
+}
+
+.content-body code {
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+    color: #e11d48;
+}
+
+.content-body pre {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+
+/* Blog post listing */
+.post-excerpt {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.blog-post .btn-outline-alx {
+    margin-top: 0.5rem;
 }

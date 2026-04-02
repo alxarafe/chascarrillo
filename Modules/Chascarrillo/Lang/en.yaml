@@ -22,8 +22,8 @@ performance_description: Built on Alxarafe, it offers instant loading speed and 
 spanish: Spanish
 english: English
 documentation: Documentation
-choose_a_style: Choose a style
-themes: Themes
+choose_a_style: Choose a style:
+themes: themes
 
 # Configuration
 blog_settings: Blog Settings

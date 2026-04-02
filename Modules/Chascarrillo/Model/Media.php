@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Model;
 
-use Alxarafe\Base\Model\Model;
+use Alxarafe\Infrastructure\Persistence\Model\Model;
 
 /**
  * Class Media

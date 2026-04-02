@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Config;
-use Alxarafe\Base\Controller\ResourceController;
-use Alxarafe\Lib\Trans;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Http\Controller\ResourceController;
+use Alxarafe\Infrastructure\Lib\Trans;
 use Alxarafe\Attribute\Menu;
-use Alxarafe\Component\Fields\RelationList;
-use Alxarafe\Component\Fields\Text;
+use Alxarafe\Infrastructure\Component\Fields\RelationList;
+use Alxarafe\Infrastructure\Component\Fields\Text;
 use stdClass;
 
 #[Menu(
@@ -54,7 +54,7 @@ class WorldsitesController extends ResourceController
             'config_general' => [
                 'label' => 'Configuración General',
                 'fields' => [
-                    'main.enableWorldsites' => new \Alxarafe\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
+                    'main.enableWorldsites' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
                 ]
             ],
             'sites_section' => [

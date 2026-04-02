@@ -2,10 +2,10 @@
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\Controller;
+use Alxarafe\Infrastructure\Http\Controller\Controller;
 use Modules\Chascarrillo\Service\UpdateService;
 use Alxarafe\Attribute\Menu;
-use Alxarafe\Lib\Functions;
+use Alxarafe\Infrastructure\Lib\Functions;
 
 #[Menu(
     menu: 'main_menu',
@@ -40,7 +40,7 @@ class MaintenanceController extends Controller
                 Functions::httpRedirect(static::url());
             }
         } else {
-            \Alxarafe\Lib\Messages::addError("No hay actualizaciones disponibles.");
+            \Alxarafe\Infrastructure\Lib\Messages::addError("No hay actualizaciones disponibles.");
         }
 
         Functions::httpRedirect('index.php?module=Chascarrillo&controller=Maintenance');

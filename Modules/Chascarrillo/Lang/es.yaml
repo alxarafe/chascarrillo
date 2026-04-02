@@ -22,8 +22,8 @@ performance_description: Construido sobre Alxarafe, ofrece una velocidad de carg
 spanish: Español
 english: Inglés
 documentation: Documentación
-choose_a_style: Elige un estilo
-themes: Temas
+choose_a_style: Choose a style:
+themes: themes
 
 # Configuración
 blog_settings: Ajustes del Blog

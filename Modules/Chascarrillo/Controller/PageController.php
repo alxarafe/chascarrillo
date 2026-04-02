@@ -2,7 +2,7 @@
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Base\Controller\GenericPublicController;
+use Alxarafe\Infrastructure\Http\Controller\GenericPublicController;
 use Modules\Chascarrillo\Model\Post;
 
 class PageController extends GenericPublicController
@@ -32,7 +32,7 @@ class PageController extends GenericPublicController
             $query = Post::where('slug', $slug);
 
             // Si no es admin, solo ver publicados
-            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+            if (!\Alxarafe\Infrastructure\Auth\Auth::$user?->is_admin) {
                 $query->where('is_published', true)
                     ->where('published_at', '<=', date('Y-m-d H:i:s'));
             }
@@ -43,8 +43,8 @@ class PageController extends GenericPublicController
         }
 
         if (!$page) {
-            \Alxarafe\Lib\Messages::addError("Página no encontrada: $slug");
-            \Alxarafe\Lib\Functions::httpRedirect('/index.php?module=Chascarrillo&controller=Blog');
+            \Alxarafe\Infrastructure\Lib\Messages::addError("Página no encontrada: $slug");
+            \Alxarafe\Infrastructure\Lib\Functions::httpRedirect('/index.php?module=Chascarrillo&controller=Blog');
             return false;
         }
 
@@ -54,7 +54,7 @@ class PageController extends GenericPublicController
             $query = Post::where('type', 'post')
                 ->orderBy('published_at', 'DESC');
 
-            if (!\Alxarafe\Lib\Auth::$user?->is_admin) {
+            if (!\Alxarafe\Infrastructure\Auth\Auth::$user?->is_admin) {
                 $query->where('is_published', true)
                     ->where('published_at', '<=', date('Y-m-d H:i:s'));
             }
@@ -69,6 +69,7 @@ class PageController extends GenericPublicController
         $this->addVariable('meta_description', $page->meta_description);
         $this->addVariable('meta_keywords', $page->meta_keywords);
         $this->addVariable('page', $page);
+        $this->addVariable('hide_page_title', true);
 
         return true;
     }

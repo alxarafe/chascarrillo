@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Attribute\Menu;
-use Alxarafe\Base\Controller\ResourceController;
+use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Post;
 
 #[Menu(
@@ -73,32 +73,32 @@ class PageAdminController extends ResourceController
             'content' => [
                 'label' => 'Contenido',
                 'fields' => [
-                    'title' => new \Alxarafe\Component\Fields\Text('title', 'Título'),
-                    'slug' => new \Alxarafe\Component\Fields\Text('slug', 'Slug'),
-                    'content' => new \Alxarafe\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
+                    'title' => new \Alxarafe\Infrastructure\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
                 ]
             ],
             'settings' => [
                 'label' => 'Ajustes',
                 'fields' => [
-                    'id' => new \Alxarafe\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-                    'in_menu' => new \Alxarafe\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
-                    'menu_order' => new \Alxarafe\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
-                    'is_published' => new \Alxarafe\Component\Fields\Boolean('is_published', 'Publicada'),
-                    'status' => new \Alxarafe\Component\Fields\Select(
+                    'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'in_menu' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
+                    'menu_order' => new \Alxarafe\Infrastructure\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
+                    'is_published' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('is_published', 'Publicada'),
+                    'status' => new \Alxarafe\Infrastructure\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
                         (new Post())->getStates()
                     ),
-                    'featured_image' => new \Alxarafe\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
+                    'featured_image' => new \Alxarafe\Infrastructure\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
                 ]
             ],
             'seo' => [
                 'label' => 'SEO',
                 'fields' => [
-                    'meta_title' => new \Alxarafe\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-                    'meta_description' => new \Alxarafe\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
-                    'meta_keywords' => new \Alxarafe\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
+                    'meta_title' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                    'meta_keywords' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
                 ]
             ]
         ];

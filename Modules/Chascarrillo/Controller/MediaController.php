@@ -10,7 +10,7 @@ namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Media;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Component\Fields\Text;
 use Alxarafe\Infrastructure\Component\Fields\Textarea;
 use Alxarafe\Infrastructure\Component\Fields\Select;
@@ -26,32 +26,34 @@ use Alxarafe\Infrastructure\Lib\Functions;
 )]
 class MediaController extends ResourceController
 {
-    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Media';
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeList()
     {
         $this->setDefaultTemplate('media/index');
         $this->addVariable('media', Media::orderBy('created_at', 'DESC')->get());
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         return Media::class;
     }
 
-    #[\Override]
+    
     protected function setup()
     {
         parent::setup();
@@ -66,7 +68,7 @@ class MediaController extends ResourceController
         );
     }
 
-    #[\Override]
+    
     protected function getListColumns(): array
     {
         return [
@@ -92,7 +94,7 @@ class MediaController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [

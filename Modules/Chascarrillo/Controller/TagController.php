@@ -23,7 +23,7 @@ namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Tag;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 
 #[Menu(
     menu: 'main_menu',
@@ -34,25 +34,24 @@ use Alxarafe\Attribute\Menu;
 )]
 class TagController extends ResourceController
 {
-    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Tag';
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         return Tag::class;
     }
 
-    #[\Override]
+    
     protected function getListColumns(): array
     {
         return [
@@ -66,7 +65,7 @@ class TagController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [

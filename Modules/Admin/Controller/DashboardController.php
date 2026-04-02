@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace Modules\Admin\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\Controller;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Tag;
 
@@ -55,13 +55,13 @@ class DashboardController extends Controller
         return true;
     }
 
-    #[\Override]
+    
     public static function getModuleName(): string
     {
         return 'Admin';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Dashboard';

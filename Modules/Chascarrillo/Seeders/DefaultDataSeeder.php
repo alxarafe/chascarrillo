@@ -57,6 +57,5 @@ class DefaultDataSeeder
                 'order' => 2,
             ]);
         }
-
     }
 }

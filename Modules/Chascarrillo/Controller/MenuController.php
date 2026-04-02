@@ -23,7 +23,7 @@ namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Menu;
-use Alxarafe\Attribute\Menu as MenuAttr;
+use Alxarafe\Infrastructure\Attribute\Menu as MenuAttr;
 
 #[MenuAttr(
     menu: 'main_menu',
@@ -34,25 +34,24 @@ use Alxarafe\Attribute\Menu as MenuAttr;
 )]
 class MenuController extends ResourceController
 {
-    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Menu';
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         return Menu::class;
     }
 
-    #[\Override]
+    
     protected function getListColumns(): array
     {
         return [
@@ -62,7 +61,7 @@ class MenuController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [
@@ -72,7 +71,10 @@ class MenuController extends ResourceController
         ];
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeEdit()
     {
         $this->setDefaultTemplate('menu/edit');
@@ -87,7 +89,10 @@ class MenuController extends ResourceController
         }
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function saveRecord()
     {
         $id = $_POST['id'] ?? null;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Post;
 
@@ -19,32 +19,35 @@ class PageAdminController extends ResourceController
 {
     protected bool $useTabs = true;
 
-    #[\Override]
+    
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'PageAdmin';
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         return Post::class;
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeList()
     {
         $this->setDefaultTemplate('page_admin/index');
         $this->addVariable('posts', Post::where('type', 'page')->orderBy('menu_order', 'ASC')->get());
     }
 
-    #[\Override]
+    
     protected function getListColumns(): array
     {
         return [
@@ -66,7 +69,7 @@ class PageAdminController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [
@@ -104,7 +107,10 @@ class PageAdminController extends ResourceController
         ];
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeEdit()
     {
         // $this->setDefaultTemplate('page_admin/edit');

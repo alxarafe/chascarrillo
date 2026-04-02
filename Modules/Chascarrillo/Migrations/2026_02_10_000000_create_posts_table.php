@@ -4,7 +4,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
 
 return new class {
-    public function up()
+    public function up(): void
     {
         if (!Capsule::schema()->hasTable('posts')) {
             Capsule::schema()->create('posts', function (Blueprint $table) {
@@ -19,7 +19,7 @@ return new class {
         }
     }
 
-    public function down()
+    public function down(): void
     {
         Capsule::schema()->dropIfExists('posts');
     }

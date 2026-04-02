@@ -23,17 +23,16 @@ namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\GenericPublicController;
 use Modules\Chascarrillo\Model\Post;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 
 class BlogController extends GenericPublicController
 {
-    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Blog';

@@ -11,7 +11,7 @@ class PostStatusFilter extends AbstractFilter
      * @param mixed $value
      * @return void
      */
-    #[\Override]
+    
     public function apply($query, $value): void
     {
         switch ($value) {
@@ -29,7 +29,7 @@ class PostStatusFilter extends AbstractFilter
         }
     }
 
-    #[\Override]
+    
     public function getType(): string
     {
         return 'select';

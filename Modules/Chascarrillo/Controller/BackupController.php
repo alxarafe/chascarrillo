@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\Controller;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Lib\Functions;
 use Alxarafe\Infrastructure\Lib\Messages;
 use Modules\Chascarrillo\Service\BackupService;

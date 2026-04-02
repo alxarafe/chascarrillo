@@ -26,10 +26,11 @@ class CreatePostHandler implements CommandHandler
     }
 
     /**
-     * @param CreatePostCommand $command
+     * @param Command $command
      */
     public function handle(Command $command): mixed
     {
+        /** @var CreatePostCommand $command */
         $post = new Post(
             $command->title,
             $command->slug,

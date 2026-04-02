@@ -19,4 +19,8 @@
     <stubs>
         <file name="psalm-stubs.php" />
     </stubs>
+    <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress" />
+        <InvalidAttribute errorLevel="suppress" />
+    </issueHandlers>
 </psalm>

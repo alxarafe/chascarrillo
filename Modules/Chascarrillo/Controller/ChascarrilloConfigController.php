@@ -18,7 +18,6 @@ use Alxarafe\Infrastructure\Attribute\Menu;
 )]
 class ChascarrilloConfigController extends BaseConfigController
 {
-    #[\Override]
     protected function getTabs(): array
     {
         // 1. Obtener las pestañas base de Alxarafe (Misc, Connection, DB Prefs, Database)

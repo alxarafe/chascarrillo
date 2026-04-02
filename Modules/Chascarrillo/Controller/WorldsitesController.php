@@ -7,7 +7,7 @@ namespace Modules\Chascarrillo\Controller;
 use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Alxarafe\Infrastructure\Lib\Trans;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Component\Fields\RelationList;
 use Alxarafe\Infrastructure\Component\Fields\Text;
 use stdClass;
@@ -22,32 +22,34 @@ use stdClass;
 )]
 class WorldsitesController extends ResourceController
 {
-    #[\Override]
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Worldsites';
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         return 'Config';
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function detectMode()
     {
         $this->mode = self::MODE_EDIT;
         $this->recordId = 'current';
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [
@@ -70,7 +72,7 @@ class WorldsitesController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function fetchRecordData(): array
     {
         $config = Config::getConfig(true);
@@ -98,7 +100,10 @@ class WorldsitesController extends ResourceController
         ];
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function saveRecord()
     {
         $data = $_POST['data'] ?? [];

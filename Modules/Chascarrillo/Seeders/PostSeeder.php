@@ -87,6 +87,5 @@ Echa un vistazo a nuestro [Laboratorio](/blog) para ver en qué estamos trabajan
             'menu_order' => 20,
             'type' => 'page',
         ]);
-
     }
 }

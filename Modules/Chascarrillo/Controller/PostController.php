@@ -19,7 +19,7 @@ if (is_dir(__DIR__ . '/../../../Content')) {
     define('CHASCARRILLO_SYNC_MENU', 'none');
 }
 
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Domain\Model\Post;
 use Modules\Chascarrillo\Model\Tag;
@@ -52,7 +52,7 @@ class PostController extends ResourceController
         $this->commandBus = AppContainer::get()->get(SimpleCommandBus::class);
     }
 
-    #[\Override]
+    
     protected function setup()
     {
         parent::setup();
@@ -67,26 +67,29 @@ class PostController extends ResourceController
         );
     }
 
-    #[\Override]
+    
     public static function getModuleName(): string
     {
         return 'Chascarrillo';
     }
 
-    #[\Override]
+    
     public static function getControllerName(): string
     {
         return 'Post';
     }
 
-    #[\Override]
+    
     protected function getModelClass(): string
     {
         // Return Domain Model (not Eloquent). ResourceTrait handles missing getFields method.
         return Post::class;
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeList()
     {
         $status = $_GET['filter_general_status'] ?? '';
@@ -109,7 +112,7 @@ class PostController extends ResourceController
     }
 
     // OVERRIDE: Prevent Eloquent grid listing
-    #[\Override]
+    
     protected function fetchListData(string $tabId): array
     {
         $status = $_GET['filter_general_status'] ?? '';
@@ -130,7 +133,7 @@ class PostController extends ResourceController
     }
     
     // OVERRIDE: Prevent Eloquent fetching
-    #[\Override]
+    
     protected function fetchRecordData(): array
     {
         if ($this->recordId === 'new') {
@@ -146,7 +149,10 @@ class PostController extends ResourceController
     }
 
     // OVERRIDE: Handle saving Hexagonal logic
-    #[\Override]
+    /**
+     * @return never
+     */
+    
     protected function saveRecord()
     {
         $data = $_POST['data'] ?? [];
@@ -181,7 +187,7 @@ class PostController extends ResourceController
     }
     
     // OVERRIDE: Handle Deletion
-    #[\Override]
+    
     public function doDelete(): bool
     {
         if ($this->recordId && $this->recordId !== 'new') {
@@ -191,10 +197,9 @@ class PostController extends ResourceController
         
         header('Location: ' . static::url());
         exit;
-        return true;
     }
 
-    #[\Override]
+    
     protected function getListColumns(): array
     {
         return [
@@ -216,7 +221,7 @@ class PostController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getEditFields(): array
     {
         return [
@@ -250,7 +255,7 @@ class PostController extends ResourceController
         ];
     }
 
-    #[\Override]
+    
     protected function getFilters(): array
     {
         return [
@@ -265,7 +270,10 @@ class PostController extends ResourceController
         ];
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function beforeEdit()
     {
         if ($this->recordId && $this->recordId !== 'new') {
@@ -279,7 +287,10 @@ class PostController extends ResourceController
         }
     }
 
-    #[\Override]
+    /**
+     * @return void
+     */
+    
     protected function handleRequest()
     {
         if (isset($_GET['ajax']) && $_GET['ajax'] === 'upload_image') {

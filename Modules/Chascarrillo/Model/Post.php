@@ -23,6 +23,7 @@ namespace Modules\Chascarrillo\Model;
 
 use Alxarafe\Infrastructure\Persistence\Model\Model;
 use Modules\Chascarrillo\Traits\HasWorkflow;
+use Override;
 
 /**
  * @property int $id
@@ -52,7 +53,7 @@ class Post extends Model
 
     protected string $stateField = 'status';
 
-    #[\Override]
+    
     protected function getWorkflowDefinition(): array
     {
         return [

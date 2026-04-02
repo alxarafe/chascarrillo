@@ -25,18 +25,21 @@ class PdoPostRepository implements PostRepositoryInterface
     {
     }
 
+    
     public function findById(int $id): ?Post
     {
         $row = $this->db->findById(self::TABLE, $id);
         return $row ? Post::fromArray($row) : null;
     }
 
+    
     public function findBySlug(string $slug): ?Post
     {
         $rows = $this->db->findBy(self::TABLE, ['slug' => $slug]);
         return !empty($rows) ? Post::fromArray($rows[0]) : null;
     }
 
+    
     public function save(Post $post): void
     {
         $data = $post->toArray();
@@ -49,6 +52,7 @@ class PdoPostRepository implements PostRepositoryInterface
         }
     }
 
+    
     public function delete(int $id): void
     {
         $this->db->delete(self::TABLE, $id);
@@ -57,6 +61,7 @@ class PdoPostRepository implements PostRepositoryInterface
     /**
      * @return Post[]
      */
+    
     public function findAllPublished(): array
     {
         $rows = $this->db->findBy(self::TABLE, ['is_published' => 1, 'type' => 'post']);
@@ -66,6 +71,7 @@ class PdoPostRepository implements PostRepositoryInterface
     /**
      * @return Post[]
      */
+    
     public function findByFilters(array $filters = []): array
     {
         // Simple mapping, can be expanded for complex queries via PersistencePort

@@ -28,8 +28,8 @@ class Post
     private ?string $featuredImage;
     private ?string $metaTitle;
     private ?string $metaDescription;
-    private ?DateTimeImmutable $createdAt;
-    private ?DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $createdAt;
+    private DateTimeImmutable $updatedAt;
 
     public function __construct(
         string $title,
@@ -96,24 +96,54 @@ class Post
             'featured_image' => $this->featuredImage,
             'meta_title' => $this->metaTitle,
             'meta_description' => $this->metaDescription,
-            'created_at' => $this->createdAt?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updatedAt?->format('Y-m-d H:i:s'),
+            'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];
     }
 
     // Getters
-    public function getId(): ?int { return $this->id; }
-    public function getTitle(): string { return $this->title; }
-    public function getSlug(): string { return $this->slug; }
-    public function getType(): string { return $this->type; }
-    public function getContent(): string { return $this->content; }
-    public function isPublished(): bool { return $this->isPublished; }
-    public function getStatus(): int { return $this->status; }
-    public function getPublishedAt(): ?DateTimeImmutable { return $this->publishedAt; }
-    public function getFeaturedImage(): ?string { return $this->featuredImage; }
+    public function getId(): ?int
+    {
+ return $this->id; 
+}
+    public function getTitle(): string
+    {
+ return $this->title; 
+}
+    public function getSlug(): string
+    {
+ return $this->slug; 
+}
+    public function getType(): string
+    {
+ return $this->type; 
+}
+    public function getContent(): string
+    {
+ return $this->content; 
+}
+    public function isPublished(): bool
+    {
+ return $this->isPublished; 
+}
+    public function getStatus(): int
+    {
+ return $this->status; 
+}
+    public function getPublishedAt(): ?DateTimeImmutable
+    {
+ return $this->publishedAt; 
+}
+    public function getFeaturedImage(): ?string
+    {
+ return $this->featuredImage; 
+}
     
     // Setters / Actions
-    public function setId(int $id): void { $this->id = $id; }
+    public function setId(int $id): void
+    {
+ $this->id = $id; 
+}
     
     public function updateContent(string $title, string $slug, string $content): void
     {
@@ -143,7 +173,7 @@ class Post
 
     public function getRenderedContent(): string
     {
-        return \Alxarafe\Infrastructure\Service\MarkdownService::render($this->content ?? '');
+        return \Alxarafe\Infrastructure\Service\MarkdownService::render($this->content);
     }
 
     public function getExcerpt(?int $limit = null): string
@@ -152,8 +182,11 @@ class Post
             $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
             $limit = (int)($config->blog->excerpt_length ?? 140);
         }
-        $text = strip_tags($this->content ?? '');
-        return \Str::limit($text, $limit);
+        $text = strip_tags($this->content);
+        if (mb_strlen($text) > $limit) {
+            return mb_substr($text, 0, $limit) . '...';
+        }
+        return $text;
     }
 
     public function __get(string $name): mixed

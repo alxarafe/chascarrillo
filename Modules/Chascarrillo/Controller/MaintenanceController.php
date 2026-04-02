@@ -4,7 +4,7 @@ namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\Controller;
 use Modules\Chascarrillo\Service\UpdateService;
-use Alxarafe\Attribute\Menu;
+use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Lib\Functions;
 
 #[Menu(

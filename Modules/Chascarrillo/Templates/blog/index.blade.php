@@ -4,9 +4,19 @@
 <div class="hero-section">
     <div class="container text-center">
         @if(isset($tag_filter) && $tag_filter)
-            <div class="mb-3"><span class="badge rounded-pill bg-success px-3 py-2 text-uppercase shadow-sm"><i class="fas fa-hashtag me-2"></i>{{ $tag_filter }}</span></div>
+            <div class="mb-3">
+                <span class="badge rounded-pill bg-success px-3 py-2 text-uppercase shadow-sm d-inline-flex align-items-center">
+                    <i class="fas fa-hashtag me-2"></i>{{ $tag_filter }}
+                    <a href="/blog" class="text-white ms-2 text-decoration-none" title="Eliminar filtro"><i class="fas fa-circle-xmark"></i></a>
+                </span>
+            </div>
         @elseif(isset($cat_filter) && $cat_filter)
-            <div class="mb-3"><span class="badge rounded-pill bg-primary px-3 py-2 text-uppercase shadow-sm"><i class="fas fa-folder-open me-2"></i>{{ $cat_filter }}</span></div>
+            <div class="mb-3">
+                <span class="badge rounded-pill bg-primary px-3 py-2 text-uppercase shadow-sm d-inline-flex align-items-center">
+                    <i class="fas fa-folder-open me-2"></i>{{ $cat_filter }}
+                    <a href="/blog" class="text-white ms-2 text-decoration-none" title="Eliminar filtro"><i class="fas fa-circle-xmark"></i></a>
+                </span>
+            </div>
         @endif
         <h1 class="hero-title">{{ $hero_title ?? \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_title') }}</h1>
         <p class="hero-subtitle">{{ $hero_subtitle ?? \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_subtitle') }}</p>

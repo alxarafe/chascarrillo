@@ -47,7 +47,7 @@
                         </div>
                     </div>
                     <h2 class="h2 fw-bold mb-3">
-                        <a href="/blog/{{ $post->slug }}" class="text-decoration-none text-dark">
+                        <a href="/blog/{{ $post->slug }}" class="text-decoration-none text-reset">
                             {{ $post->title }}
                         </a>
                     </h2>
@@ -61,13 +61,13 @@
                 </div>
                 @endif
 
-                <div class="post-excerpt mb-4 text-secondary">
+                <div class="post-excerpt mb-4 opacity-75">
                     <p>
                         {{ $post->meta_description ?? $post->getExcerpt(250) }}
                     </p>
                 </div>
 
-                <a href="/blog/{{ $post->slug }}" class="btn btn-outline-alx">
+                <a href="/blog/{{ $post->slug }}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
                     {{ \Alxarafe\Infrastructure\Lib\Trans::_('read_on') }} <i class="fas fa-arrow-right small"></i>
                 </a>
             </article>

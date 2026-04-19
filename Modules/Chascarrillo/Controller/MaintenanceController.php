@@ -36,7 +36,7 @@ class MaintenanceController extends Controller
     {
         $updateInfo = UpdateService::checkUpdate();
         if ($updateInfo && isset($updateInfo['zipball_url'])) {
-            if (UpdateService::applyUpdate($updateInfo['zipball_url'])) {
+            if (UpdateService::applyUpdate($updateInfo['zipball_url'], $updateInfo['tag_name'] ?? '')) {
                 Functions::httpRedirect(static::url());
             }
         } else {

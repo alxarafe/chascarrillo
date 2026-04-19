@@ -46,7 +46,8 @@ class BlogController extends GenericPublicController
 
         try {
             /** @var \Illuminate\Database\Eloquent\Builder $query */
-            $query = Post::where('type', 'post')
+            $query = Post::with('tags')
+                ->where('type', 'post')
                 ->orderBy('published_at', 'DESC');
 
             if (!\Alxarafe\Infrastructure\Auth\Auth::$user?->is_admin) {
@@ -56,10 +57,16 @@ class BlogController extends GenericPublicController
 
             if ($tagSlug) {
                 $query->whereHas('tags', function ($q) use ($tagSlug) {
-                    $q->where('slug', $tagSlug)->where('type', 'tag');
+                    $q->where('slug', $tagSlug);
                 });
                 $tag = \Modules\Chascarrillo\Model\Tag::where('slug', $tagSlug)->first();
-                $this->title = 'Posts con el tag: ' . ($tag ? $tag->name : $tagSlug);
+                if ($tag) {
+                    $this->title = $tag->type === 'category'
+                        ? 'Posts en la categoría: ' . $tag->name
+                        : 'Posts con el tag: ' . $tag->name;
+                } else {
+                    $this->title = 'Posts con el tag: ' . $tagSlug;
+                }
             }
 
             if ($catSlug) {
@@ -82,7 +89,10 @@ class BlogController extends GenericPublicController
         $isBlogIndex = str_contains($_SERVER['REQUEST_URI'] ?? '', '/blog') || $tagSlug || $catSlug;
 
         if ($isBlogIndex) {
-            $this->title = $config->blog->title ?? 'Laboratorio de Chascarrillos';
+            // Solo poner el título genérico si no hay filtro activo por tag/categoría
+            if (!$tagSlug && !$catSlug) {
+                $this->title = $config->blog->title ?? 'Laboratorio de Chascarrillos';
+            }
             $this->setDefaultTemplate('blog/index');
         }
 

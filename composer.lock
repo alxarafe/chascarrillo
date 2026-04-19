@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c3316125bc7dedf6e96b8c4be035b420",
+    "content-hash": "d6204697d97419283f6ab5cd2f35abf3",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "v0.6.0",
+            "version": "v0.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alxarafe/alxarafe.git",
-                "reference": "2746b433caf86312ee37f44491e853a5717fec45"
+                "reference": "6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/2746b433caf86312ee37f44491e853a5717fec45",
-                "reference": "2746b433caf86312ee37f44491e853a5717fec45",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef",
+                "reference": "6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef",
                 "shasum": ""
             },
             "require": {
@@ -80,7 +80,7 @@
                 "issues": "https://github.com/alxarafe/alxarafe/issues",
                 "source": "https://github.com/alxarafe/alxarafe"
             },
-            "time": "2026-03-29T18:49:45+00:00"
+            "time": "2026-04-18T08:57:38+00:00"
         },
         {
             "name": "brick/math",

@@ -1,9 +1,10 @@
 <?php
 define('BASE_PATH', __DIR__ . '/public_html');
+define('APP_PATH', __DIR__);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Alxarafe\Infrastructure\Persistence\Config;
-use Alxarafe\Lib\Messages;
+use Alxarafe\Infrastructure\Lib\Messages;
 
 echo "--- Starting Migration Process ---\n";
 

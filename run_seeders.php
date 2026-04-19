@@ -1,10 +1,12 @@
 <?php
 define('BASE_PATH', __DIR__ . '/public_html');
+define('APP_PATH', __DIR__);
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Alxarafe\Base\Config;
-use Alxarafe\Lib\Messages;
-use Alxarafe\Lib\Routes;
+use Alxarafe\Infrastructure\Persistence\Config;
+use Alxarafe\Infrastructure\Lib\Messages;
+use Alxarafe\Infrastructure\Http\Routes;
+use Alxarafe\Infrastructure\Persistence\Database;
 
 // Initialize Config
 $config = Config::getConfig();
@@ -14,14 +16,11 @@ if (!$config) {
 
 // Initialize Database Connection
 if (isset($config->db)) {
-    \Alxarafe\Base\Database::createConnection($config->db);
+    Database::createConnection($config->db);
 }
 
 echo "--- Run Seeders ---\n";
 
-if (!defined('APP_PATH')) {
-    define('APP_PATH', __DIR__);
-}
 if (!defined('ALX_PATH')) {
     define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe');
 }

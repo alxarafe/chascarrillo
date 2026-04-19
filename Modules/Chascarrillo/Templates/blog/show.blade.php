@@ -1,5 +1,14 @@
 @extends('partial.layout.main')
 
+@php
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $postUrl = $scheme . '://' . $host . '/blog/' . $post->slug;
+    $postTitle = $post->title;
+    $encodedUrl = urlencode($postUrl);
+    $encodedTitle = urlencode($postTitle);
+@endphp
+
 @section('content')
 <div class="container py-5">
     <article class="post-content">
@@ -9,7 +18,7 @@
                     {{ $post->published_at ? $post->published_at->format('d M, Y') : 'Borrador' }}
                 </span>
                 @if(\Alxarafe\Infrastructure\Auth\Auth::isLogged() && \Alxarafe\Infrastructure\Auth\Auth::$user->is_admin)
-                    <a href="/index.php?module=Chascarrillo&controller=Post&action=edit&id={{ $post->id }}" class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm">
+                    <a href="/?module=Chascarrillo&controller=Post&action=edit&id={{ $post->id }}" class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm">
                         <i class="fas fa-edit me-1"></i> Editar Chascarrillo
                     </a>
                 @endif
@@ -30,14 +39,40 @@
         </div>
 
         <footer class="mt-5 pt-5 border-top">
+            {{-- Tags y categorías del post --}}
+            @if($post->tags->count() > 0)
+            <div class="mb-4 d-flex flex-wrap gap-2">
+                @foreach($post->tags->where('type', 'category') as $cat)
+                    <a href="/blog?category={{ $cat->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none">
+                        <i class="fas fa-folder-open me-1"></i>{{ $cat->name }}
+                    </a>
+                @endforeach
+                @foreach($post->tags->where('type', 'tag') as $tag)
+                    <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-success bg-opacity-10 text-success text-decoration-none">
+                        #{{ $tag->name }}
+                    </a>
+                @endforeach
+            </div>
+            @endif
+
             <div class="d-flex justify-content-between align-items-center">
-                <a href="/index.php?module=Chascarrillo&controller=Blog&action=index" class="btn btn-outline-alx">
+                <a href="/blog" class="btn btn-outline-alx">
                     <i class="fas fa-arrow-left me-2"></i> Volver al blog
                 </a>
-                <div class="social-share">
+                <div class="social-share d-flex align-items-center gap-2">
                     <span class="text-muted small me-2">Compartir:</span>
-                    <a href="#" class="text-secondary hover-primary me-2"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-secondary hover-primary me-2"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://twitter.com/intent/tweet?url={{ $encodedUrl }}&text={{ $encodedTitle }}" target="_blank" rel="noopener noreferrer" class="text-secondary hover-primary" title="Compartir en X/Twitter">
+                        <i class="fab fa-x-twitter fa-lg"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ $encodedUrl }}" target="_blank" rel="noopener noreferrer" class="text-secondary hover-primary" title="Compartir en LinkedIn">
+                        <i class="fab fa-linkedin fa-lg"></i>
+                    </a>
+                    <a href="https://api.whatsapp.com/send?text={{ $encodedTitle }}%20{{ $encodedUrl }}" target="_blank" rel="noopener noreferrer" class="text-secondary hover-primary" title="Compartir por WhatsApp">
+                        <i class="fab fa-whatsapp fa-lg"></i>
+                    </a>
+                    <a href="mailto:?subject={{ $encodedTitle }}&body={{ $encodedUrl }}" class="text-secondary hover-primary" title="Compartir por email">
+                        <i class="fas fa-envelope fa-lg"></i>
+                    </a>
                 </div>
             </div>
         </footer>

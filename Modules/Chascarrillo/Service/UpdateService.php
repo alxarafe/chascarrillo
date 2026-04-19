@@ -7,7 +7,7 @@ use Alxarafe\Infrastructure\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.8.5';
+    public const VERSION = 'v0.8.6';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -56,7 +56,7 @@ class UpdateService
     /**
      * Download and apply the update.
      */
-    public static function applyUpdate(string $zipUrl): bool
+    public static function applyUpdate(string $zipUrl, string $targetVersion = ''): bool
     {
         $tmpZip = sys_get_temp_dir() . '/chascarrillo_update.zip';
         $extractPath = sys_get_temp_dir() . '/chascarrillo_update_extracted';
@@ -114,7 +114,8 @@ class UpdateService
         if ($success) {
             // 4. Run Migrations
             Config::doRunMigrations();
-            Messages::addMessage("¡Actualización aplicada con éxito a " . self::VERSION . "!");
+            $versionLabel = $targetVersion ?: self::VERSION;
+            Messages::addMessage("¡Actualización aplicada con éxito a " . $versionLabel . "!");
             return true;
         }
 

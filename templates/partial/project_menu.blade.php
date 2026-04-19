@@ -35,7 +35,7 @@
 <header class="app-header navbar navbar-expand-lg">
     <div class="container">
         <!-- Brand / Logo -->
-        <a class="navbar-brand d-flex align-items-center" href="index.php">
+        <a class="navbar-brand d-flex align-items-center" href="/">
             <span class="brand-text">{{ $config->main->appName ?? 'Chascarrillo' }}</span>
         </a>
 

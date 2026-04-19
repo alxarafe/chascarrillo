@@ -18,9 +18,14 @@
                         <span class="text-muted small text-uppercase">
                             {{ \Carbon\Carbon::parse($post->published_at)->format('d F, Y') }}
                         </span>
-                        <div class="d-flex gap-2">
-                            @foreach($post->tags as $tag)
-                                <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none small">
+                        <div class="d-flex gap-2 flex-wrap">
+                            @foreach($post->tags->where('type', 'category') as $cat)
+                                <a href="/blog?category={{ $cat->slug }}" class="badge rounded-pill bg-primary bg-opacity-10 text-primary text-decoration-none small">
+                                    <i class="fas fa-folder-open me-1"></i>{{ $cat->name }}
+                                </a>
+                            @endforeach
+                            @foreach($post->tags->where('type', 'tag') as $tag)
+                                <a href="/blog?tag={{ $tag->slug }}" class="badge rounded-pill bg-success bg-opacity-10 text-success text-decoration-none small">
                                     #{{ $tag->name }}
                                 </a>
                             @endforeach

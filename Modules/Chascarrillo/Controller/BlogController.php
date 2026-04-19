@@ -107,6 +107,11 @@ class BlogController extends GenericPublicController
         $this->addVariable('posts', $posts);
         $this->addVariable('is_blog_index', $isBlogIndex);
         $this->addVariable('hide_page_title', true);
+        
+        $this->addVariable('hero_title', $this->title);
+        $this->addVariable('hero_subtitle', ($tagSlug || $catSlug) ? 'Mostrando resultados filtrados.' : \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_subtitle'));
+        $this->addVariable('tag_filter', $tagSlug);
+        $this->addVariable('cat_filter', $catSlug);
 
         return true;
     }

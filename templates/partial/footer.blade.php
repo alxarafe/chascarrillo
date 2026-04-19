@@ -61,16 +61,18 @@
 
 <footer class="mt-auto py-5 border-top">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start">
-                <p class="mb-0 text-muted small">Powered by <a href="{{ $githubUrl }}" target="_blank" class="text-secondary fw-bold text-decoration-none">Chascarrillo</a>
-                <span class="ms-1 text-secondary-emphasis">{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</span>.
-                Developed with <strong>Alxarafe Framework</strong></p>
-            </div>
-            <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+        <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-center align-items-md-start">
+            <div class="text-center text-md-start mb-3 mb-md-0">
                 <p class="mb-0 text-muted small">
-                    <i class="fas fa-shield-halved me-1"></i> No cookies, no tracking, no noise.
-                    <span class="d-block d-md-inline ms-md-2 mt-1 mt-md-0">Privacy by design.</span>
+                    Powered by <a href="{{ $githubUrl }}" target="_blank" class="text-secondary fw-bold text-decoration-none">Chascarrillo</a>
+                    <span class="ms-1 text-secondary-emphasis">{{ \Modules\Chascarrillo\Service\UpdateService::VERSION }}</span>.<br class="d-none d-md-block">
+                    Developed with <strong>Alxarafe Framework</strong>
+                </p>
+            </div>
+            <div class="text-center text-md-end">
+                <p class="mb-0 text-muted small">
+                    <i class="fas fa-shield-halved me-1"></i> No cookies, no tracking, no noise.<br class="d-none d-md-block">
+                    Privacy by design.
                 </p>
             </div>
         </div>

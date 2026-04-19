@@ -3,8 +3,13 @@
 @section('content')
 <div class="hero-section">
     <div class="container text-center">
-        <h1 class="hero-title">{{ \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_title') }}</h1>
-        <p class="hero-subtitle">{{ \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_subtitle') }}</p>
+        @if(isset($tag_filter) && $tag_filter)
+            <div class="mb-3"><span class="badge rounded-pill bg-success px-3 py-2 text-uppercase shadow-sm"><i class="fas fa-hashtag me-2"></i>{{ $tag_filter }}</span></div>
+        @elseif(isset($cat_filter) && $cat_filter)
+            <div class="mb-3"><span class="badge rounded-pill bg-primary px-3 py-2 text-uppercase shadow-sm"><i class="fas fa-folder-open me-2"></i>{{ $cat_filter }}</span></div>
+        @endif
+        <h1 class="hero-title">{{ $hero_title ?? \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_title') }}</h1>
+        <p class="hero-subtitle">{{ $hero_subtitle ?? \Alxarafe\Infrastructure\Lib\Trans::_('laboratory_subtitle') }}</p>
     </div>
 </div>
 

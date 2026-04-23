@@ -7,7 +7,7 @@ use Alxarafe\Infrastructure\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.8.7';
+    public const VERSION = 'v0.8.8';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -21,7 +21,8 @@ class UpdateService
                 'method' => 'GET',
                 'header' => [
                     'User-Agent: Chascarrillo-Updater'
-                ]
+                ],
+                'timeout' => 30
             ]
         ];
         $context = stream_context_create($opts);
@@ -65,13 +66,14 @@ class UpdateService
         $opts = [
             'http' => [
                 'method' => 'GET',
-                'header' => ['User-Agent: Chascarrillo-Updater']
+                'header' => ['User-Agent: Chascarrillo-Updater'],
+                'timeout' => 60
             ]
         ];
         $context = stream_context_create($opts);
         $content = @file_get_contents($zipUrl, false, $context);
         if ($content === false) {
-            Messages::addError("No se pudo descargar el archivo de actualización.");
+            Messages::addError("No se pudo descargar el archivo de actualización. Verifique la conexión con GitHub.");
             return false;
         }
         file_put_contents($tmpZip, $content);

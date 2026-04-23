@@ -60,14 +60,14 @@ jobs:
 
       - name: Generate PHP Metrics report
         run: |
-          rm -rf public/quality
-          mkdir -p public/quality
-          vendor/bin/phpmetrics --report-html=public/quality Modules
+          rm -rf public_html/quality
+          mkdir -p public_html/quality
+          vendor/bin/phpmetrics --report-html=public_html/quality Modules
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: public_html
 
   deploy:
     needs: quality

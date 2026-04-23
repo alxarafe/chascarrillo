@@ -32,8 +32,8 @@ class Post
     private DateTimeImmutable $updatedAt;
 
     public function __construct(
-        string $title,
-        string $slug,
+        string $title = '',
+        string $slug = '',
         string $content = '',
         string $type = 'post',
         bool $isPublished = false,

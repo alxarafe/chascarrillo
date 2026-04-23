@@ -286,12 +286,36 @@
 }
 
 .content-body pre {
-    background: #1e293b;
+    background: #0d1117;
     color: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
+    padding: 2.5rem 1.5rem 1.5rem;
+    border-radius: 1rem;
     overflow-x: auto;
-    margin: 2rem 0;
+    margin: 2.5rem 0;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.content-body pre::before {
+    content: '';
+    position: absolute;
+    top: 0.8rem;
+    left: 1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ff5f56;
+    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+}
+
+.content-body pre code {
+    background: transparent !important;
+    padding: 0 !important;
+    color: inherit !important;
+    font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
 /* Blog post listing */

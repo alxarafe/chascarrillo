@@ -199,6 +199,11 @@ class PostController extends ResourceController
         exit;
     }
 
+    public function doEdit(): bool
+    {
+        return $this->doIndex();
+    }
+
     
     protected function getListColumns(): array
     {

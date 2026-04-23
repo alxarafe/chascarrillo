@@ -265,3 +265,22 @@ textarea {
 .phpdebugbar-fa {
     color: var(--hc-text) !important;
 }
+
+/* Dropdown Menu Overrides */
+.dropdown-menu {
+    background-color: var(--hc-bg) !important;
+    border: 3px solid var(--hc-border) !important;
+}
+
+.dropdown-item {
+    color: var(--hc-text) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--hc-highlight) !important;
+    color: #000000 !important;
+}
+
+.dropdown-header {
+    color: var(--hc-link) !important;
+}

@@ -11,9 +11,9 @@ namespace Modules\Chascarrillo\Controller;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Modules\Chascarrillo\Model\Media;
 use Alxarafe\Infrastructure\Attribute\Menu;
-use Alxarafe\Infrastructure\Component\Fields\Text;
-use Alxarafe\Infrastructure\Component\Fields\Textarea;
-use Alxarafe\Infrastructure\Component\Fields\Select;
+use Alxarafe\ResourceController\Component\Fields\Text;
+use Alxarafe\ResourceController\Component\Fields\Textarea;
+use Alxarafe\ResourceController\Component\Fields\Select;
 use Alxarafe\Infrastructure\Lib\Messages;
 use Alxarafe\Infrastructure\Lib\Functions;
 
@@ -41,20 +41,20 @@ class MediaController extends ResourceController
      * @return void
      */
     
-    protected function beforeList()
+    protected function beforeList(): void
     {
         $this->setDefaultTemplate('media/index');
         $this->addVariable('media', Media::orderBy('created_at', 'DESC')->get());
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         return Media::class;
     }
 
     
-    protected function setup()
+    protected function setup(): void
     {
         parent::setup();
         $this->addListButton(

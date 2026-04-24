@@ -3,8 +3,8 @@
 namespace Modules\Chascarrillo\Controller;
 
 use Modules\Admin\Controller\ConfigController as BaseConfigController;
-use Alxarafe\Infrastructure\Component\Container\Tab;
-use Alxarafe\Infrastructure\Component\Fields\Text;
+use Alxarafe\ResourceController\Component\Container\Tab;
+use Alxarafe\ResourceController\Component\Fields\Text;
 use Alxarafe\Infrastructure\Lib\Trans;
 use Alxarafe\Infrastructure\Attribute\Menu;
 

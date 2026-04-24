@@ -8,8 +8,8 @@ use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Alxarafe\Infrastructure\Lib\Trans;
 use Alxarafe\Infrastructure\Attribute\Menu;
-use Alxarafe\Infrastructure\Component\Fields\RelationList;
-use Alxarafe\Infrastructure\Component\Fields\Text;
+use Alxarafe\ResourceController\Component\Fields\RelationList;
+use Alxarafe\ResourceController\Component\Fields\Text;
 use stdClass;
 
 #[Menu(
@@ -34,7 +34,7 @@ class WorldsitesController extends ResourceController
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         return 'Config';
     }
@@ -43,7 +43,7 @@ class WorldsitesController extends ResourceController
      * @return void
      */
     
-    protected function detectMode()
+    protected function detectMode(): void
     {
         $this->mode = self::MODE_EDIT;
         $this->recordId = 'current';
@@ -56,7 +56,7 @@ class WorldsitesController extends ResourceController
             'config_general' => [
                 'label' => 'Configuración General',
                 'fields' => [
-                    'main.enableWorldsites' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
+                    'main.enableWorldsites' => new \Alxarafe\ResourceController\Component\Fields\Boolean('main.enableWorldsites', 'Activar sugerencias por localización'),
                 ]
             ],
             'sites_section' => [
@@ -104,7 +104,7 @@ class WorldsitesController extends ResourceController
      * @return void
      */
     
-    protected function saveRecord()
+    protected function saveRecord(): void
     {
         $data = $_POST['data'] ?? [];
         $sitesList = $data['sites'] ?? [];

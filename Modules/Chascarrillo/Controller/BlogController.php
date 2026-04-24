@@ -135,7 +135,7 @@ class BlogController extends GenericPublicController
         }
 
         if (!$post) {
-            \Alxarafe\Infrastructure\Lib\Functions::httpRedirect(\Modules\Admin\Controller\ErrorController::url(true));
+            \Alxarafe\Infrastructure\Lib\Functions::httpRedirect(\Modules\Admin\Controller\ErrorController::url());
             return false;
         }
 

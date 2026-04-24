@@ -32,7 +32,7 @@ class PageAdminController extends ResourceController
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         return Post::class;
     }
@@ -41,7 +41,7 @@ class PageAdminController extends ResourceController
      * @return void
      */
     
-    protected function beforeList()
+    protected function beforeList(): void
     {
         $this->setDefaultTemplate('page_admin/index');
         $this->addVariable('posts', Post::where('type', 'page')->orderBy('menu_order', 'ASC')->get());
@@ -76,32 +76,32 @@ class PageAdminController extends ResourceController
             'content' => [
                 'label' => 'Contenido',
                 'fields' => [
-                    'title' => new \Alxarafe\Infrastructure\Component\Fields\Text('title', 'Título'),
-                    'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
-                    'content' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
+                    'title' => new \Alxarafe\ResourceController\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\ResourceController\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\ResourceController\Component\Fields\Textarea('content', 'Contenido (Markdown)', ['rows' => 20]),
                 ]
             ],
             'settings' => [
                 'label' => 'Ajustes',
                 'fields' => [
-                    'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-                    'in_menu' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
-                    'menu_order' => new \Alxarafe\Infrastructure\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
-                    'is_published' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('is_published', 'Publicada'),
-                    'status' => new \Alxarafe\Infrastructure\Component\Fields\Select(
+                    'id' => new \Alxarafe\ResourceController\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'in_menu' => new \Alxarafe\ResourceController\Component\Fields\Boolean('in_menu', 'Mostrar en Menú Superior'),
+                    'menu_order' => new \Alxarafe\ResourceController\Component\Fields\Integer('menu_order', 'Orden en el Menú'),
+                    'is_published' => new \Alxarafe\ResourceController\Component\Fields\Boolean('is_published', 'Publicada'),
+                    'status' => new \Alxarafe\ResourceController\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
                         (new Post())->getStates()
                     ),
-                    'featured_image' => new \Alxarafe\Infrastructure\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
+                    'featured_image' => new \Alxarafe\ResourceController\Component\Fields\Text('featured_image', 'Imagen Destacada (URL)'),
                 ]
             ],
             'seo' => [
                 'label' => 'SEO',
                 'fields' => [
-                    'meta_title' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-                    'meta_description' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
-                    'meta_keywords' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
+                    'meta_title' => new \Alxarafe\ResourceController\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\ResourceController\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                    'meta_keywords' => new \Alxarafe\ResourceController\Component\Fields\Text('meta_keywords', 'Meta Keywords (SEO)'),
                 ]
             ]
         ];
@@ -111,7 +111,7 @@ class PageAdminController extends ResourceController
      * @return void
      */
     
-    protected function beforeEdit()
+    protected function beforeEdit(): void
     {
         // $this->setDefaultTemplate('page_admin/edit');
 

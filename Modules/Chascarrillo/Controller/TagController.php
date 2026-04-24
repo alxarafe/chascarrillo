@@ -46,7 +46,7 @@ class TagController extends ResourceController
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         return Tag::class;
     }
@@ -69,10 +69,10 @@ class TagController extends ResourceController
     protected function getEditFields(): array
     {
         return [
-            'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-            'name' => new \Alxarafe\Infrastructure\Component\Fields\Text('name', 'Nombre'),
-            'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
-            'type' => new \Alxarafe\Infrastructure\Component\Fields\Select('type', 'Tipo', [
+            'id' => new \Alxarafe\ResourceController\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+            'name' => new \Alxarafe\ResourceController\Component\Fields\Text('name', 'Nombre'),
+            'slug' => new \Alxarafe\ResourceController\Component\Fields\Text('slug', 'Slug'),
+            'type' => new \Alxarafe\ResourceController\Component\Fields\Select('type', 'Tipo', [
                 'tag' => 'Tag',
                 'category' => 'Categoría'
             ]),

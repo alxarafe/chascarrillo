@@ -583,3 +583,22 @@ span.phpdebugbar-badge,
     box-shadow: 2px 2px 0 #000;
     z-index: 10;
 }
+
+/* Dropdown Menu Overrides */
+.dropdown-menu {
+    background-color: #1f2833;
+    border: 1px solid #45a29e;
+}
+
+.dropdown-item {
+    color: #c5c6c7;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #0b0c10;
+    color: #66fcf1;
+}
+
+.dropdown-header {
+    color: #45a29e !important;
+}

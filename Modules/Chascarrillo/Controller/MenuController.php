@@ -46,7 +46,7 @@ class MenuController extends ResourceController
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         return Menu::class;
     }
@@ -65,9 +65,9 @@ class MenuController extends ResourceController
     protected function getEditFields(): array
     {
         return [
-            'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-            'name' => new \Alxarafe\Infrastructure\Component\Fields\Text('name', 'Nombre'),
-            'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
+            'id' => new \Alxarafe\ResourceController\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+            'name' => new \Alxarafe\ResourceController\Component\Fields\Text('name', 'Nombre'),
+            'slug' => new \Alxarafe\ResourceController\Component\Fields\Text('slug', 'Slug'),
         ];
     }
 
@@ -75,7 +75,7 @@ class MenuController extends ResourceController
      * @return void
      */
     
-    protected function beforeEdit()
+    protected function beforeEdit(): void
     {
         $this->setDefaultTemplate('menu/edit');
 
@@ -93,7 +93,7 @@ class MenuController extends ResourceController
      * @return void
      */
     
-    protected function saveRecord()
+    protected function saveRecord(): void
     {
         $id = $_POST['id'] ?? null;
         $data = $_POST['data'] ?? [];

@@ -53,7 +53,7 @@ class PostController extends ResourceController
     }
 
     
-    protected function setup()
+    protected function setup(): void
     {
         parent::setup();
         $this->addListButton(
@@ -80,7 +80,7 @@ class PostController extends ResourceController
     }
 
     
-    protected function getModelClass(): string
+    protected function getModelClassName(): string
     {
         // Return Domain Model (not Eloquent). ResourceTrait handles missing getFields method.
         return Post::class;
@@ -90,7 +90,7 @@ class PostController extends ResourceController
      * @return void
      */
     
-    protected function beforeList()
+    protected function beforeList(): void
     {
         $status = $_GET['filter_general_status'] ?? '';
         
@@ -153,7 +153,7 @@ class PostController extends ResourceController
      * @return never
      */
     
-    protected function saveRecord()
+    protected function saveRecord(): void
     {
         $data = $_POST['data'] ?? [];
 
@@ -234,27 +234,27 @@ class PostController extends ResourceController
                 'label' => 'Contenido',
                 'col'   => 'col-md-8',
                 'fields' => [
-                    'title' => new \Alxarafe\Infrastructure\Component\Fields\Text('title', 'Título'),
-                    'slug' => new \Alxarafe\Infrastructure\Component\Fields\Text('slug', 'Slug'),
-                    'content' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('content', 'Contenido', ['rows' => 15]),
+                    'title' => new \Alxarafe\ResourceController\Component\Fields\Text('title', 'Título'),
+                    'slug' => new \Alxarafe\ResourceController\Component\Fields\Text('slug', 'Slug'),
+                    'content' => new \Alxarafe\ResourceController\Component\Fields\Textarea('content', 'Contenido', ['rows' => 15]),
                 ]
             ],
             'settings' => [
                 'label' => 'Configuración',
                 'col'   => 'col-md-4',
                 'fields' => [
-                    'id' => new \Alxarafe\Infrastructure\Component\Fields\Text('id', 'ID', ['readonly' => true]),
-                    'is_published' => new \Alxarafe\Infrastructure\Component\Fields\Boolean('is_published', 'Publicado'),
-                    'published_at' => new \Alxarafe\Infrastructure\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
-                    'featured_image' => new \Alxarafe\Infrastructure\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
+                    'id' => new \Alxarafe\ResourceController\Component\Fields\Text('id', 'ID', ['readonly' => true]),
+                    'is_published' => new \Alxarafe\ResourceController\Component\Fields\Boolean('is_published', 'Publicado'),
+                    'published_at' => new \Alxarafe\ResourceController\Component\Fields\DateTime('published_at', 'Fecha de Publicación'),
+                    'featured_image' => new \Alxarafe\ResourceController\Component\Fields\Text('featured_image', 'URL Imagen Destacada'),
                     // For now removed advanced Tag relations as they require fixing Tag architecture to pure Domain too.
-                    'status' => new \Alxarafe\Infrastructure\Component\Fields\Select(
+                    'status' => new \Alxarafe\ResourceController\Component\Fields\Select(
                         'status',
                         'Estado Workflow',
                         [0 => 'Borrador', 1 => 'Validado', 2 => 'Publicado', 9 => 'Archivado']
                     ),
-                    'meta_title' => new \Alxarafe\Infrastructure\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
-                    'meta_description' => new \Alxarafe\Infrastructure\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
+                    'meta_title' => new \Alxarafe\ResourceController\Component\Fields\Text('meta_title', 'Meta Título (SEO)'),
+                    'meta_description' => new \Alxarafe\ResourceController\Component\Fields\Textarea('meta_description', 'Meta Descripción (SEO)', ['rows' => 3]),
                 ]
             ]
         ];
@@ -264,7 +264,7 @@ class PostController extends ResourceController
     protected function getFilters(): array
     {
         return [
-            new \Alxarafe\Infrastructure\Component\Filter\SelectFilter('status', 'Estado', [
+            new \Alxarafe\Infrastructure\Component\Filter\SelectFilter('status', 'Estado', 'select', [
                 'options' => [
                     '' => 'Todos',
                     'published' => 'Publicados',
@@ -279,7 +279,7 @@ class PostController extends ResourceController
      * @return void
      */
     
-    protected function beforeEdit()
+    protected function beforeEdit(): void
     {
         if ($this->recordId && $this->recordId !== 'new') {
             $post = $this->repository->findById((int) $this->recordId);
@@ -296,7 +296,7 @@ class PostController extends ResourceController
      * @return void
      */
     
-    protected function handleRequest()
+    protected function handleRequest(): void
     {
         if (isset($_GET['ajax']) && $_GET['ajax'] === 'upload_image') {
             $url = \Modules\Chascarrillo\Lib\UploadHelper::upload('file', 'posts');

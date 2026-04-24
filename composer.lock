@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "v0.6.1",
+            "version": "v0.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alxarafe/alxarafe.git",
-                "reference": "6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef"
+                "reference": "88509a55e251a6e9aa51958ab69a68082e2de1a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef",
-                "reference": "6e5a8dbd1ed1c7be95f246a4eaad3a7405caa2ef",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/88509a55e251a6e9aa51958ab69a68082e2de1a7",
+                "reference": "88509a55e251a6e9aa51958ab69a68082e2de1a7",
                 "shasum": ""
             },
             "require": {
@@ -80,7 +80,7 @@
                 "issues": "https://github.com/alxarafe/alxarafe/issues",
                 "source": "https://github.com/alxarafe/alxarafe"
             },
-            "time": "2026-04-18T08:57:38+00:00"
+            "time": "2026-04-19T07:45:21+00:00"
         },
         {
             "name": "brick/math",

@@ -138,6 +138,11 @@ class Post
     {
  return $this->featuredImage; 
 }
+
+    public function getTable(): string
+    {
+        return 'alx_posts';
+    }
     
     // Setters / Actions
     public function setId(int $id): void

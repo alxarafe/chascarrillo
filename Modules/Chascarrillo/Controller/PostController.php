@@ -133,7 +133,7 @@ class PostController extends ResourceController
             'meta' => [
                 'total' => count($data),
                 'limit' => $this->structConfig['list']['limit'] ?? 50,
-                'offset' => $this->offset ?? 0,
+                'offset' => $this->offset,
             ],
         ];
     }
@@ -218,7 +218,6 @@ class PostController extends ResourceController
                 'id' => (string) $id,
                 'data' => $saved,
             ]);
-            return;
         }
 
         \Alxarafe\Infrastructure\Lib\Messages::addMessage($message);

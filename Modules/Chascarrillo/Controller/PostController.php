@@ -115,12 +115,11 @@ class PostController extends ResourceController
     
     protected function fetchListData(string $tabId): array
     {
-        $status = $_GET['filter_general_status'] ?? '';
+        $status = (string) ($_GET['filter_general_status'] ?? '');
         $filters = ['type' => 'post'];
-        if ($status === 'published') {
-            $filters['status'] = 2; // For simpler demo logic
-        } elseif ($status === 'draft') {
-            $filters['status'] = 0;
+        if (in_array($status, ['published', 'draft'], true)) {
+            $filters['is_published'] = $status === 'published' ? 1 : 0;
+            $filters['status'] = $status === 'published' ? 2 : 0;
         }
         $posts = $this->repository->findByFilters($filters);
         
@@ -129,7 +128,14 @@ class PostController extends ResourceController
             $data[] = $post->toArray();
         }
 
-        return ['total' => count($data), 'rows' => $data];
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => count($data),
+                'limit' => $this->structConfig['list']['limit'] ?? 50,
+                'offset' => $this->offset ?? 0,
+            ],
+        ];
     }
     
     // OVERRIDE: Prevent Eloquent fetching
@@ -137,15 +143,15 @@ class PostController extends ResourceController
     protected function fetchRecordData(): array
     {
         if ($this->recordId === 'new') {
-            return ['type' => 'post', 'is_published' => false];
+            return ['id' => 'new', 'data' => ['type' => 'post', 'is_published' => false], 'meta' => ['is_new' => true]];
         }
 
         $post = $this->repository->findById((int) $this->recordId);
         if (!$post) {
-            return [];
+            return ['error' => 'record_not_found'];
         }
 
-        return $post->toArray();
+        return ['id' => $this->recordId, 'data' => $post->toArray()];
     }
 
     // OVERRIDE: Handle saving Hexagonal logic
@@ -155,6 +161,17 @@ class PostController extends ResourceController
     
     protected function saveRecord(): void
     {
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $rawInput = file_get_contents('php://input');
+        $isAjax = str_contains($contentType, 'application/json') || isset($_GET['ajax']);
+
+        if (str_contains($contentType, 'application/json') || ($rawInput && $rawInput[0] === '{')) {
+            $json = json_decode($rawInput, true);
+            if (is_array($json)) {
+                $_POST = array_merge($_POST, $json);
+            }
+        }
+
         $data = $_POST['data'] ?? [];
 
         // Command Bus Pattern: Create or Update using Handlers mapping
@@ -169,19 +186,42 @@ class PostController extends ResourceController
 
         // If ID exists, we should update (which theoretically requires UpdatePostCommand,
         // but for this phase we simulate it directly via repository if no command created yet)
-        if (!empty($this->recordId) && $this->recordId !== 'new') {
+        $isUpdate = !empty($this->recordId) && $this->recordId !== 'new';
+        $id = null;
+        $saved = $data;
+
+        if ($isUpdate) {
             $post = $this->repository->findById((int) $this->recordId);
             if ($post) {
                 // Update Entity
                 $post->updateContent($cmd->title, $cmd->slug, $cmd->content);
+                $post->updateStatus($cmd->isPublished, $cmd->status);
                 $this->repository->save($post);
-                \Alxarafe\Infrastructure\Lib\Messages::addMessage('Registro modificado con éxito.');
+                $id = (string) $post->getId();
+                $saved = $post->toArray();
             }
         } else {
-            $this->commandBus->dispatch($cmd);
-            \Alxarafe\Infrastructure\Lib\Messages::addMessage('Registro creado con éxito.');
+            $createdId = $this->commandBus->dispatch($cmd);
+            $id = (string) $createdId;
+            $created = $this->repository->findById((int) $createdId);
+            if ($created) {
+                $saved = $created->toArray();
+            }
         }
 
+        $message = $isUpdate ? 'Registro modificado con éxito.' : 'Registro creado con éxito.';
+
+        if ($isAjax) {
+            $this->jsonResponse([
+                'status' => 'success',
+                'message' => $message,
+                'id' => (string) $id,
+                'data' => $saved,
+            ]);
+            return;
+        }
+
+        \Alxarafe\Infrastructure\Lib\Messages::addMessage($message);
         header('Location: ' . static::url());
         exit;
     }

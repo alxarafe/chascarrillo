@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f6f3bd5b83fe1a1684ba7b7db820938",
+    "content-hash": "7edfb5ed5320b6eace4764e7c1341e6a",
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "v0.6.6",
+            "version": "v0.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alxarafe/alxarafe.git",
-                "reference": "0d20be6e36cb3949b66e1ee13a7ebfb01a49fc80"
+                "reference": "5452c2f693fb321cedda22785cc3b7b9f5f611d5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/0d20be6e36cb3949b66e1ee13a7ebfb01a49fc80",
-                "reference": "0d20be6e36cb3949b66e1ee13a7ebfb01a49fc80",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/5452c2f693fb321cedda22785cc3b7b9f5f611d5",
+                "reference": "5452c2f693fb321cedda22785cc3b7b9f5f611d5",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,7 @@
                 "issues": "https://github.com/alxarafe/alxarafe/issues",
                 "source": "https://github.com/alxarafe/alxarafe"
             },
-            "time": "2026-09-01T19:33:40+00:00"
+            "time": "2026-09-01T19:58:15+00:00"
         },
         {
             "name": "alxarafe/resource-controller",

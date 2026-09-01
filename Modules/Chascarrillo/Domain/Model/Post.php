@@ -158,6 +158,16 @@ class Post
         $this->updatedAt = new DateTimeImmutable();
     }
 
+    public function updateStatus(bool $isPublished, int $status): void
+    {
+        $this->isPublished = $isPublished;
+        $this->status = $status;
+        if ($isPublished && !$this->publishedAt) {
+            $this->publishedAt = new DateTimeImmutable();
+        }
+        $this->updatedAt = new DateTimeImmutable();
+    }
+
     public function publish(): void
     {
         $this->isPublished = true;

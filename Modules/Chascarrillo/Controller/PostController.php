@@ -21,7 +21,7 @@ if (is_dir(__DIR__ . '/../../../Content')) {
 
 use Alxarafe\Infrastructure\Attribute\Menu;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
-use Modules\Chascarrillo\Domain\Model\Post;
+use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Tag;
 use Modules\Chascarrillo\Service\SyncService;
 use Modules\Chascarrillo\Application\AppContainer;
@@ -82,7 +82,7 @@ class PostController extends ResourceController
     
     protected function getModelClassName(): string
     {
-        // Return Domain Model (not Eloquent). ResourceTrait handles missing getFields method.
+        // Return the Eloquent Model so the framework can introspect the schema.
         return Post::class;
     }
 

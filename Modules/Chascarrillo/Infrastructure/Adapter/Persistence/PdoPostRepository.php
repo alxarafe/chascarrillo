@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Infrastructure\Adapter\Persistence;
 
 use Alxarafe\Domain\Port\Driven\PersistencePort;
+use Alxarafe\Infrastructure\Persistence\Config;
 use Modules\Chascarrillo\Domain\Model\Post;
 use Modules\Chascarrillo\Domain\Port\Driven\PostRepositoryInterface;
 
@@ -25,17 +26,22 @@ class PdoPostRepository implements PostRepositoryInterface
     {
     }
 
+    private function getTableName(): string
+    {
+        return (Config::getConfig()->db->prefix ?? '') . self::TABLE;
+    }
+
     
     public function findById(int $id): ?Post
     {
-        $row = $this->db->findById(self::TABLE, $id);
+        $row = $this->db->findById($this->getTableName(), $id);
         return $row ? Post::fromArray($row) : null;
     }
 
     
     public function findBySlug(string $slug): ?Post
     {
-        $rows = $this->db->findBy(self::TABLE, ['slug' => $slug]);
+        $rows = $this->db->findBy($this->getTableName(), ['slug' => $slug]);
         return !empty($rows) ? Post::fromArray($rows[0]) : null;
     }
 
@@ -45,17 +51,17 @@ class PdoPostRepository implements PostRepositoryInterface
         $data = $post->toArray();
         if ($post->getId() === null) {
             unset($data['id']);
-            $id = $this->db->insert(self::TABLE, $data);
+            $id = $this->db->insert($this->getTableName(), $data);
             $post->setId((int) $id);
         } else {
-            $this->db->update(self::TABLE, $post->getId(), $data);
+            $this->db->update($this->getTableName(), $post->getId(), $data);
         }
     }
 
     
     public function delete(int $id): void
     {
-        $this->db->delete(self::TABLE, $id);
+        $this->db->delete($this->getTableName(), $id);
     }
 
     /**
@@ -64,7 +70,7 @@ class PdoPostRepository implements PostRepositoryInterface
     
     public function findAllPublished(): array
     {
-        $rows = $this->db->findBy(self::TABLE, ['is_published' => 1, 'type' => 'post']);
+        $rows = $this->db->findBy($this->getTableName(), ['is_published' => 1, 'type' => 'post']);
         return array_map(fn($row) => Post::fromArray($row), $rows);
     }
 
@@ -75,7 +81,7 @@ class PdoPostRepository implements PostRepositoryInterface
     public function findByFilters(array $filters = []): array
     {
         // Simple mapping, can be expanded for complex queries via PersistencePort
-        $rows = $this->db->findBy(self::TABLE, $filters);
+        $rows = $this->db->findBy($this->getTableName(), $filters);
         return array_map(fn($row) => Post::fromArray($row), $rows);
     }
 }

@@ -33,6 +33,8 @@ jobs:
           php -r '$c=json_decode(file_get_contents("composer.json"),true); if(isset($c["repositories"]) && $c["repositories"][0]["type"] === "path") { array_shift($c["repositories"]); } file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));'
           # Force platform PHP version
           composer config platform.php 8.2.27
+          # Clear composer cache to ensure fresh Packagist metadata
+          composer clear-cache
           # Use update instead of install since we removed the lock file
           composer update --no-dev --optimize-autoloader --no-interaction
 

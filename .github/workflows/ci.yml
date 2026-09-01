@@ -44,7 +44,7 @@ jobs:
         run: php -v
 
       - name: Install Composer deps
-        run: composer install --no-interaction --no-progress
+        run: composer clear-cache && composer install --no-interaction --no-progress
 
       - name: PHPCBF (autofix)
         run: vendor/bin/phpcbf --tab-width=4 --encoding=utf-8 --standard=phpcs.xml Modules -s || true

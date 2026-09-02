@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "v0.6.8",
+            "version": "v0.6.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alxarafe/alxarafe.git",
-                "reference": "f353bb1516dbbe0508a7d8fa185ad9d6989d6fdb"
+                "reference": "8cf8e37788c429a814e04bd57a84edd8f0511d89"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/f353bb1516dbbe0508a7d8fa185ad9d6989d6fdb",
-                "reference": "f353bb1516dbbe0508a7d8fa185ad9d6989d6fdb",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/8cf8e37788c429a814e04bd57a84edd8f0511d89",
+                "reference": "8cf8e37788c429a814e04bd57a84edd8f0511d89",
                 "shasum": ""
             },
             "require": {

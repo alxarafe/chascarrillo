@@ -131,7 +131,16 @@ class Post extends Model
      */
     public function getRenderedContent(): string
     {
-        return \Alxarafe\Infrastructure\Service\MarkdownService::render($this->content);
+        $content = \Modules\Chascarrillo\Service\ContentFilePath::resolve($this->content);
+        return \Alxarafe\Infrastructure\Service\MarkdownService::render($content);
+    }
+
+    /**
+     * Resuelve el token @path/ de la imagen destacada a su URL pública.
+     */
+    public function getFeaturedImageAttribute(?string $value): ?string
+    {
+        return \Modules\Chascarrillo\Service\ContentFilePath::resolve($value);
     }
 
     /**

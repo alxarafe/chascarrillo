@@ -1,6 +1,12 @@
-/* Copied from skeleton/public/themes/cyberpunk/css/default.css */
-/* Copied from skeleton/public/themes/cyberpunk/css/default.css */
-/* Copied from skeleton/public/themes/cyberpunk/css/default.css */
+:root {
+    --alx-primary: #45a29e;
+    --alx-secondary: #66fcf1;
+    --alx-bg: #0b0c10;
+    --alx-text: #c5c6c7;
+    --alx-border: #45a29e;
+    --alx-muted: #66fcf1;
+}
+
 body {
     background-color: #0b0c10;
     color: #66fcf1;
@@ -130,6 +136,33 @@ body {
 .cyber-sidebar {
     position: relative;
     overflow: hidden;
+    background-color: #1f2833;
+}
+
+/* Ensure the sidebar text is always legible against the dark background */
+.cyber-sidebar .cyber-header,
+.cyber-sidebar .cyber-section h6 {
+    color: #66fcf1 !important;
+}
+
+.cyber-sidebar .cyber-link {
+    color: #c5c6c7 !important;
+}
+
+.cyber-sidebar .cyber-link:hover {
+    color: #66fcf1 !important;
+    background: rgba(102, 252, 241, 0.1) !important;
+    border-left: 3px solid #66fcf1;
+}
+
+.cyber-sidebar .cyber-submenu .cyber-link {
+    color: #66fcf1 !important;
+    opacity: 0.85;
+}
+
+.cyber-sidebar .cyber-logo small,
+.cyber-sidebar .cyber-footer small {
+    color: #66fcf1 !important;
 }
 
 .cyber-scanline {
@@ -160,12 +193,14 @@ body {
     transition: all 0.2s;
     border-left: 3px solid transparent;
     font-size: 0.85rem;
+    color: #c5c6c7;
 }
 
 .cyber-link i {
     font-size: 1.25rem;
     min-width: 1.5rem;
     text-align: center;
+    color: #66fcf1;
     filter: drop-shadow(0 0 2px #45a29e);
 }
 

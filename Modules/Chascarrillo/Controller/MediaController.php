@@ -110,55 +110,10 @@ class MediaController extends ResourceController
 
     public function doSync(): bool
     {
-        $basePath = defined('BASE_PATH') ? constant('BASE_PATH') : __DIR__ . '/../../../public_html';
-        $contentBase = dirname($basePath) . '/Content';
+        $count = \Modules\Chascarrillo\Service\SyncService::syncImportFiles();
 
-        $results = [
-            'images' => $this->syncAssetDir($contentBase . '/images', 'image', $basePath . '/uploads/images'),
-            'videos' => $this->syncAssetDir($contentBase . '/videos', 'video', $basePath . '/uploads/videos'),
-        ];
-
-        Messages::addMessage("Sincronización multimedia completada: " . ($results['images'] + $results['videos']) . " archivos procesados.");
+        Messages::addMessage("Sincronización multimedia completada: " . $count . " archivos procesados.");
         Functions::httpRedirect(static::url());
         return true;
-    }
-
-    private function syncAssetDir(string $sourceDir, string $type, string $targetDir): int
-    {
-        if (!is_dir($sourceDir)) {
-            return 0;
-        }
-
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
-        }
-
-        $files = glob($sourceDir . '/*.*');
-        $count = 0;
-        foreach ($files as $file) {
-            $filename = basename($file);
-            $targetPath = $targetDir . '/' . $filename;
-
-            // Sync to disk
-            if (!file_exists($targetPath) || filemtime($file) > filemtime($targetPath)) {
-                copy($file, $targetPath);
-            }
-
-            // Sync to Database
-            $relativePath = $type . 's/' . $filename;
-            $media = Media::where('path', $relativePath)->first();
-            if (!$media) {
-                $media = new Media();
-                $media->path = $relativePath;
-            }
-
-            $media->filename = $filename;
-            $media->type = $type;
-            $media->size = filesize($file);
-            $media->mime_type = mime_content_type($file) ?: null;
-            $media->save();
-            $count++;
-        }
-        return $count;
     }
 }

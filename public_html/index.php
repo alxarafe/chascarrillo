@@ -12,6 +12,7 @@ if (file_exists(__DIR__ . '/../vendor/alxarafe/alxarafe/src/Infrastructure/Legac
 use Alxarafe\Infrastructure\Tools\Dispatcher\WebDispatcher;
 use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Lib\Trans;
+use Alxarafe\Infrastructure\Tools\Debug;
 
 // Step 1: Core Path and Environment definitions
 define('APP_PATH', realpath(__DIR__ . '/../'));
@@ -20,6 +21,20 @@ define('PUBLIC_DIR', basename(BASE_PATH));
 define('ALX_PATH', APP_PATH . '/vendor/alxarafe/alxarafe');
 
 $config = Config::getConfig();
+
+// Determine BASE_URL for the app (needed early by Debug and other components)
+if (!defined('BASE_URL')) {
+    $baseUrl = $config->main->url ?? null;
+    if (!$baseUrl && isset($_SERVER['HTTP_HOST'])) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ||
+            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? "https" : "http";
+        $baseUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
+    }
+    define('BASE_URL', rtrim($baseUrl ?? 'http://localhost', '/'));
+}
+
+// Initialize DebugBar
+Debug::initialize();
 
 // --- Stability Guardian: If no config exists, redirect to the Installation/Config page ---
 if (!$config && (($_GET['controller'] ?? '') !== 'Config')) {
@@ -102,17 +117,6 @@ if ($config && isset($config->db)) {
     } catch (\Exception $e) {
         @error_log("Guardian Safety Seeder Error: " . $e->getMessage());
     }
-}
-
-// Determine BASE_URL for the app
-if (!defined('BASE_URL')) {
-    $baseUrl = $config->main->url ?? null;
-    if (!$baseUrl && isset($_SERVER['HTTP_HOST'])) {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ||
-            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? "https" : "http";
-        $baseUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
-    }
-    define('BASE_URL', rtrim($baseUrl ?? 'http://localhost', '/'));
 }
 
 class_alias(\Illuminate\Support\Str::class, 'Str');

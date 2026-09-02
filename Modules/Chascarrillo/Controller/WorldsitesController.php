@@ -8,6 +8,7 @@ use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Http\Controller\ResourceController;
 use Alxarafe\Infrastructure\Lib\Trans;
 use Alxarafe\Infrastructure\Attribute\Menu;
+use Modules\Admin\Service\DemoMode;
 use Alxarafe\ResourceController\Component\Fields\RelationList;
 use Alxarafe\ResourceController\Component\Fields\Text;
 use stdClass;
@@ -106,6 +107,15 @@ class WorldsitesController extends ResourceController
     
     protected function saveRecord(): void
     {
+        // Demo mode: configuration cannot be saved.
+        if (DemoMode::isReadonlyConfig()) {
+            $this->jsonResponse([
+                'status' => 'error',
+                'error' => Trans::_('config_readonly_demo')
+            ]);
+            return;
+        }
+
         $data = $_POST['data'] ?? [];
         $sitesList = $data['sites'] ?? [];
         $enableWorldsites = ($data['main.enableWorldsites'] ?? '0') === '1';

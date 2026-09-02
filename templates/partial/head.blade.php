@@ -26,6 +26,8 @@
     <link href="/themes/{{ $activeTheme }}/css/alxarafe.css?v={{ time() }}" rel="stylesheet">
 @endif
 
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
 {!! $me->getRenderHeader() !!}
 
 <style>

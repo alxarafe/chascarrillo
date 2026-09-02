@@ -55,7 +55,7 @@ class BackupController extends Controller
         if (!empty($_FILES['backup_zip']['tmp_name'])) {
             try {
                 BackupService::importFromZip($_FILES['backup_zip']['tmp_name']);
-                Messages::addMessage("Importación completada con éxito. Se recomienda sincronizar la base de datos ahora.");
+                Messages::addMessage("Importación completada con éxito en Content/import. Se recomienda sincronizar la base de datos ahora.");
             } catch (\Throwable $t) {
                 Messages::addError("Error al importar: " . $t->getMessage());
             }
@@ -71,7 +71,7 @@ class BackupController extends Controller
     {
         try {
             $results = BackupService::resetDbFromContent();
-            Messages::addMessage("Base de datos reiniciada e importada desde Content. Procesados: " . ($results['posts']['processed'] + $results['pages']['processed']) . " posts/páginas.");
+            Messages::addMessage("Base de datos reiniciada e importada desde Content/import. Procesados: " . ($results['posts']['processed'] + $results['pages']['processed']) . " posts/páginas.");
         } catch (\Throwable $t) {
             Messages::addError("Error al reiniciar desde Content: " . $t->getMessage());
         }
@@ -84,7 +84,7 @@ class BackupController extends Controller
     {
         try {
             BackupService::rebuildContentFromDb();
-            Messages::addMessage("Directorio Content reconstruido desde la base de datos.");
+            Messages::addMessage("Directorio Content/export reconstruido desde la base de datos.");
         } catch (\Throwable $t) {
             Messages::addError("Error al reconstruir Content: " . $t->getMessage());
         }

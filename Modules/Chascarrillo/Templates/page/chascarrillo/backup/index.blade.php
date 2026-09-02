@@ -29,7 +29,7 @@
                                     </div>
                                     <h4 class="mb-0 fw-bold">Exportar Sitio</h4>
                                 </div>
-                                <p class="text-muted">Descarga un archivo ZIP con toda la estructura de <code>Content/</code> y el archivo <code>config.json</code>.</p>
+                                <p class="text-muted">Descarga un archivo ZIP con los Markdown de <code>Content/export</code> (posts, pages y <code>files/</code>) y el archivo <code>config.json</code>.</p>
                                 <a href="index.php?module=Chascarrillo&controller=Backup&action=export" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
                                     <i class="fas fa-file-download me-2"></i>Descargar Backup
                                 </a>
@@ -45,7 +45,7 @@
                                     </div>
                                     <h4 class="mb-0 fw-bold">Importar Sitio</h4>
                                 </div>
-                                <p class="text-muted">Sube un archivo ZIP para restaurar la carpeta <code>Content/</code> y la configuración.</p>
+                                <p class="text-muted">Sube un archivo ZIP para restaurar el contenido Markdown y sus archivos en <code>Content/import</code> y la configuración.</p>
                                 <form action="index.php?module=Chascarrillo&controller=Backup&action=import" method="POST" enctype="multipart/form-data">
                                     <div class="mb-3">
                                         <input class="form-control form-control-sm rounded-pill" type="file" name="backup_zip" accept=".zip" required>
@@ -72,7 +72,7 @@
                                     </div>
                                     <h4 class="mb-0 fw-bold">Reset DB desde Content</h4>
                                 </div>
-                                <p class="text-muted">Elimina <strong>TODOS</strong> los registros de la base de datos (posts, medios, tags) y los vuelve a crear leyendo la carpeta <code>Content/</code>.</p>
+                                <p class="text-muted">Elimina <strong>TODOS</strong> los registros de la base de datos (posts, medios, tags) y los vuelve a crear leyendo la carpeta <code>Content/import</code>.</p>
                                 <button onclick="confirmReset()" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold">
                                     <i class="fas fa-trash-alt me-2"></i>Limpiar e Importar
                                 </button>
@@ -88,7 +88,7 @@
                                     </div>
                                     <h4 class="mb-0 fw-bold">Reconstruir Content</h4>
                                 </div>
-                                <p class="text-muted">Elimina los archivos actuales de <code>Content/</code> y genera nuevos archivos Markdown basados en lo que hay en la base de datos.</p>
+                                <p class="text-muted">Elimina los archivos actuales de <code>Content/export</code> y genera nuevos archivos Markdown basados en lo que hay en la base de datos.</p>
                                 <button onclick="confirmRebuild()" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold">
                                     <i class="fas fa-tools me-2"></i>Generar Archivos MD
                                 </button>
@@ -103,13 +103,13 @@
 
 <script>
 function confirmReset() {
-    if (confirm('¿Estás seguro? Esta acción vaciará la base de datos por completo antes de importar desde los archivos.')) {
+    if (confirm('¿Estás seguro? Esta acción vaciará la base de datos por completo antes de importar desde los archivos de Content/import.')) {
         window.location.href = 'index.php?module=Chascarrillo&controller=Backup&action=resetFromContent';
     }
 }
 
 function confirmRebuild() {
-    if (confirm('¿Estás seguro? Se borrará el contenido actual de la carpeta Content y se generará uno nuevo desde la base de datos.')) {
+    if (confirm('¿Estás seguro? Se borrará el contenido actual de la carpeta Content/export y se generará uno nuevo desde la base de datos.')) {
         window.location.href = 'index.php?module=Chascarrillo&controller=Backup&action=rebuildContent';
     }
 }

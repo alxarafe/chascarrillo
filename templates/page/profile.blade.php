@@ -1,5 +1,7 @@
 @extends('partial.layout.main')
 
+@php $usersLocked = \Modules\Admin\Service\DemoMode::protectsUserChanges(); @endphp
+
 @section('content')
 <div class="container mt-4">
     <div class="row">
@@ -127,9 +129,15 @@
 
         <div class="row mt-3 mb-5">
             <div class="col-12">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-2"></i> {{ \Alxarafe\Infrastructure\Lib\Trans::_('save') }}
-                </button>
+                @if($usersLocked)
+                    <span class="btn btn-secondary disabled">
+                        <i class="fas fa-lock me-2"></i> {{ \Alxarafe\Infrastructure\Lib\Trans::_('users_locked_demo') }}
+                    </span>
+                @else
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i> {{ \Alxarafe\Infrastructure\Lib\Trans::_('save') }}
+                    </button>
+                @endif
                 <a href="index.php?module=Admin&controller=Dashboard" class="btn btn-secondary">
                     {{ \Alxarafe\Infrastructure\Lib\Trans::_('cancel') }}
                 </a>

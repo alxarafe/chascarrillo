@@ -20,7 +20,7 @@
                             </div>
                             <div>
                                 <h3 class="fw-bold mb-0">Atención</h3>
-                                <p class="text-muted mb-0">Este proceso actualizará la base de datos con el contenido de los archivos en <code>Content/</code>.</p>
+                                <p class="text-muted mb-0">Este proceso actualizará la base de datos con el contenido de los archivos en <code>Content/import</code>.</p>
                             </div>
                         </div>
 
@@ -68,14 +68,14 @@
                             <div class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
                                 <div>
                                     <h6 class="mb-0">Artículos (Posts)</h6>
-                                    <small class="text-muted">Archivos procesados en Content/posts</small>
+                                    <small class="text-muted">Archivos procesados en Content/import/posts</small>
                                 </div>
                                 <span class="badge bg-primary rounded-pill">{{ $results['posts']['processed'] ?? 0 }}</span>
                             </div>
                             <div class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
                                 <div>
                                     <h6 class="mb-0">Páginas</h6>
-                                    <small class="text-muted">Archivos procesados en Content/pages</small>
+                                    <small class="text-muted">Archivos procesados en Content/import/pages</small>
                                 </div>
                                 <span class="badge bg-info rounded-pill">{{ $results['pages']['processed'] ?? 0 }}</span>
                             </div>

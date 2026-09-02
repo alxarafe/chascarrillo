@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Service;
 
 use Alxarafe\Infrastructure\Lib\Functions;
+use Modules\Chascarrillo\Service\ContentFilePath;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Media;
 use Modules\Chascarrillo\Model\Tag;
@@ -15,7 +16,7 @@ use ZipArchive;
 class BackupService
 {
     /**
-     * Exporta config.json y el directorio Content a un archivo ZIP.
+     * Exporta config.json y el directorio Content/export a un archivo ZIP.
      */
     public static function exportToZip(): string
     {
@@ -36,9 +37,11 @@ class BackupService
             $zip->addFile($configFile, 'config.json');
         }
 
-        // Add Content directory
-        $contentPath = constant('APP_PATH') . '/Content';
-        self::addDirToZip($zip, $contentPath, 'Content');
+        // Add Content/export directory (markdown export)
+        $contentPath = constant('APP_PATH') . '/Content/export';
+        if (is_dir($contentPath)) {
+            self::addDirToZip($zip, $contentPath, 'Content/export');
+        }
 
         $zip->close();
 
@@ -46,7 +49,7 @@ class BackupService
     }
 
     /**
-     * Importa contenido desde un archivo ZIP.
+     * Importa contenido desde un archivo ZIP al directorio Content/import.
      */
     public static function importFromZip(string $zipPath): void
     {
@@ -57,10 +60,17 @@ class BackupService
             $zip->extractTo($extractPath);
             $zip->close();
 
-            // 1. Update Content
-            if (is_dir($extractPath . '/Content')) {
-                self::recursiveRmdir(constant('APP_PATH') . '/Content');
-                self::recursiveCopy($extractPath . '/Content', constant('APP_PATH') . '/Content');
+            // 1. Import exported markdown into Content/import
+            // Modern backups place the export under Content/export; fall back to
+            // a legacy Content/ root for zips created before that separation.
+            $extractedExport = $extractPath . '/Content/export';
+            $legacyImport = $extractPath . '/Content';
+            if (is_dir($extractedExport)) {
+                self::recursiveRmdir(constant('APP_PATH') . '/Content/import');
+                self::recursiveCopy($extractedExport, constant('APP_PATH') . '/Content/import');
+            } elseif (is_dir($legacyImport)) {
+                self::recursiveRmdir(constant('APP_PATH') . '/Content/import');
+                self::recursiveCopy($legacyImport, constant('APP_PATH') . '/Content/import');
             }
 
             // 2. Update config.json (Safely merge)
@@ -92,7 +102,7 @@ class BackupService
     }
 
     /**
-     * Elimina la base de datos e importa el contenido desde Content.
+     * Elimina la base de datos e importa el contenido desde Content/import.
      */
     public static function resetDbFromContent(): array
     {
@@ -112,19 +122,20 @@ class BackupService
     }
 
     /**
-     * Elimina el contenido de Content y lo reconstruye desde la base de datos.
+     * Elimina el contenido de Content/export y lo reconstruye desde la base de datos.
+     * Los Markdown se generan en posts/pages y los archivos referenciados en files.
      */
     public static function rebuildContentFromDb(): void
     {
-        $contentPath = constant('APP_PATH') . '/Content';
+        $contentPath = constant('APP_PATH') . '/Content/export';
         self::recursiveRmdir($contentPath);
         @mkdir($contentPath . '/posts', 0755, true);
         @mkdir($contentPath . '/pages', 0755, true);
-        @mkdir($contentPath . '/images', 0755, true);
-        @mkdir($contentPath . '/videos', 0755, true);
+        @mkdir($contentPath . '/files', 0755, true);
 
         // Export Posts and Pages
         $posts = Post::with('tags')->get();
+        $referencedFiles = [];
         foreach ($posts as $post) {
             /** @var \Modules\Chascarrillo\Model\Post $post */
             $dir = ($post->type === 'page') ? 'pages' : 'posts';
@@ -139,7 +150,7 @@ class BackupService
                 'type' => $post->type,
                 'published_at' => $post->published_at ? $post->published_at->format('Y-m-d H:i:s') : null,
                 'is_published' => $post->is_published,
-                'feature_image' => $post->featured_image,
+                'feature_image' => $post->getAttributes()['featured_image'] ?? null,
                 'meta_description' => $post->meta_description,
                 'meta_title' => $post->meta_title,
                 'meta_keywords' => $post->meta_keywords,
@@ -163,17 +174,20 @@ class BackupService
             $content .= "---\n\n";
             $content .= $post->content;
 
+            foreach (ContentFilePath::extractReferences($content) as $referencedFile) {
+                $referencedFiles[$referencedFile] = true;
+            }
+
             file_put_contents($filePath, $content);
         }
 
-        // Export Media
-        $mediaRecords = Media::all();
+        // Export Media: solo los archivos referenciados en los documentos
         $uploadsBase = (defined('BASE_PATH') ? constant('BASE_PATH') : constant('APP_PATH') . '/public_html') . '/uploads';
 
-        foreach ($mediaRecords as $media) {
-            $source = $uploadsBase . '/' . $media->path;
+        foreach (array_keys($referencedFiles) as $relativePath) {
+            $source = $uploadsBase . '/' . $relativePath;
             if (file_exists($source)) {
-                $target = $contentPath . '/' . $media->path;
+                $target = $contentPath . '/files/' . $relativePath;
                 $targetDir = dirname($target);
                 if (!is_dir($targetDir)) {
                     @mkdir($targetDir, 0755, true);

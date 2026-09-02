@@ -13,7 +13,7 @@ class SyncService
 {
     public static function syncAll(bool $clean = false): array
     {
-        $contentBase = constant('APP_PATH') . '/Content';
+        $contentBase = constant('APP_PATH') . '/Content/import';
         $results = [
             'posts' => ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'errors' => []],
             'pages' => ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'errors' => []],
@@ -40,15 +40,14 @@ class SyncService
             // Ensure directories and initial content
             self::ensureContentDirectory($contentBase . '/posts', constant('APP_PATH') . '/Modules/Chascarrillo/posts');
             self::ensureContentDirectory($contentBase . '/pages', constant('APP_PATH') . '/Modules/Chascarrillo/pages');
-            self::ensureContentDirectory($contentBase . '/images', constant('APP_PATH') . '/Modules/Chascarrillo/images');
-            self::ensureDirectory($contentBase . '/videos');
+            self::ensureDirectory($contentBase . '/' . \Modules\Chascarrillo\Service\ContentFilePath::FILES_DIR);
 
             // Sync Content
             $results['posts'] = self::syncContent($contentBase . '/posts', 'post');
             $results['pages'] = self::syncContent($contentBase . '/pages', 'page');
 
-            // Sync Assets
-            $results['assets'] = self::syncAssets($contentBase);
+            // Sync Assets (Content/import/files -> public_html/uploads)
+            $results['assets'] = self::syncImportFiles();
 
             // Sync Menus
             self::syncMenus();
@@ -159,51 +158,56 @@ class SyncService
         }
     }
 
-    private static function syncAssets(string $contentBase): int
+    /**
+     * Sincroniza la carpeta espejo Content/import/files hacia public_html/uploads.
+     * Copia cada archivo conservando su subruta y registra/actualiza su Media.
+     */
+    public static function syncImportFiles(): int
     {
-        $basePath = defined('BASE_PATH') ? constant('BASE_PATH') : constant('APP_PATH') . '/public_html';
-        $count = 0;
+        $sourceDir = \Modules\Chascarrillo\Service\ContentFilePath::importFilesDir();
+        $uploadsBase = \Modules\Chascarrillo\Service\ContentFilePath::uploadsBaseDir();
 
-        $count += self::syncAssetDir($contentBase . '/images', 'image', $basePath . '/uploads/images');
-        $count += self::syncAssetDir($contentBase . '/videos', 'video', $basePath . '/uploads/videos');
-
-        return $count;
-    }
-
-    private static function syncAssetDir(string $sourceDir, string $type, string $targetDir): int
-    {
         if (!is_dir($sourceDir)) {
             return 0;
         }
 
-        if (!is_dir($targetDir)) {
-            @mkdir($targetDir, 0755, true);
-        }
-
-        $files = glob($sourceDir . '/*.*');
         $count = 0;
-        foreach ($files as $file) {
-            $filename = basename($file);
-            $targetPath = $targetDir . '/' . $filename;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($sourceDir, \FilesystemIterator::SKIP_DOTS)
+        );
 
-            if (!file_exists($targetPath) || filemtime($file) > filemtime($targetPath)) {
-                @copy($file, $targetPath);
+        foreach ($iterator as $file) {
+            if ($file->isDir()) {
+                continue;
             }
 
-            $relativePath = $type . 's/' . $filename;
+            $filePath = $file->getPathname();
+            $relativePath = ltrim(substr($filePath, strlen($sourceDir) + 1), '/\\');
+            $targetPath = $uploadsBase . '/' . $relativePath;
+
+            if (!is_dir(dirname($targetPath))) {
+                @mkdir(dirname($targetPath), 0755, true);
+            }
+
+            // Sync to disk
+            if (!file_exists($targetPath) || filemtime($filePath) > filemtime($targetPath)) {
+                @copy($filePath, $targetPath);
+            }
+
             $media = \Modules\Chascarrillo\Model\Media::where('path', $relativePath)->first();
             if (!$media) {
                 $media = new \Modules\Chascarrillo\Model\Media();
                 $media->path = $relativePath;
             }
 
-            $media->filename = $filename;
-            $media->type = $type;
-            $media->size = filesize($file);
-            $media->mime_type = function_exists('mime_content_type') ? @mime_content_type($file) : null;
+            $media->filename = basename($relativePath);
+            $media->type = \Modules\Chascarrillo\Service\ContentFilePath::mediaTypeFor($relativePath);
+            $media->size = filesize($filePath);
+            $media->mime_type = function_exists('mime_content_type') ? @mime_content_type($filePath) : null;
             $media->save();
             $count++;
         }
+
         return $count;
     }
 

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Controller;
 
-if (is_dir(__DIR__ . '/../../../Content')) {
+if (is_dir(__DIR__ . '/../../../Content/import')) {
     define('CHASCARRILLO_SYNC_MENU', 'main_menu');
 } else {
     define('CHASCARRILLO_SYNC_MENU', 'none');

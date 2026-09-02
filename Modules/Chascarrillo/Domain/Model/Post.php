@@ -134,10 +134,10 @@ class Post
     {
  return $this->publishedAt; 
 }
-    public function getFeaturedImage(): ?string
+public function getFeaturedImage(): ?string
     {
- return $this->featuredImage; 
-}
+        return \Modules\Chascarrillo\Service\ContentFilePath::resolve($this->featuredImage);
+    }
 
     public function getTable(): string
     {
@@ -188,7 +188,8 @@ class Post
 
     public function getRenderedContent(): string
     {
-        return \Alxarafe\Infrastructure\Service\MarkdownService::render($this->content);
+        $content = \Modules\Chascarrillo\Service\ContentFilePath::resolve($this->content);
+        return \Alxarafe\Infrastructure\Service\MarkdownService::render($content);
     }
 
     public function getExcerpt(?int $limit = null): string

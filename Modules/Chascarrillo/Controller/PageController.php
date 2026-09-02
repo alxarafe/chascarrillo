@@ -3,6 +3,7 @@
 namespace Modules\Chascarrillo\Controller;
 
 use Alxarafe\Infrastructure\Http\Controller\GenericPublicController;
+use Alxarafe\Infrastructure\Persistence\Config;
 use Modules\Chascarrillo\Model\Post;
 
 class PageController extends GenericPublicController
@@ -43,7 +44,13 @@ class PageController extends GenericPublicController
 
         if (!$page) {
             \Alxarafe\Infrastructure\Lib\Messages::addError("Página no encontrada: $slug");
-            \Alxarafe\Infrastructure\Lib\Functions::httpRedirect('/index.php?module=Chascarrillo&controller=Blog');
+            $config = Config::getConfig();
+            $blogEnabled = filter_var($config->blog->enabled ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+            if ($blogEnabled) {
+                \Alxarafe\Infrastructure\Lib\Functions::httpRedirect('/index.php?module=Chascarrillo&controller=Blog');
+            } elseif ($slug !== 'index') {
+                \Alxarafe\Infrastructure\Lib\Functions::httpRedirect('/');
+            }
             return false;
         }
 

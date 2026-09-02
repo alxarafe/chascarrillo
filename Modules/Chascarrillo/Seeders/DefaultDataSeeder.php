@@ -34,6 +34,9 @@ class DefaultDataSeeder
 
     public function seed(): void
     {
+        $config = \Alxarafe\Infrastructure\Persistence\Config::getConfig();
+        $blogEnabled = filter_var($config->blog->enabled ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+
         // categories
         Tag::updateOrCreate(['slug' => 'aplicaciones'], ['name' => 'Aplicaciones', 'type' => 'category']);
         Tag::updateOrCreate(['slug' => 'trabajos-anteriores'], ['name' => 'Trabajos Anteriores', 'type' => 'category']);
@@ -52,10 +55,12 @@ class DefaultDataSeeder
                 'order' => 1,
             ]);
 
-            MenuItem::updateOrCreate(['menu_id' => $mainMenu->id, 'label' => 'Blog'], [
-                'url' => 'index.php?module=Chascarrillo&controller=Blog',
-                'order' => 2,
-            ]);
+            if ($blogEnabled) {
+                MenuItem::updateOrCreate(['menu_id' => $mainMenu->id, 'label' => 'Blog'], [
+                    'url' => 'index.php?module=Chascarrillo&controller=Blog',
+                    'order' => 2,
+                ]);
+            }
         }
     }
 }

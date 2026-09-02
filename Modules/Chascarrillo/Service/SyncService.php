@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Chascarrillo\Service;
 
 use Alxarafe\Service\MarkdownSyncService;
+use Alxarafe\Infrastructure\Persistence\Config;
 use Modules\Chascarrillo\Model\Post;
 use Modules\Chascarrillo\Model\Media;
 use Alxarafe\Infrastructure\Lib\Messages;
@@ -250,15 +251,20 @@ class SyncService
             $order += 10;
         }
 
-        // 3. Laboratorio (Blog)
-        \Modules\Chascarrillo\Model\MenuItem::create([
-            'menu_id' => $menu->id,
-            'label' => 'Laboratorio',
-            'url' => '/blog',
-            'order' => $order
-        ]);
+        $config = Config::getConfig();
+        $blogEnabled = filter_var($config->blog->enabled ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
 
-        $order += 10;
+        if ($blogEnabled) {
+            // 3. Laboratorio (Blog)
+            \Modules\Chascarrillo\Model\MenuItem::create([
+                'menu_id' => $menu->id,
+                'label' => 'Laboratorio',
+                'url' => '/blog',
+                'order' => $order
+            ]);
+
+            $order += 10;
+        }
 
         // 4. Documentación (Links externos)
         \Modules\Chascarrillo\Model\MenuItem::create([

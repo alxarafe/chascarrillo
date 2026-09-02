@@ -4,6 +4,7 @@ namespace Modules\Chascarrillo\Controller;
 
 use Modules\Admin\Controller\ConfigController as BaseConfigController;
 use Alxarafe\ResourceController\Component\Container\Tab;
+use Alxarafe\ResourceController\Component\Fields\Boolean;
 use Alxarafe\ResourceController\Component\Fields\Text;
 use Alxarafe\Infrastructure\Lib\Trans;
 use Alxarafe\Infrastructure\Attribute\Menu;
@@ -25,6 +26,7 @@ class ChascarrilloConfigController extends BaseConfigController
 
         // 2. Añadir pestaña de Blog
         $tabs[] = new Tab('blog', Trans::_('blog_settings'), 'fas fa-blog', [
+            new Boolean('blog.enabled', Trans::_('blog_enabled')),
             new Text('blog.title', Trans::_('blog_title')),
             new Text('blog.posts_per_page', Trans::_('posts_per_page'), ['type' => 'number']),
             new Text('blog.excerpt_length', Trans::_('excerpt_length'), ['type' => 'number']),

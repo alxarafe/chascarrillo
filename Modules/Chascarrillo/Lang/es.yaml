@@ -27,6 +27,7 @@ themes: themes
 
 # Configuración
 blog_settings: Ajustes del Blog
+blog_enabled: Blog habilitado
 blog_title: Título del Blog
 posts_per_page: Entradas por página
 excerpt_length: Longitud del extracto (caracteres)

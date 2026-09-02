@@ -27,6 +27,7 @@ themes: themes
 
 # Configuration
 blog_settings: Blog Settings
+blog_enabled: Blog enabled
 blog_title: Blog Title
 posts_per_page: Posts per page
 excerpt_length: Excerpt length (characters)

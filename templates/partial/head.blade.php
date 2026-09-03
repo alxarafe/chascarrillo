@@ -8,6 +8,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css">
 <link href="/alxarafe/assets/css/alxarafe-content.css?v=0.8.1" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 
@@ -63,6 +64,52 @@
     .has-sidebar #id-right {
         margin-left: 250px; /* Sidebar width */
         width: calc(100% - 250px);
+    }
+
+    /* Top navigation bar (project_menu) */
+    .alx-navbar {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+        background: #fff;
+        flex-wrap: nowrap;
+        z-index: 1050;
+        position: relative;
+    }
+    .alx-navbar-brand {
+        color: #333;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+    .alx-navbar-brand:hover { color: #000; }
+    .alx-navbar-nav {
+        display: flex;
+        align-items: center;
+    }
+    .alx-nav-link {
+        color: #555;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        transition: color 0.2s, background 0.2s;
+    }
+    .alx-nav-link:hover {
+        color: #000;
+        background: rgba(0,0,0,0.05);
+    }
+    .alx-navbar-tools a {
+        font-size: 0.85rem;
+        transition: color 0.2s;
+    }
+    .alx-navbar-tools a:hover { color: #000 !important; }
+
+    /* Keep tables generated from Markdown inside the article viewport. */
+    .post-content table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     @media (max-width: 768px) {

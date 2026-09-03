@@ -7,7 +7,7 @@ use Alxarafe\Infrastructure\Lib\Messages;
 
 class UpdateService
 {
-    public const VERSION = 'v0.8.15';
+    public const VERSION = 'v0.8.16';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -38,16 +38,17 @@ class UpdateService
             $latest = ltrim($data['tag_name'], 'v');
             $current = ltrim(self::VERSION, 'v');
             if (version_compare($latest, $current, '>')) {
-                // Find the deployment ZIP in assets instead of the source code zip
+                // Find the deployment ZIP in assets instead of the source code zip.
+                // The deploy package includes vendor/ and all runtime assets, so it is the
+                // only safe download. The raw source zipball is NOT an installable package.
                 if (isset($data['assets']) && is_array($data['assets'])) {
                     foreach ($data['assets'] as $asset) {
                         if (str_starts_with($asset['name'], 'chascarrillo-deploy-') && str_ends_with($asset['name'], '.zip')) {
                             $data['zipball_url'] = $asset['browser_download_url'];
-                            break;
+                            return $data;
                         }
                     }
                 }
-                return $data;
             }
         }
 
@@ -100,6 +101,14 @@ class UpdateService
             if (is_dir($source . '/' . $first)) {
                 $source = $source . '/' . $first;
             }
+        }
+
+        // The deploy package MUST include vendor/ (and public_html/). If they are missing
+        // we are dealing with a raw source zipball, which is NOT installable.
+        if (!is_dir($source . '/vendor') || !is_dir($source . '/public_html')) {
+            @self::recursiveRmdir($extractPath);
+            Messages::addError("El paquete de actualización no es válido (falta vendor/ o public_html/). Verifique que la release incluya el asset chascarrillo-deploy.");
+            return false;
         }
 
         $publicDir = defined('PUBLIC_DIR') ? constant('PUBLIC_DIR') : 'public';

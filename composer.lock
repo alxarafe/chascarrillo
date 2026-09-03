@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "alxarafe/alxarafe",
-            "version": "v0.6.9",
+            "version": "v0.6.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alxarafe/alxarafe.git",
-                "reference": "8cf8e37788c429a814e04bd57a84edd8f0511d89"
+                "reference": "4b5a6252750537280c04aa4378b3fcf2570f8efb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/8cf8e37788c429a814e04bd57a84edd8f0511d89",
-                "reference": "8cf8e37788c429a814e04bd57a84edd8f0511d89",
+                "url": "https://api.github.com/repos/alxarafe/alxarafe/zipball/4b5a6252750537280c04aa4378b3fcf2570f8efb",
+                "reference": "4b5a6252750537280c04aa4378b3fcf2570f8efb",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,7 @@
                 "issues": "https://github.com/alxarafe/alxarafe/issues",
                 "source": "https://github.com/alxarafe/alxarafe"
             },
-            "time": "2026-09-01T19:58:15+00:00"
+            "time": "2026-09-03T16:59:11+00:00"
         },
         {
             "name": "alxarafe/resource-controller",

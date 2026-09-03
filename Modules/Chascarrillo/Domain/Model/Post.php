@@ -135,7 +135,7 @@ class Post
  return $this->publishedAt; 
 }
 public function getFeaturedImage(): ?string
-    {
+{
         return \Modules\Chascarrillo\Service\ContentFilePath::resolve($this->featuredImage);
     }
 

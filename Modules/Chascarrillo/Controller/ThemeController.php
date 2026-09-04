@@ -20,7 +20,11 @@ class ThemeController extends GenericPublicController
 
     public function doSwitch(): bool
     {
-        $theme = $_GET['id'] ?? 'chascarrillo';
+        $theme = filter_input(INPUT_GET, 'id', FILTER_UNSAFE_RAW);
+        $themes = Functions::getThemes();
+        if (!is_string($theme) || !array_key_exists($theme, $themes)) {
+            $theme = 'default';
+        }
 
         // Save in session for immediate persistence without relying solely on cookies
         $_SESSION['alx_theme_test'] = $theme;
@@ -32,9 +36,18 @@ class ThemeController extends GenericPublicController
             $user->save();
         }
 
-        // We also use a cookie for persistence for guests or redundancy
-        // When cookie consent is implemented, we will use this line instead of the session above.
-        // setcookie('alx_theme_test', $theme, time() + (86400 * 30), '/'); // 30 days
+        // Keep the legacy override and the framework cookie aligned for guests.
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+        $cookieOptions = [
+            'expires' => time() + (86400 * 30),
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ];
+        setcookie('alx_theme_test', $theme, $cookieOptions);
+        setcookie('alx_theme', $theme, $cookieOptions);
 
         // Prepare redirection: Avoid loops if referer is the switch action itself
         $referer = $_SERVER['HTTP_REFERER'] ?? BASE_URL;

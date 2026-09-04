@@ -1,7 +1,7 @@
 @php
     $themes = \Alxarafe\Infrastructure\Lib\Functions::getThemes();
-    $currentTheme = $_SESSION['alx_theme_test']
-        ?? $_COOKIE['alx_theme']
+    $currentTheme = $_COOKIE['alx_theme']
+        ?? $_SESSION['alx_theme_test']
         ?? \Alxarafe\Infrastructure\Persistence\Config::getConfig()->main->theme
         ?? 'default';
 @endphp

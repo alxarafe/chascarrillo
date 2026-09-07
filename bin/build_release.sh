@@ -11,8 +11,8 @@ echo "Preparando paquete de despliegue ${VERSION}"
 composer validate --strict
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 php scripts/publish_theme_assets.php
-php scripts/build_distribution_manifest.php "$VERSION"
-php scripts/validate_release.php
+php scripts/build_distribution_manifest.php --tag "$VERSION"
+php scripts/validate_release.php --tag "$VERSION"
 
 zip -D -r "$OUTPUT_FILE" . \
     -x "*.git*" \
@@ -52,5 +52,5 @@ zip -D -r "$OUTPUT_FILE" . \
     -x "$OUTPUT_FILE"
 
 unzip -q "$OUTPUT_FILE" -d "$VERIFY_DIR"
-php scripts/validate_release.php "$VERIFY_DIR" --artifact
+php scripts/validate_release.php "$VERIFY_DIR" --artifact --tag "$VERSION"
 echo "Paquete verificado: ${OUTPUT_FILE}"

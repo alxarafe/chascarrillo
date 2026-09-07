@@ -74,13 +74,14 @@ final class SymlinkContainmentTest extends TestCase
         [$release, $install, $outside] = $this->releaseFixture();
         $this->writeFile($outside . '/obsolete.txt', 'old managed');
         self::assertTrue(symlink($outside, $install . '/obsolete'));
-        ManagedFileManifest::write($install, [
-            'format' => 1,
-            'version' => 'v-old',
-            'files' => [
-                'obsolete/obsolete.txt' => hash('sha256', 'old managed'),
-            ],
-        ]);
+        $this->writeFile($install . '/' . ManagedFileManifest::FILENAME, json_encode([
+            'format' => 2,
+            'version' => 'v0.8.17',
+            'files' => [[
+                'path' => 'obsolete/obsolete.txt',
+                'sha256' => hash('sha256', 'old managed'),
+            ]],
+        ], JSON_PRETTY_PRINT) ?: '{}');
 
         $this->expectUnsafePath(function () use ($release, $install): void {
             (new ReleaseInstaller())->install($release, $install);
@@ -157,6 +158,10 @@ final class SymlinkContainmentTest extends TestCase
         $this->writeFile($outside . '/witness.txt', 'outside witness');
         $this->writeFile($release . '/composer.lock', (string) file_get_contents($project . '/composer.lock'));
         $this->writeFile(
+            $release . '/Modules/Chascarrillo/Service/UpdateService.php',
+            (string) file_get_contents($project . '/Modules/Chascarrillo/Service/UpdateService.php')
+        );
+        $this->writeFile(
             $release . '/vendor/composer/installed.json',
             json_encode([
                 'packages' => [[
@@ -187,7 +192,7 @@ final class SymlinkContainmentTest extends TestCase
         );
         $this->writeFile($release . '/templates/partial/project_menu.blade.php', 'project menu');
         $this->writeFile($release . '/public_html/index.php', '<?php // fixture');
-        ManagedFileManifest::write($release, ManagedFileManifest::generate($release, 'v-test'));
+        ManagedFileManifest::write($release, ManagedFileManifest::generate($release));
         return [$release, $install, $outside];
     }
 

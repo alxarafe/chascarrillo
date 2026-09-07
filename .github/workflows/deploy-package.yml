@@ -37,8 +37,8 @@ jobs:
           set -euo pipefail
           TAG_NAME=${GITHUB_REF#refs/tags/}
           php scripts/publish_theme_assets.php
-          php scripts/build_distribution_manifest.php "$TAG_NAME"
-          php scripts/validate_release.php
+          php scripts/build_distribution_manifest.php --tag "$TAG_NAME"
+          php scripts/validate_release.php --tag "$TAG_NAME"
 
       - name: Create Deployment ZIP
         run: |
@@ -88,13 +88,14 @@ jobs:
       - name: Verify packaged ZIP
         run: |
           set -euo pipefail
+          TAG_NAME=${GITHUB_REF#refs/tags/}
           VERIFY_DIR=$(mktemp -d)
           unzip -q "$ZIP_NAME" -d "$VERIFY_DIR"
           test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/user_menu.blade.php"
           test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/body_standard.blade.php"
           test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/body_empty.blade.php"
           test -f "$VERIFY_DIR/public_html/themes/default/css/default.css"
-          php scripts/validate_release.php "$VERIFY_DIR" --artifact
+          php scripts/validate_release.php "$VERIFY_DIR" --artifact --tag "$TAG_NAME"
 
       - name: Release and Upload Asset
         uses: softprops/action-gh-release@v2

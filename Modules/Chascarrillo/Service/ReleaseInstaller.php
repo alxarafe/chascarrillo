@@ -32,7 +32,7 @@ final class ReleaseInstaller
     /**
      * @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>}
      */
-    public function install(string $releaseRoot, string $installRoot): array
+    public function install(string $releaseRoot, string $installRoot, ?string $releaseTag = null): array
     {
         $releasePaths = new SafePath($releaseRoot);
         $installPaths = new SafePath($installRoot);
@@ -51,10 +51,10 @@ final class ReleaseInstaller
         foreach (ReleaseValidator::ESSENTIAL_TEMPLATES as $relative) {
             $releasePaths->requireFile($relative);
         }
-        $this->validator->validate($releaseRoot, true, true);
+        $this->validator->validate($releaseRoot, true, true, $releaseTag);
 
         $installPaths->exists(ManagedFileManifest::FILENAME);
-        $previous = ManagedFileManifest::load($installRoot, false);
+        $previous = ManagedFileManifest::load($installRoot, false, true);
         $copied = 0;
         foreach ($next['files'] as $relative => $expectedHash) {
             if ($releasePaths->hash($relative) !== $expectedHash) {

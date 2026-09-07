@@ -52,9 +52,9 @@ final class ManagedFileManifest
     ];
 
     /**
-     * @return array{format:int,version:string,files:array<string,string>}
+     * @return array{format:int,application_version:string,files:array<string,string>}
      */
-    public static function generate(string $root, string $version): array
+    public static function generate(string $root): array
     {
         $root = self::realDirectory($root);
         $files = [];
@@ -83,20 +83,20 @@ final class ManagedFileManifest
         }
 
         ksort($files);
-        return ['format' => 2, 'version' => $version, 'files' => $files];
+        return ['format' => 2, 'application_version' => ApplicationVersion::canonical(), 'files' => $files];
     }
 
     /**
-     * @return array{format:int,version:string,files:array<string,string>}
+     * @return array{format:int,application_version:string,files:array<string,string>}
      */
-    public static function load(string $root, bool $required = true): array
+    public static function load(string $root, bool $required = true, bool $allowInstalledLegacy = false): array
     {
         $filename = rtrim($root, '/') . '/' . self::FILENAME;
         if (!is_file($filename)) {
             if ($required) {
                 throw new RuntimeException('El paquete no contiene ' . self::FILENAME);
             }
-            return ['format' => 2, 'version' => '', 'files' => []];
+            return ['format' => 2, 'application_version' => '', 'files' => []];
         }
 
         $contents = file_get_contents($filename);
@@ -108,6 +108,17 @@ final class ManagedFileManifest
             || !array_is_list($data['files'])
         ) {
             throw new RuntimeException('El manifiesto de archivos administrados no es válido');
+        }
+
+        $applicationVersion = $data['application_version'] ?? null;
+        if (!is_string($applicationVersion)) {
+            if (!$allowInstalledLegacy || !is_string($data['version'] ?? null)) {
+                throw new RuntimeException('El manifiesto no contiene application_version válida');
+            }
+            ApplicationVersion::assertTagMatches($data['version'], ApplicationVersion::canonical());
+            $applicationVersion = '';
+        } else {
+            ApplicationVersion::assertValid($applicationVersion, 'application_version del manifiesto');
         }
 
         $files = [];
@@ -132,19 +143,19 @@ final class ManagedFileManifest
         ksort($files);
         return [
             'format' => 2,
-            'version' => (string) ($data['version'] ?? ''),
+            'application_version' => $applicationVersion,
             'files' => $files,
         ];
     }
 
-    /** @param array{format:int,version:string,files:array<string,string>} $manifest */
+    /** @param array{format:int,application_version:string,files:array<string,string>} $manifest */
     public static function write(string $root, array $manifest): void
     {
         $target = rtrim($root, '/') . '/' . self::FILENAME;
         self::atomicWrite($target, self::encode($manifest));
     }
 
-    /** @param array{format:int,version:string,files:array<string,string>} $manifest */
+    /** @param array{format:int,application_version:string,files:array<string,string>} $manifest */
     public static function encode(array $manifest): string
     {
         $files = [];
@@ -162,9 +173,10 @@ final class ManagedFileManifest
         }
         $document = [
             'format' => 2,
-            'version' => (string) $manifest['version'],
+            'application_version' => (string) $manifest['application_version'],
             'files' => $entries,
         ];
+        ApplicationVersion::assertValid($document['application_version'], 'application_version del manifiesto');
         $json = json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
             throw new RuntimeException('No se pudo serializar el manifiesto de distribución');

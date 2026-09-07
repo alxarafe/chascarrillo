@@ -117,6 +117,10 @@ class UpdateRemovesObsoleteUserMenuTest extends TestCase
     {
         $project = dirname(__DIR__, 2);
         $this->writeFile($release . '/composer.lock', (string) file_get_contents($project . '/composer.lock'));
+        $this->writeFile(
+            $release . '/Modules/Chascarrillo/Service/UpdateService.php',
+            (string) file_get_contents($project . '/Modules/Chascarrillo/Service/UpdateService.php')
+        );
         $installed = [
             'packages' => [[
                 'name' => 'alxarafe/alxarafe',
@@ -154,7 +158,7 @@ class UpdateRemovesObsoleteUserMenuTest extends TestCase
         );
         $this->writeFile($release . '/public_html/index.php', '<?php // fixture');
 
-        ManagedFileManifest::write($release, ManagedFileManifest::generate($release, 'v-test'));
+        ManagedFileManifest::write($release, ManagedFileManifest::generate($release));
     }
 
     /** @param list<string> $paths */

@@ -27,8 +27,12 @@ final class ReleaseValidator
     /**
      * @return array{version:string,reference:string}
      */
-    public function validate(string $root, bool $requireManifest = true, bool $strictArtifact = false): array
-    {
+    public function validate(
+        string $root,
+        bool $requireManifest = true,
+        bool $strictArtifact = false,
+        ?string $tag = null
+    ): array {
         $root = rtrim($root, '/');
         if (!is_dir($root . '/vendor') || !is_dir($root . '/public_html')) {
             throw new RuntimeException('Paquete incompleto: deben existir vendor/ y public_html/');
@@ -89,6 +93,9 @@ final class ReleaseValidator
             $paths = new SafePath($root);
             $paths->requireFile(ManagedFileManifest::FILENAME);
             $manifest = ManagedFileManifest::load($root);
+            $canonicalVersion = ApplicationVersion::fromRoot($root);
+            ApplicationVersion::assertManifestMatches($manifest['application_version'], $canonicalVersion);
+            ApplicationVersion::assertTagMatches($tag, $manifest['application_version']);
             foreach ($manifest['files'] as $relative => $hash) {
                 if (!$paths->isFile($relative) || $paths->hash($relative) !== $hash) {
                     throw new RuntimeException("El manifiesto no coincide con {$relative}");

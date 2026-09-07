@@ -10,6 +10,7 @@ use Modules\Chascarrillo\Service\ReleaseArchiveValidator;
 use Modules\Chascarrillo\Service\ReleaseInstaller;
 use Modules\Chascarrillo\Service\ThemeAssetPublisher;
 use Modules\Chascarrillo\Service\ReleaseValidator;
+use Modules\Chascarrillo\Service\UpdateService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -72,7 +73,7 @@ final class ReleaseArtifactSecurityTest extends TestCase
         $hash = hash('sha256', 'same');
         $this->writeFile($root . '/' . ManagedFileManifest::FILENAME, json_encode([
             'format' => 2,
-            'version' => 'v-test',
+            'application_version' => UpdateService::VERSION,
             'files' => [
                 ['path' => 'same.txt', 'sha256' => $hash],
                 ['path' => 'same.txt', 'sha256' => $hash],
@@ -90,7 +91,7 @@ final class ReleaseArtifactSecurityTest extends TestCase
         $hash = hash('sha256', 'same');
         $this->writeFile($root . '/' . ManagedFileManifest::FILENAME, json_encode([
             'format' => 2,
-            'version' => 'v-test',
+            'application_version' => UpdateService::VERSION,
             'files' => [
                 ['path' => 'a/b.txt', 'sha256' => $hash],
                 ['path' => 'a/./b.txt', 'sha256' => $hash],
@@ -280,6 +281,76 @@ final class ReleaseArtifactSecurityTest extends TestCase
         self::assertFileExists($root . '/' . ManagedFileManifest::FILENAME);
     }
 
+    /** @return iterable<string,array{string|null,string}> */
+    public static function invalidApplicationVersions(): iterable
+    {
+        yield 'missing' => [null, 'application_version'];
+        yield 'invalid format' => ['release-0.8.17', 'formato'];
+        yield 'canonical mismatch' => ['9.9.9', 'no coincide'];
+    }
+
+    #[DataProvider('invalidApplicationVersions')]
+    public function testReleaseRejectsInvalidApplicationVersion(?string $version, string $message): void
+    {
+        $root = $this->validReleaseFixture('invalid-version-' . md5((string) $version));
+        $manifestFile = $root . '/' . ManagedFileManifest::FILENAME;
+        $manifest = json_decode((string) file_get_contents($manifestFile), true);
+        self::assertIsArray($manifest);
+        if ($version === null) {
+            unset($manifest['application_version']);
+        } else {
+            $manifest['application_version'] = $version;
+        }
+        $this->writeFile($manifestFile, json_encode($manifest, JSON_PRETTY_PRINT) ?: '{}');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage($message);
+        (new ReleaseValidator())->validate($root, true, true);
+    }
+
+    public function testVersionMismatchIsRejectedBeforeInstallationChanges(): void
+    {
+        $release = $this->validReleaseFixture('mismatched-version-install');
+        $manifestFile = $release . '/' . ManagedFileManifest::FILENAME;
+        $manifest = json_decode((string) file_get_contents($manifestFile), true);
+        self::assertIsArray($manifest);
+        $manifest['application_version'] = '9.9.9';
+        $this->writeFile($manifestFile, json_encode($manifest, JSON_PRETTY_PRINT) ?: '{}');
+        $install = $this->workspace . '/version-untouched-install';
+        $this->writeFile($install . '/witness.txt', 'untouched');
+
+        try {
+            (new ReleaseInstaller())->install($release, $install);
+            self::fail('La versión incoherente no fue rechazada');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('no coincide', $exception->getMessage());
+            self::assertSame('untouched', file_get_contents($install . '/witness.txt'));
+            self::assertFileDoesNotExist($install . '/composer.lock');
+        }
+    }
+
+    public function testLegacyVersionFieldIsAcceptedOnlyForPreviouslyInstalledManifest(): void
+    {
+        $root = $this->workspace . '/legacy-installed-manifest';
+        $this->writeFile($root . '/managed.txt', 'legacy');
+        $this->writeFile($root . '/' . ManagedFileManifest::FILENAME, json_encode([
+            'format' => 2,
+            'version' => 'v0.8.17',
+            'files' => [[
+                'path' => 'managed.txt',
+                'sha256' => hash('sha256', 'legacy'),
+            ]],
+        ], JSON_PRETTY_PRINT) ?: '{}');
+
+        $legacy = ManagedFileManifest::load($root, true, true);
+        self::assertSame('', $legacy['application_version']);
+        self::assertArrayHasKey('managed.txt', $legacy['files']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('application_version');
+        ManagedFileManifest::load($root);
+    }
+
     /** @return list<string> */
     private function inspectZip(string $filename): array
     {
@@ -297,6 +368,9 @@ final class ReleaseArtifactSecurityTest extends TestCase
         $root = $this->workspace . '/' . $name;
         $project = dirname(__DIR__, 2);
         $files = [];
+        $files['Modules/Chascarrillo/Service/UpdateService.php'] = (string) file_get_contents(
+            $project . '/Modules/Chascarrillo/Service/UpdateService.php'
+        );
         $files['composer.lock'] = (string) file_get_contents($project . '/composer.lock');
         $files['vendor/composer/installed.json'] = json_encode([
             'packages' => [[
@@ -320,7 +394,7 @@ final class ReleaseArtifactSecurityTest extends TestCase
         usort($manifestFiles, static fn (array $left, array $right): int => $left['path'] <=> $right['path']);
         $this->writeFile($root . '/' . ManagedFileManifest::FILENAME, json_encode([
             'format' => 2,
-            'version' => 'v-test',
+            'application_version' => UpdateService::VERSION,
             'files' => $manifestFiles,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}');
         return $root;

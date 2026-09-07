@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use Modules\Chascarrillo\Service\ManagedFileManifest;
-use Modules\Chascarrillo\Service\UpdateService;
+use Modules\Chascarrillo\Service\ApplicationVersion;
 
 $appRoot = realpath(__DIR__ . '/..');
 if ($appRoot === false) {
@@ -13,9 +13,17 @@ if ($appRoot === false) {
 }
 require $appRoot . '/vendor/autoload.php';
 
-$version = $argv[1] ?? UpdateService::VERSION;
 try {
-    $manifest = ManagedFileManifest::generate($appRoot, $version);
+    $tag = null;
+    if (isset($argv[1])) {
+        if ($argv[1] !== '--tag' || !isset($argv[2]) || isset($argv[3])) {
+            throw new RuntimeException('Uso: build_distribution_manifest.php [--tag TAG]');
+        }
+        $tag = $argv[2];
+    }
+    $version = ApplicationVersion::canonical();
+    ApplicationVersion::assertTagMatches($tag, $version);
+    $manifest = ManagedFileManifest::generate($appRoot);
     ManagedFileManifest::write($appRoot, $manifest);
     printf(
         "Manifiesto %s generado para %s con %d archivos.\n",

@@ -10,7 +10,7 @@ use ZipArchive;
 
 class UpdateService
 {
-    public const VERSION = 'v0.8.17';
+    public const VERSION = '0.8.17';
     public const UPDATE_URL = 'https://api.github.com/repos/alxarafe/chascarrillo/releases/latest';
 
     /**
@@ -36,8 +36,14 @@ class UpdateService
         if (!is_array($data) || !isset($data['tag_name'])) {
             return null;
         }
-        $latest = ltrim((string) $data['tag_name'], 'v');
-        if (!version_compare($latest, ltrim(self::VERSION, 'v'), '>')) {
+        $tag = (string) $data['tag_name'];
+        $latest = str_starts_with($tag, 'v') ? substr($tag, 1) : $tag;
+        try {
+            ApplicationVersion::assertValid($latest, 'La versión publicada');
+        } catch (RuntimeException) {
+            return null;
+        }
+        if (!version_compare($latest, ApplicationVersion::canonical(), '>')) {
             return null;
         }
 
@@ -98,7 +104,11 @@ class UpdateService
                 $source .= '/' . $entries[0];
             }
 
-            (new ReleaseInstaller())->install($source, constant('APP_PATH'));
+            (new ReleaseInstaller())->install(
+                $source,
+                constant('APP_PATH'),
+                $targetVersion !== '' ? $targetVersion : null
+            );
             if (!Config::doRunMigrations()) {
                 throw new RuntimeException(
                     'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'

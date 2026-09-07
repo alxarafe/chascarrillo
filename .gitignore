@@ -7,5 +7,8 @@
 .idea
 .vscode
 config.json
-/scripts/
+!/scripts/
+/scripts/*
+!/scripts/build_distribution_manifest.php
+!/scripts/validate_release.php
 /public_html/uploads/

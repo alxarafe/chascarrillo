@@ -23,39 +23,78 @@ jobs:
           extensions: mbstring, zip, pdo, mysql
           coverage: none
 
-      - name: Prepare dependencies for CI
+      - name: Install locked production dependencies
         run: |
-          # Fix dubious ownership issue
-          git config --global --add safe.directory $GITHUB_WORKSPACE
-          # Remove lock file to avoid path repository conflicts and force fresh resolution
-          rm -f composer.lock
-          # Remove the local path repository which doesn't exist in CI
-          php -r '$c=json_decode(file_get_contents("composer.json"),true); if(isset($c["repositories"]) && $c["repositories"][0]["type"] === "path") { array_shift($c["repositories"]); } file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));'
-          # Force platform PHP version
-          composer config platform.php 8.2.27
-          # Clear composer cache to ensure fresh Packagist metadata
-          composer clear-cache
-          # Use update instead of install since we removed the lock file
-          composer update --no-dev --optimize-autoloader --no-interaction
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          test -f composer.lock
+          composer validate --strict
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+          git diff --exit-code -- composer.json composer.lock
+
+      - name: Publish assets and validate runtime
+        run: |
+          set -euo pipefail
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          php scripts/publish_theme_assets.php
+          php scripts/build_distribution_manifest.php "$TAG_NAME"
+          php scripts/validate_release.php
 
       - name: Create Deployment ZIP
         run: |
-          # Use the tag name for the filename
+          set -euo pipefail
           TAG_NAME=${GITHUB_REF#refs/tags/}
           ZIP_NAME="chascarrillo-deploy-${TAG_NAME}.zip"
-          
-          # Zip everything including vendor, excluding dev files
-          zip -r "$ZIP_NAME" . \
+
+          zip -D -r "$ZIP_NAME" . \
             -x "*.git*" \
+            -x ".htaccess" \
+            -x "*/.htaccess" \
+            -x "Content" \
+            -x "Content/*" \
+            -x "storage" \
+            -x "storage/*" \
+            -x "var" \
             -x "var/*" \
+            -x "public_html/uploads" \
+            -x "public_html/uploads/*" \
             -x "config.json" \
             -x ".env" \
-            -x "tests/*" \
+            -x "tmp/*" \
+            -x ".phpunit.cache" \
+            -x ".phpunit.cache/*" \
+            -x "docs/audit/*" \
+            -x "coverage/*" \
+            -x "reports/*" \
+            -x ".DS_Store" \
+            -x "*/.DS_Store" \
+            -x "*.log" \
+            -x "*.tmp" \
+            -x "*.zip" \
+            -x "Tests/*" \
             -x "phpunit.xml" \
-            -x ".agent/*" \
-            -x ".github/*"
-            
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+            -x "phpcs.xml" \
+            -x "phpstan.neon" \
+            -x "phpstan-bootstrap.php" \
+            -x "psalm.xml" \
+            -x "psalm-stubs.php" \
+            -x ".agents/*" \
+            -x ".codex/*" \
+            -x ".github/*" \
+            -x "$ZIP_NAME"
+
+          echo "ZIP_NAME=$ZIP_NAME" >> "$GITHUB_ENV"
+
+      - name: Verify packaged ZIP
+        run: |
+          set -euo pipefail
+          VERIFY_DIR=$(mktemp -d)
+          unzip -q "$ZIP_NAME" -d "$VERIFY_DIR"
+          test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/user_menu.blade.php"
+          test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/body_standard.blade.php"
+          test -f "$VERIFY_DIR/vendor/alxarafe/alxarafe/templates/partial/body_empty.blade.php"
+          test -f "$VERIFY_DIR/public_html/themes/default/css/default.css"
+          php scripts/validate_release.php "$VERIFY_DIR" --artifact
 
       - name: Release and Upload Asset
         uses: softprops/action-gh-release@v2

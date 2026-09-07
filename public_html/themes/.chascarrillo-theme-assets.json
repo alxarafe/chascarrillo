@@ -1,0 +1,29 @@
+{
+  "format": 2,
+  "files": [
+    {
+      "path": "alternative/css/default.css",
+      "sha256": "b1197ee0a16d76b19c3b77a6f80ec77b9b33715836dfd815842a7d108e618383"
+    },
+    {
+      "path": "chascarrillo/css/default.css",
+      "sha256": "fec819aa454610867168b2f56b7fe414c5c1cba7c5b48003178f10e6b94407a8"
+    },
+    {
+      "path": "cyberpunk/css/default.css",
+      "sha256": "1150a258e42c49811d8297db8939e6f06e0534ac0ee71d22ae2e139e31884209"
+    },
+    {
+      "path": "default/css/default.css",
+      "sha256": "94e4aa2f931f93e916b9ef7d5cfe65c1131944b882c92b95168e98548f80b786"
+    },
+    {
+      "path": "high-contrast/css/default.css",
+      "sha256": "f401529068f57e1a593ea47e0977887bfb75f05585b1fa38cc9f3f0d6cade60f"
+    },
+    {
+      "path": "vintage/css/default.css",
+      "sha256": "976c5a3bfe521d9decaa946bece49bbc6f0a10b8c712edd18faccabdfbbf4fa3"
+    }
+  ]
+}

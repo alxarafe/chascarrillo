@@ -11,73 +11,26 @@
  * Blade templates (.blade.php) are NOT copied — they stay in templates/.
  */
 
-$appRoot = realpath(__DIR__ . '/../');
-$publicDir = $appRoot . '/public_html';
-$targetBase = $publicDir . '/themes';
-
-$sources = [
-    // Framework themes (lower priority — copied first)
-    $appRoot . '/vendor/alxarafe/alxarafe/templates/themes',
-    // App themes (higher priority — overwrite framework assets if same name)
-    $appRoot . '/templates/themes',
-];
-
-$assetFolders = ['css', 'js', 'img', 'fonts', 'assets'];
-
-echo "Publishing theme assets to: {$targetBase}\n";
-
-foreach ($sources as $sourceBase) {
-    if (!is_dir($sourceBase)) {
-        echo "  [SKIP] Source not found: {$sourceBase}\n";
-        continue;
-    }
-
-    $themes = array_diff(scandir($sourceBase), ['.', '..']);
-    foreach ($themes as $theme) {
-        $themeSource = $sourceBase . '/' . $theme;
-        if (!is_dir($themeSource)) {
-            continue;
-        }
-
-        foreach ($assetFolders as $folder) {
-            $src = $themeSource . '/' . $folder;
-            if (!is_dir($src)) {
-                continue;
-            }
-
-            $dst = $targetBase . '/' . $theme . '/' . $folder;
-            if (!is_dir($dst)) {
-                mkdir($dst, 0755, true);
-            }
-
-            echo "  [COPY] {$theme}/{$folder}\n";
-            recursiveCopy($src, $dst);
-        }
-    }
+$appRoot = realpath(__DIR__ . '/..');
+if ($appRoot === false) {
+    fwrite(STDERR, "No se pudo determinar la raíz de Chascarrillo.\n");
+    exit(1);
 }
 
-echo "Done.\n";
+require $appRoot . '/vendor/autoload.php';
 
-function recursiveCopy(string $src, string $dst): void
-{
-    if (!is_dir($dst)) {
-        mkdir($dst, 0755, true);
-    }
+use Modules\Chascarrillo\Service\ThemeAssetPublisher;
 
-    $dir = opendir($src);
-    while (($file = readdir($dir)) !== false) {
-        if ($file === '.' || $file === '..') {
-            continue;
-        }
-
-        $srcPath = $src . '/' . $file;
-        $dstPath = $dst . '/' . $file;
-
-        if (is_dir($srcPath)) {
-            recursiveCopy($srcPath, $dstPath);
-        } else {
-            copy($srcPath, $dstPath);
-        }
-    }
-    closedir($dir);
+try {
+    $result = (new ThemeAssetPublisher())->publish($appRoot);
+    printf(
+        "Assets publicados: %d copiados, %d obsoletos retirados, %d personalizados preservados.\n",
+        $result['copied'],
+        $result['removed'],
+        $result['preserved']
+    );
+    exit(0);
+} catch (Throwable $exception) {
+    fwrite(STDERR, 'Error al publicar assets: ' . $exception->getMessage() . "\n");
+    exit(1);
 }

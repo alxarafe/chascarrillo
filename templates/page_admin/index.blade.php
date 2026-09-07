@@ -19,16 +19,20 @@
             <h5 class="mb-0 fw-bold">Páginas Estáticas</h5>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <p class="admin-table-scroll-hint" id="page-admin-table-scroll-hint">
+                <i class="fas fa-arrows-left-right" aria-hidden="true"></i>
+                Desplaza horizontalmente para ver todas las columnas.
+            </p>
+            <div class="table-responsive admin-table-scroll" tabindex="0" aria-describedby="page-admin-table-scroll-hint">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light border-bottom">
                         <tr>
-                            <th class="ps-4 py-3 text-muted small text-uppercase" style="width: 80px;">ID</th>
-                            <th class="py-3 text-muted small text-uppercase">Título</th>
-                            <th class="py-3 text-muted small text-uppercase">Slug</th>
-                            <th class="py-3 text-muted small text-uppercase">Menú</th>
-                            <th class="py-3 text-muted small text-uppercase">Estado</th>
-                            <th class="pe-4 py-3 text-end text-muted small text-uppercase">Acciones</th>
+                            <th scope="col" class="ps-4 py-3 text-muted small text-uppercase" style="width: 80px;">ID</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Título</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Slug</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Menú</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Estado</th>
+                            <th scope="col" class="admin-table-actions pe-4 py-3 text-end text-muted small text-uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,8 +59,8 @@
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Publicada</span>
                                     @endif
                                 </td>
-                                <td class="pe-4 text-end">
-                                    <a href="index.php?module=Chascarrillo&controller=PageAdmin&id={{ $page->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar">
+                                <td class="admin-table-actions pe-4 text-end">
+                                    <a href="index.php?module=Chascarrillo&controller=PageAdmin&id={{ $page->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar" aria-label="Editar {{ $page->title }}">
                                         <i class="fas fa-pen text-primary"></i>
                                     </a>
                                 </td>

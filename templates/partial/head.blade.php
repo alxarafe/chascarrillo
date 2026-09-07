@@ -112,6 +112,53 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    /* Administrative tables retain every column on small screens. */
+    .admin-table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-color: currentColor transparent;
+        scrollbar-width: thin;
+    }
+    .admin-table-scroll > .table {
+        min-width: 48rem;
+    }
+    .admin-table-scroll:focus-visible {
+        outline: 3px solid var(--bs-primary, #0d6efd);
+        outline-offset: 3px;
+    }
+    .admin-table-scroll .admin-table-actions {
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        background: var(--bs-body-bg, #fff);
+        background-clip: padding-box;
+        box-shadow: -0.75rem 0 0.75rem -0.75rem rgba(0, 0, 0, 0.45);
+    }
+    .admin-table-scroll th.admin-table-actions {
+        z-index: 3;
+    }
+    .admin-table-scroll .admin-table-actions :is(a, button):focus-visible {
+        outline: 3px solid var(--bs-primary, #0d6efd);
+        outline-offset: 2px;
+    }
+    .admin-table-scroll-hint {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .admin-table-scroll-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin: 0;
+            padding: 0.5rem 1rem;
+            color: var(--bs-secondary-color, #6c757d);
+            font-size: 0.875rem;
+        }
+    }
+
     @media (max-width: 768px) {
         .sidebar {
             width: 0;

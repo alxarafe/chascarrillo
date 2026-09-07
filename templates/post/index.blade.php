@@ -44,17 +44,21 @@
     <!-- Posts Table -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <p class="admin-table-scroll-hint" id="post-table-scroll-hint">
+                <i class="fas fa-arrows-left-right" aria-hidden="true"></i>
+                Desplaza horizontalmente para ver todas las columnas.
+            </p>
+            <div class="table-responsive admin-table-scroll" tabindex="0" aria-describedby="post-table-scroll-hint">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-white border-bottom">
                         <tr>
-                            <th class="ps-4 py-3 text-muted small text-uppercase" style="width: 80px;">ID</th>
-                            <th class="py-3 text-muted small text-uppercase">Título</th>
-                            <th class="py-3 text-muted small text-uppercase">Slug</th>
-                            <th class="py-3 text-muted small text-uppercase">Tipo</th>
-                            <th class="py-3 text-muted small text-uppercase">Estado</th>
-                            <th class="py-3 text-muted small text-uppercase">Publicación</th>
-                            <th class="pe-4 py-3 text-end text-muted small text-uppercase">Acciones</th>
+                            <th scope="col" class="ps-4 py-3 text-muted small text-uppercase" style="width: 80px;">ID</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Título</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Slug</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Tipo</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Estado</th>
+                            <th scope="col" class="py-3 text-muted small text-uppercase">Publicación</th>
+                            <th scope="col" class="admin-table-actions pe-4 py-3 text-end text-muted small text-uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,12 +93,12 @@
                                 <td class="small text-muted">
                                     {{ $post->published_at ? $post->published_at->format('d-m-Y H:i') : '-' }}
                                 </td>
-                                <td class="pe-4 text-end">
+                                <td class="admin-table-actions pe-4 text-end">
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <a href="{{ $post->getUrl() }}" target="_blank" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Ver (Preview)">
+                                        <a href="{{ $post->getUrl() }}" target="_blank" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Ver (Preview)" aria-label="Ver {{ $post->title }}">
                                             <i class="fas fa-eye text-info"></i>
                                         </a>
-                                        <a href="index.php?module=Chascarrillo&controller=Post&id={{ $post->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar">
+                                        <a href="index.php?module=Chascarrillo&controller=Post&id={{ $post->id }}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Editar" aria-label="Editar {{ $post->title }}">
                                             <i class="fas fa-pen text-primary"></i>
                                         </a>
                                     </div>

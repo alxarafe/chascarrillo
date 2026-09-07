@@ -41,16 +41,20 @@
                                 </button>
                             </div>
 
-                            <div class="table-responsive">
+                            <p class="admin-table-scroll-hint" id="menu-items-table-scroll-hint">
+                                <i class="fas fa-arrows-left-right" aria-hidden="true"></i>
+                                Desplaza horizontalmente para ver todas las columnas.
+                            </p>
+                            <div class="table-responsive admin-table-scroll" tabindex="0" aria-describedby="menu-items-table-scroll-hint">
                                 <table class="table table-hover align-middle" id="menu-items-table">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th style="width: 50px;">Mover</th>
-                                            <th>Etiqueta</th>
-                                            <th>URL / Ruta</th>
-                                            <th style="width: 100px;">Icono</th>
-                                            <th style="width: 80px;">Orden</th>
-                                            <th style="width: 50px;"></th>
+                                            <th scope="col" style="width: 50px;">Mover</th>
+                                            <th scope="col">Etiqueta</th>
+                                            <th scope="col">URL / Ruta</th>
+                                            <th scope="col" style="width: 100px;">Icono</th>
+                                            <th scope="col" style="width: 80px;">Orden</th>
+                                            <th scope="col" class="admin-table-actions" style="width: 50px;"><span class="visually-hidden">Acciones</span></th>
                                         </tr>
                                     </thead>
                                     <tbody id="menu-items-body">
@@ -71,8 +75,8 @@
                                                 <td>
                                                     <input type="number" name="data[items][{{ $i }}][order]" class="form-control form-control-sm" value="{{ $item['order'] ?? $i }}">
                                                 </td>
-                                                <td class="text-end">
-                                                    <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="this.closest('tr').remove()">
+                                                <td class="admin-table-actions text-end">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="this.closest('tr').remove()" aria-label="Eliminar elemento {{ $item['label'] ?? ($i + 1) }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -118,8 +122,8 @@ function addItem() {
         <td>
             <input type="number" name="data[items][${itemCount}][order]" class="form-control form-control-sm" value="${itemCount}">
         </td>
-        <td class="text-end">
-            <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="this.closest('tr').remove()">
+        <td class="admin-table-actions text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="this.closest('tr').remove()" aria-label="Eliminar nuevo elemento">
                 <i class="fas fa-trash"></i>
             </button>
         </td>

@@ -20,13 +20,17 @@ to that theme.
 - PHPStan: no errors for `Modules`.
 - Psalm: no errors for `Modules` (116 informational issues remain).
 - Composer configuration: valid.
-- Browser matrix: 75/75 public checks passed across Default, High Contrast and
-  Cyberpunk at 360, 390, 768, 1024 and 1440 px.
+- Browser matrix: 75/75 public render checks passed across Default, High Contrast and
+  Cyberpunk at 360, 390, 768, 1024 and 1440 px. This matrix selected themes
+  directly; it did not validate interactive theme switching.
 - Routes covered: home, blog index, a real article, a static page and login.
 - Login fields render without a literal `::component.card` identifier.
 - Language links work from `/blog`, use root-relative URLs and persist the
   language cookie.
 - Language flags load in all three themes.
+- Theme switching now uses Alxarafe's standard `alx_theme` cookie from Default,
+  Cyberpunk and High Contrast; Default → Cyberpunk → High Contrast → Default
+  was reproduced with redirects and reloads at 360 and 1440 px.
 - User, language and theme controls are aligned.
 - Markdown tables no longer cause global horizontal overflow.
 - Blade was tested with cold and warm compiled caches.

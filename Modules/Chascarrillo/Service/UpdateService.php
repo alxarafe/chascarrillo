@@ -2,8 +2,11 @@
 
 namespace Modules\Chascarrillo\Service;
 
-use Alxarafe\Infrastructure\Persistence\Config;
 use Alxarafe\Infrastructure\Lib\Messages;
+use Alxarafe\Infrastructure\Persistence\Config;
+use RuntimeException;
+use Throwable;
+use ZipArchive;
 
 class UpdateService
 {
@@ -19,177 +22,120 @@ class UpdateService
         $opts = [
             'http' => [
                 'method' => 'GET',
-                'header' => [
-                    'User-Agent: Chascarrillo-Updater'
-                ],
-                'timeout' => 30
-            ]
+                'header' => ['User-Agent: Chascarrillo-Updater'],
+                'timeout' => 30,
+            ],
         ];
-        $context = stream_context_create($opts);
-        $response = @file_get_contents(self::UPDATE_URL, false, $context);
-
+        $response = @file_get_contents(self::UPDATE_URL, false, stream_context_create($opts));
         if ($response === false) {
             return null;
         }
 
-        /** @var array|null $data */
+        /** @var array<string,mixed>|null $data */
         $data = json_decode($response, true);
-        if (is_array($data) && isset($data['tag_name'])) {
-            $latest = ltrim($data['tag_name'], 'v');
-            $current = ltrim(self::VERSION, 'v');
-            if (version_compare($latest, $current, '>')) {
-                // Find the deployment ZIP in assets instead of the source code zip.
-                // The deploy package includes vendor/ and all runtime assets, so it is the
-                // only safe download. The raw source zipball is NOT an installable package.
-                if (isset($data['assets']) && is_array($data['assets'])) {
-                    foreach ($data['assets'] as $asset) {
-                        if (str_starts_with($asset['name'], 'chascarrillo-deploy-') && str_ends_with($asset['name'], '.zip')) {
-                            $data['zipball_url'] = $asset['browser_download_url'];
-                            return $data;
-                        }
-                    }
-                }
-            }
+        if (!is_array($data) || !isset($data['tag_name'])) {
+            return null;
+        }
+        $latest = ltrim((string) $data['tag_name'], 'v');
+        if (!version_compare($latest, ltrim(self::VERSION, 'v'), '>')) {
+            return null;
         }
 
+        foreach (is_array($data['assets'] ?? null) ? $data['assets'] : [] as $asset) {
+            $name = (string) ($asset['name'] ?? '');
+            if (str_starts_with($name, 'chascarrillo-deploy-') && str_ends_with($name, '.zip')) {
+                $data['zipball_url'] = (string) ($asset['browser_download_url'] ?? '');
+                return $data;
+            }
+        }
         return null;
     }
 
-    /**
-     * Download and apply the update.
-     */
+    /** Download, verify and apply a self-contained deployment package. */
     public static function applyUpdate(string $zipUrl, string $targetVersion = ''): bool
     {
-        $tmpZip = sys_get_temp_dir() . '/chascarrillo_update.zip';
-        $extractPath = sys_get_temp_dir() . '/chascarrillo_update_extracted';
-
-        // 1. Download
-        $opts = [
-            'http' => [
-                'method' => 'GET',
-                'header' => ['User-Agent: Chascarrillo-Updater'],
-                'timeout' => 60
-            ]
-        ];
-        $context = stream_context_create($opts);
-        $content = @file_get_contents($zipUrl, false, $context);
-        if ($content === false) {
-            Messages::addError("No se pudo descargar el archivo de actualización. Verifique la conexión con GitHub.");
+        $tmpZip = tempnam(sys_get_temp_dir(), 'chascarrillo-update-');
+        $extractPath = sys_get_temp_dir() . '/chascarrillo-update-' . bin2hex(random_bytes(8));
+        if ($tmpZip === false) {
+            Messages::addError('No se pudo crear el archivo temporal de actualización.');
             return false;
         }
-        file_put_contents($tmpZip, $content);
 
-        // 2. Extract
-        $zip = new \ZipArchive();
-        if ($zip->open($tmpZip) === true) {
+        try {
+            if (!mkdir($extractPath, 0700, true)) {
+                throw new RuntimeException('No se pudo crear el directorio temporal de actualización.');
+            }
+            $opts = [
+                'http' => [
+                    'method' => 'GET',
+                    'header' => ['User-Agent: Chascarrillo-Updater'],
+                    'timeout' => 60,
+                ],
+            ];
+            $content = @file_get_contents($zipUrl, false, stream_context_create($opts));
+            if ($content === false || file_put_contents($tmpZip, $content) === false) {
+                throw new RuntimeException(
+                    'No se pudo descargar el archivo de actualización. Verifique la conexión con GitHub.'
+                );
+            }
+
+            $zip = new ZipArchive();
+            if ($zip->open($tmpZip) !== true) {
+                throw new RuntimeException('No se pudo abrir el archivo ZIP.');
+            }
+            try {
+                (new ReleaseArchiveValidator())->validate($zip);
+                if (!$zip->extractTo($extractPath)) {
+                    throw new RuntimeException('No se pudo extraer el archivo ZIP.');
+                }
+            } finally {
+                $zip->close();
+            }
+
+            $source = $extractPath;
+            $entries = array_values(array_diff(scandir($source) ?: [], ['.', '..', '__MACOSX']));
+            if (count($entries) === 1 && is_dir($source . '/' . $entries[0])) {
+                $source .= '/' . $entries[0];
+            }
+
+            (new ReleaseInstaller())->install($source, constant('APP_PATH'));
+            if (!Config::doRunMigrations()) {
+                throw new RuntimeException(
+                    'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'
+                );
+            }
+
+            $versionLabel = $targetVersion ?: self::VERSION;
+            Messages::addMessage("¡Actualización aplicada y verificada con éxito a {$versionLabel}!");
+            return true;
+        } catch (Throwable $exception) {
+            Messages::addError('Actualización cancelada: ' . $exception->getMessage());
+            return false;
+        } finally {
+            if (is_file($tmpZip)) {
+                unlink($tmpZip);
+            }
             if (is_dir($extractPath)) {
                 self::recursiveRmdir($extractPath);
             }
-            mkdir($extractPath);
-            $zip->extractTo($extractPath);
-            $zip->close();
-        } else {
-            Messages::addError("No se pudo abrir el archivo ZIP.");
-            return false;
         }
-
-        // 3. Replace Files
-        $source = $extractPath;
-        $subfolders = array_diff(scandir($source), ['.', '..', '__MACOSX']);
-        if (count($subfolders) === 1) {
-            $first = reset($subfolders);
-            if (is_dir($source . '/' . $first)) {
-                $source = $source . '/' . $first;
-            }
-        }
-
-        // The deploy package MUST include vendor/ (and public_html/). If they are missing
-        // we are dealing with a raw source zipball, which is NOT installable.
-        if (!is_dir($source . '/vendor') || !is_dir($source . '/public_html')) {
-            @self::recursiveRmdir($extractPath);
-            Messages::addError("El paquete de actualización no es válido (falta vendor/ o public_html/). Verifique que la release incluya el asset chascarrillo-deploy.");
-            return false;
-        }
-
-        $publicDir = defined('PUBLIC_DIR') ? constant('PUBLIC_DIR') : 'public';
-        $success = self::recursiveCopy($source, constant('APP_PATH'), [
-            'config.json',
-            '.env',
-            "$publicDir/.htaccess",
-            "$publicDir/uploads",
-            "Content",
-            "storage",
-            "var",
-        ]);
-
-        if ($success) {
-            // 4. Run Migrations
-            Config::doRunMigrations();
-            $versionLabel = $targetVersion ?: self::VERSION;
-            Messages::addMessage("¡Actualización aplicada con éxito a " . $versionLabel . "!");
-            return true;
-        }
-
-        Messages::addError("Hubo un error al copiar los archivos del sistema.");
-        return false;
     }
 
-    private static function recursiveCopy(string $src, string $dst, array $skip = []): bool
+    private static function recursiveRmdir(string $directory): bool
     {
-        if (!is_dir($dst)) {
-            if (!@mkdir($dst, 0755, true)) {
-                error_log("No se pudo crear el directorio: $dst");
-                return false;
-            }
+        $entries = scandir($directory);
+        if ($entries === false) {
+            return false;
         }
-
-        $dir = opendir($src);
-        $allSuccess = true;
-
-        while (($file = readdir($dir)) !== false) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            if (in_array($file, $skip)) {
-                continue;
-            }
-
-            $srcFile = $src . '/' . $file;
-            $dstFile = $dst . '/' . $file;
-
-            // Check nested skip
-            $relativePath = ltrim(str_replace(constant('APP_PATH'), '', $dstFile), '/');
-            if (in_array($relativePath, $skip)) {
-                continue;
-            }
-
-            if (is_dir($srcFile)) {
-                if (!self::recursiveCopy($srcFile, $dstFile, $skip)) {
-                    $allSuccess = false;
-                }
+        $success = true;
+        foreach (array_diff($entries, ['.', '..']) as $entry) {
+            $path = $directory . '/' . $entry;
+            if (is_dir($path) && !is_link($path)) {
+                $success = self::recursiveRmdir($path) && $success;
             } else {
-                if (!@copy($srcFile, $dstFile)) {
-                    error_log("Error al copiar $srcFile -> $dstFile");
-                    $allSuccess = false;
-                } else {
-                    // Invalidate OPcache if possible
-                    if (function_exists('opcache_invalidate')) {
-                        @opcache_invalidate($dstFile, true);
-                    }
-                }
+                $success = unlink($path) && $success;
             }
         }
-        closedir($dir);
-        return $allSuccess;
-    }
-
-    private static function recursiveRmdir(string $dir): bool
-    {
-        $files = array_diff(scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            (is_dir("$dir/$file")) ? self::recursiveRmdir("$dir/$file") : unlink("$dir/$file");
-        }
-        return rmdir($dir);
+        return rmdir($directory) && $success;
     }
 }

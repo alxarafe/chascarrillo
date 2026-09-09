@@ -343,7 +343,7 @@ final class ReleaseArtifactSecurityTest extends TestCase
         ], JSON_PRETTY_PRINT) ?: '{}');
 
         $legacy = ManagedFileManifest::load($root, true, true);
-        self::assertSame('', $legacy['application_version']);
+        self::assertSame('0.8.17', $legacy['application_version']);
         self::assertArrayHasKey('managed.txt', $legacy['files']);
 
         $this->expectException(RuntimeException::class);

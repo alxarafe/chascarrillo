@@ -51,6 +51,24 @@ Solo Composer ejecuta los eventos `post-install-cmd` y `post-update-cmd` declara
 
 El ZIP excluye configuración y datos de la instalación (`config.json`, `.env`, `Content/`, `storage/`, `var/`, uploads y `.htaccess`) y herramientas de QA. Incluye el runtime completo, todo `vendor/`, plantillas privadas y assets públicos. No debe construirse a partir del source zip automático de GitHub.
 
+## Base histórica autenticada v0.8.17
+
+`resources/update-baselines/v0.8.17.json` procede del asset publicado, no del checkout ni del
+estado de una instalación:
+
+- metadata independiente: `https://api.github.com/repos/alxarafe/chascarrillo/releases/tags/v0.8.17`;
+- tag: `v0.8.17`;
+- asset: `chascarrillo-deploy-v0.8.17.zip`;
+- URL: `https://github.com/alxarafe/chascarrillo/releases/download/v0.8.17/chascarrillo-deploy-v0.8.17.zip`;
+- SHA-256 esperado por GitHub: `84a64c84db7b8eb70e16a057c3d36a4559023f9089edf1875b8b07bd43470c87`;
+- SHA-256 obtenido localmente antes de extraer:
+  `84a64c84db7b8eb70e16a057c3d36a4559023f9089edf1875b8b07bd43470c87`.
+
+El inventario contiene 3.636 ficheros después de excluir rutas permanentemente protegidas y tiene
+su propia huella canónica de entradas,
+`a66daa1485e6b3fa27a214ca302a562ab9760b37610aead3f24d0325f698d227`. El ZIP descargado se
+conserva fuera del repositorio y no forma parte de la release.
+
 ## Checklist de release 1.0
 
 - checkout limpio y tag coherente con `UpdateService::VERSION`;

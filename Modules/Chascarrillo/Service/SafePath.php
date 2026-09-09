@@ -9,6 +9,12 @@ use RuntimeException;
 /** Filesystem operations confined to one canonical directory without following symlinks. */
 final class SafePath
 {
+    public const NODE_MISSING = 'missing';
+    public const NODE_FILE = 'file';
+    public const NODE_DIRECTORY = 'directory';
+    public const NODE_SYMLINK = 'symbolic_link';
+    public const NODE_OTHER = 'other';
+
     private const TYPE_MASK = 0170000;
     private const TYPE_DIRECTORY = 0040000;
     private const TYPE_REGULAR = 0100000;
@@ -51,6 +57,55 @@ final class SafePath
     public function exists(string $relative): bool
     {
         return $this->resolve($relative, false) !== null;
+    }
+
+    public function nodeType(string $relative): string
+    {
+        $segments = $this->segments($relative);
+        if ($segments === []) {
+            return self::NODE_DIRECTORY;
+        }
+
+        $current = $this->root;
+        $last = count($segments) - 1;
+        foreach ($segments as $index => $segment) {
+            $current .= '/' . $segment;
+            $stat = @lstat($current);
+            if ($stat === false) {
+                return self::NODE_MISSING;
+            }
+            $type = $stat['mode'] & self::TYPE_MASK;
+            if ($type === self::TYPE_SYMLINK) {
+                return self::NODE_SYMLINK;
+            }
+            if ($index < $last && $type !== self::TYPE_DIRECTORY) {
+                return self::NODE_OTHER;
+            }
+            $this->assertPhysicalContainment($current);
+        }
+
+        return match ($type) {
+            self::TYPE_REGULAR => self::NODE_FILE,
+            self::TYPE_DIRECTORY => self::NODE_DIRECTORY,
+            default => self::NODE_OTHER,
+        };
+    }
+
+    /** @return array<string,string> path => unexpected node type */
+    public function unexpectedTreeNodes(string $relative): array
+    {
+        $type = $this->nodeType($relative);
+        if ($type === self::NODE_MISSING) {
+            return [];
+        }
+        if ($type !== self::NODE_DIRECTORY) {
+            return [$relative => $type];
+        }
+
+        $unexpected = [];
+        $this->collectUnexpectedTreeNodes($relative, $unexpected);
+        ksort($unexpected, SORT_STRING);
+        return $unexpected;
     }
 
     public function requireFile(string $relative): string
@@ -265,6 +320,20 @@ final class SafePath
                 $files[] = $child;
             } else {
                 throw new RuntimeException("Tipo de archivo no permitido al recorrer {$child}");
+            }
+        }
+    }
+
+    /** @param array<string,string> $unexpected */
+    private function collectUnexpectedTreeNodes(string $relative, array &$unexpected): void
+    {
+        foreach ($this->entries($relative) as $entry) {
+            $child = $relative === '' ? $entry : $relative . '/' . $entry;
+            $type = $this->nodeType($child);
+            if ($type === self::NODE_DIRECTORY) {
+                $this->collectUnexpectedTreeNodes($child, $unexpected);
+            } elseif ($type !== self::NODE_FILE) {
+                $unexpected[$child] = $type;
             }
         }
     }

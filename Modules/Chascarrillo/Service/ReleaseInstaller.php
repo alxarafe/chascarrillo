@@ -8,24 +8,10 @@ use RuntimeException;
 
 final class ReleaseInstaller
 {
-    /**
-     * Files shipped by old releases before the distribution manifest existed.
-     * They are removed only when their exact known hash is still present.
-     *
-     * @var array<string,string>
-     */
-    private const LEGACY_FILES = [
-        'templates/partial/user_menu.blade.php' => '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
-        'public_html/themes/alternative/form/boolean.blade.php' => '71f01e423395606fba45869fd94e3e74e9f69ce1c19afca61ef667403475ecbd',
-        'public_html/themes/alternative/form/select.blade.php' => '506eea16fc6f9a9fca1fba98310db7d645b88df4ca641c9df65791e7c15daac3',
-        'public_html/themes/alternative/component/fields/edit/boolean.blade.php' => '0bb55a7619464ce48657b5bbe438234cd7302c479b5c32cb5b49fa9f65cbc80a',
-        'public_html/themes/alternative/component/fields/list/boolean.blade.php' => '93b0ef4be22c6a7a1fd33267cab066ab68d7a82957f677cf66debcb245d082fb',
-        'public_html/themes/high-contrast/component/card.blade.php' => '856af325711275320c7c2ba96fab52ab533f7742dc40cfbc4f9c48892eb95246',
-    ];
-
     public function __construct(
         private readonly ReleaseValidator $validator = new ReleaseValidator(),
-        private readonly ThemeAssetPublisher $assetPublisher = new ThemeAssetPublisher()
+        private readonly ThemeAssetPublisher $assetPublisher = new ThemeAssetPublisher(),
+        private readonly ReleaseInstallationPlanner $planner = new ReleaseInstallationPlanner()
     ) {
     }
 
@@ -53,18 +39,40 @@ final class ReleaseInstaller
         }
         $this->validator->validate($releaseRoot, true, true, $releaseTag);
 
-        $installPaths->exists(ManagedFileManifest::FILENAME);
-        $previous = ManagedFileManifest::load($installRoot, false, true);
+        $manifestNodeType = $installPaths->nodeType(ManagedFileManifest::FILENAME);
+        if (!in_array($manifestNodeType, [SafePath::NODE_MISSING, SafePath::NODE_FILE], true)) {
+            $conflict = new ManagedFileConflict(
+                ManagedFileManifest::FILENAME,
+                $manifestNodeType === SafePath::NODE_SYMLINK
+                    ? ManagedFileConflict::SYMBOLIC_LINK
+                    : ManagedFileConflict::UNEXPECTED_NODE,
+                null,
+                null,
+                null
+            );
+            throw new ReleaseInstallationConflictException([$conflict]);
+        }
+        $previous = $manifestNodeType === SafePath::NODE_FILE
+            ? ManagedFileManifest::load($installRoot, true, true)
+            : null;
+        $manifestHash = $manifestNodeType === SafePath::NODE_FILE
+            ? $installPaths->hash(ManagedFileManifest::FILENAME)
+            : null;
+        $plan = $this->planner->plan(
+            $installPaths,
+            $next['files'],
+            $previous['files'] ?? null,
+            $manifestNodeType,
+            $manifestHash
+        );
+
+        // Close the preflight-to-apply window before making the first change.
+        $plan->assertPreconditions($installPaths);
         $copied = 0;
-        foreach ($next['files'] as $relative => $expectedHash) {
-            if ($releasePaths->hash($relative) !== $expectedHash) {
-                throw new RuntimeException("Archivo ausente o alterado en el paquete: {$relative}");
-            }
-            if ($installPaths->isFile($relative) && $installPaths->hash($relative) === $expectedHash) {
-                continue;
-            }
-            $installPaths->atomicCopyFrom($releasePaths, $relative, $relative);
-            $destination = $installPaths->requireFile($relative);
+        foreach ($plan->copies() as $operation) {
+            $operation->assertPrecondition($installPaths);
+            $installPaths->atomicCopyFrom($releasePaths, $operation->path, $operation->path);
+            $destination = $installPaths->requireFile($operation->path);
             if (function_exists('opcache_invalidate')) {
                 @opcache_invalidate($destination, true);
             }
@@ -72,14 +80,14 @@ final class ReleaseInstaller
         }
 
         $removed = 0;
-        $preserved = 0;
-        foreach (array_diff_key($previous['files'], $next['files']) as $relative => $oldHash) {
-            $this->removeManagedFile($installPaths, $relative, $oldHash, $removed, $preserved);
-        }
-        foreach (self::LEGACY_FILES as $relative => $knownHash) {
-            if (!isset($next['files'][$relative])) {
-                $this->removeManagedFile($installPaths, $relative, $knownHash, $removed, $preserved);
+        foreach ($plan->removals() as $operation) {
+            $operation->assertPrecondition($installPaths);
+            $installPaths->unlinkFile($operation->path);
+            $parent = dirname($operation->path);
+            if ($parent !== '.') {
+                $installPaths->removeEmptyParents($parent);
             }
+            $removed++;
         }
 
         $assets = $this->assetPublisher->publish($installRoot, $installRoot . '/public_html');
@@ -92,6 +100,7 @@ final class ReleaseInstaller
         }
 
         $this->validator->validate($installRoot, false);
+        $plan->assertManifestPrecondition($installPaths);
         $installPaths->atomicWrite(ManagedFileManifest::FILENAME, ManagedFileManifest::encode($next));
 
         if (function_exists('opcache_reset')) {
@@ -101,7 +110,7 @@ final class ReleaseInstaller
         return [
             'copied' => $copied,
             'removed' => $removed,
-            'preserved' => $preserved,
+            'preserved' => 0,
             'cache_removed' => $cacheRemoved,
             'assets' => $assets,
         ];
@@ -110,30 +119,5 @@ final class ReleaseInstaller
     public function clearBladeCache(string $installRoot): int
     {
         return (new SafePath($installRoot))->removeTree('var/cache/blade');
-    }
-
-    private function removeManagedFile(
-        SafePath $paths,
-        string $relative,
-        string $knownHash,
-        int &$removed,
-        int &$preserved
-    ): void {
-        if (!ManagedFileManifest::isSafeRelativePath($relative) || ManagedFileManifest::isProtected($relative)) {
-            throw new RuntimeException("El manifiesto intentó retirar una ruta protegida: {$relative}");
-        }
-        if (!$paths->isFile($relative)) {
-            return;
-        }
-        if ($paths->hash($relative) !== $knownHash) {
-            $preserved++;
-            return;
-        }
-        $paths->unlinkFile($relative);
-        $parent = dirname($relative);
-        if ($parent !== '.') {
-            $paths->removeEmptyParents($parent);
-        }
-        $removed++;
     }
 }

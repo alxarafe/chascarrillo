@@ -22,6 +22,7 @@ final class ManagedFileManifest
         'config.json',
         'Content',
         'storage',
+        'uploads',
         'var',
         'public_html/uploads',
         'public_html/.htaccess',
@@ -91,16 +92,19 @@ final class ManagedFileManifest
      */
     public static function load(string $root, bool $required = true, bool $allowInstalledLegacy = false): array
     {
-        $filename = rtrim($root, '/') . '/' . self::FILENAME;
-        if (!is_file($filename)) {
+        $paths = new SafePath($root);
+        $type = $paths->nodeType(self::FILENAME);
+        if ($type === SafePath::NODE_MISSING) {
             if ($required) {
                 throw new RuntimeException('El paquete no contiene ' . self::FILENAME);
             }
             return ['format' => 2, 'application_version' => '', 'files' => []];
         }
+        if ($type !== SafePath::NODE_FILE) {
+            throw new RuntimeException('El manifiesto instalado no es un archivo regular seguro');
+        }
 
-        $contents = file_get_contents($filename);
-        $data = $contents === false ? null : json_decode($contents, true);
+        $data = json_decode($paths->read(self::FILENAME), true);
         if (
             !is_array($data)
             || ($data['format'] ?? null) !== 2
@@ -110,13 +114,19 @@ final class ManagedFileManifest
             throw new RuntimeException('El manifiesto de archivos administrados no es válido');
         }
 
+        if (array_key_exists('application_version', $data) && array_key_exists('version', $data)) {
+            throw new RuntimeException('El manifiesto mezcla campos de versión incompatibles');
+        }
+
         $applicationVersion = $data['application_version'] ?? null;
         if (!is_string($applicationVersion)) {
-            if (!$allowInstalledLegacy || !is_string($data['version'] ?? null)) {
+            if (
+                !$allowInstalledLegacy
+                || ($data['version'] ?? null) !== 'v' . HistoricalManagedFileBaseline::VERSION
+            ) {
                 throw new RuntimeException('El manifiesto no contiene application_version válida');
             }
-            ApplicationVersion::assertTagMatches($data['version'], ApplicationVersion::canonical());
-            $applicationVersion = '';
+            $applicationVersion = HistoricalManagedFileBaseline::VERSION;
         } else {
             ApplicationVersion::assertValid($applicationVersion, 'application_version del manifiesto');
         }

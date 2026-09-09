@@ -3,7 +3,6 @@
 namespace Modules\Chascarrillo\Service;
 
 use Alxarafe\Infrastructure\Lib\Messages;
-use Alxarafe\Infrastructure\Persistence\Config;
 use RuntimeException;
 use Throwable;
 use ZipArchive;
@@ -104,16 +103,11 @@ class UpdateService
                 $source .= '/' . $entries[0];
             }
 
-            (new ReleaseInstaller())->install(
+            (new ReleaseUpdateCoordinator())->apply(
                 $source,
                 constant('APP_PATH'),
                 $targetVersion !== '' ? $targetVersion : null
             );
-            if (!Config::doRunMigrations()) {
-                throw new RuntimeException(
-                    'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'
-                );
-            }
 
             $versionLabel = $targetVersion ?: self::VERSION;
             Messages::addMessage("¡Actualización aplicada y verificada con éxito a {$versionLabel}!");

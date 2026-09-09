@@ -64,3 +64,27 @@ En autenticado, comprobar `id="navbarUser"` en Default/High Contrast y el avatar
 - Si solo falla Cyberpunk: comprobar su layout y `templates/themes/cyberpunk/partial/`.
 
 `WorldsitesController` y su error `Class "Config" not found` son independientes salvo que interrumpan la ruta exacta usada como smoke test.
+
+## Actualización cancelada por modificaciones locales
+
+El preflight de B2 informa cada conflicto en orden de ruta con su clase y las huellas SHA-256
+anterior, real y nueva cuando existen. No muestra contenido ni rutas absolutas. Un conflicto no
+elimina el override, no copia otros archivos, no publica assets, no limpia Blade y no ejecuta
+migraciones.
+
+Con la aplicación aún en mantenimiento y después de comprobar el backup:
+
+1. guarde fuera de la instalación cualquier cambio local que quiera conservar;
+2. para un fichero que continúa administrado, restaure la copia anterior exacta o revise y acepte
+   manualmente la nueva;
+3. para un obsoleto, muévalo fuera de la ruta administrada o restaure su contenido original para
+   permitir la retirada;
+4. para una colisión no administrada, renómbrela o compruebe que sea exactamente igual al fichero
+   nuevo;
+5. no edite el manifiesto para hacer coincidir una modificación: vuelva a ejecutar el actualizador
+   después de resolver todas las rutas informadas.
+
+En una instalación v0.8.17 sin manifiesto, una divergencia se compara con la base del asset oficial.
+El runtime B2 debe haberse desplegado manualmente antes: el actualizador recursivo del tag v0.8.17
+no puede proteger la primera petición que lo sustituye. Una instalación de terceros no conocida no
+debe incorporarse automáticamente; requiere inventario y revisión independientes.

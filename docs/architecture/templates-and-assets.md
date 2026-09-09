@@ -53,6 +53,13 @@ OPcache puede conservar bytecode de PHP antiguo, incluido código compilado de B
 
 `ThemeAssetPublisher` recorre solo `css`, `js`, `img`, `images`, `fonts` y `assets`, y solo extensiones estáticas permitidas. Publica Alxarafe primero y Chascarrillo después. `public_html/themes/.chascarrillo-theme-assets.json` registra huellas: se retiran únicamente assets antes administrados y no modificados. Ficheros desconocidos o personalizados se conservan. Dos ejecuciones consecutivas producen el mismo árbol.
 
+Durante una actualización, los assets publicados también pertenecen al manifiesto general de
+distribución. `ReleaseInstallationPlanner` clasifica todas sus rutas antes de que
+`ThemeAssetPublisher` pueda ejecutarse. Un asset administrado modificado, un obsoleto modificado o
+una colisión distinta abortan el proceso completo; un tema personalizado fuera del inventario se
+mantiene. La detección, el plan y la aplicación son fases separadas, y `SafePath` vuelve a validar
+tipo, contención y huella inmediatamente antes de cada mutación.
+
 ## Cambio requerido en Alxarafe antes de 1.0
 
 No se ha modificado `../alxarafe` ni `vendor/`. La corrección estructural corresponde a:

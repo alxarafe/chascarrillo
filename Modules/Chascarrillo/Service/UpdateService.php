@@ -59,54 +59,56 @@ class UpdateService
     /** Download, verify and apply a self-contained deployment package. */
     public static function applyUpdate(string $zipUrl, string $targetVersion = ''): bool
     {
-        $tmpZip = tempnam(sys_get_temp_dir(), 'chascarrillo-update-');
-        $extractPath = sys_get_temp_dir() . '/chascarrillo-update-' . bin2hex(random_bytes(8));
-        if ($tmpZip === false) {
-            Messages::addError('No se pudo crear el archivo temporal de actualización.');
-            return false;
-        }
-
+        $tmpZip = null;
+        $extractPath = null;
         try {
-            if (!mkdir($extractPath, 0700, true)) {
-                throw new RuntimeException('No se pudo crear el directorio temporal de actualización.');
-            }
-            $opts = [
-                'http' => [
-                    'method' => 'GET',
-                    'header' => ['User-Agent: Chascarrillo-Updater'],
-                    'timeout' => 60,
-                ],
-            ];
-            $content = @file_get_contents($zipUrl, false, stream_context_create($opts));
-            if ($content === false || file_put_contents($tmpZip, $content) === false) {
-                throw new RuntimeException(
-                    'No se pudo descargar el archivo de actualización. Verifique la conexión con GitHub.'
-                );
-            }
+            $installRoot = constant('APP_PATH');
+            (new ReleaseUpdateCoordinator())->prepareAndApply(
+                $installRoot,
+                $targetVersion !== '' ? $targetVersion : null,
+                static function () use ($zipUrl, &$tmpZip, &$extractPath): string {
+                    $tmpZip = tempnam(sys_get_temp_dir(), 'chascarrillo-update-');
+                    if ($tmpZip === false) {
+                        throw new RuntimeException('No se pudo crear el archivo temporal de actualización.');
+                    }
+                    $extractPath = sys_get_temp_dir() . '/chascarrillo-update-' . bin2hex(random_bytes(8));
+                    if (!mkdir($extractPath, 0700, true)) {
+                        throw new RuntimeException('No se pudo crear el directorio temporal de actualización.');
+                    }
+                    $opts = [
+                        'http' => [
+                            'method' => 'GET',
+                            'header' => ['User-Agent: Chascarrillo-Updater'],
+                            'timeout' => 60,
+                        ],
+                    ];
+                    $content = @file_get_contents($zipUrl, false, stream_context_create($opts));
+                    if ($content === false || file_put_contents($tmpZip, $content) === false) {
+                        throw new RuntimeException(
+                            'No se pudo descargar el archivo de actualización. Verifique la conexión con GitHub.'
+                        );
+                    }
 
-            $zip = new ZipArchive();
-            if ($zip->open($tmpZip) !== true) {
-                throw new RuntimeException('No se pudo abrir el archivo ZIP.');
-            }
-            try {
-                (new ReleaseArchiveValidator())->validate($zip);
-                if (!$zip->extractTo($extractPath)) {
-                    throw new RuntimeException('No se pudo extraer el archivo ZIP.');
+                    $zip = new ZipArchive();
+                    if ($zip->open($tmpZip) !== true) {
+                        throw new RuntimeException('No se pudo abrir el archivo ZIP.');
+                    }
+                    try {
+                        (new ReleaseArchiveValidator())->validate($zip);
+                        if (!$zip->extractTo($extractPath)) {
+                            throw new RuntimeException('No se pudo extraer el archivo ZIP.');
+                        }
+                    } finally {
+                        $zip->close();
+                    }
+
+                    $source = $extractPath;
+                    $entries = array_values(array_diff(scandir($source) ?: [], ['.', '..', '__MACOSX']));
+                    if (count($entries) === 1 && is_dir($source . '/' . $entries[0])) {
+                        $source .= '/' . $entries[0];
+                    }
+                    return $source;
                 }
-            } finally {
-                $zip->close();
-            }
-
-            $source = $extractPath;
-            $entries = array_values(array_diff(scandir($source) ?: [], ['.', '..', '__MACOSX']));
-            if (count($entries) === 1 && is_dir($source . '/' . $entries[0])) {
-                $source .= '/' . $entries[0];
-            }
-
-            (new ReleaseUpdateCoordinator())->apply(
-                $source,
-                constant('APP_PATH'),
-                $targetVersion !== '' ? $targetVersion : null
             );
 
             $versionLabel = $targetVersion ?: self::VERSION;
@@ -116,10 +118,10 @@ class UpdateService
             Messages::addError('Actualización cancelada: ' . $exception->getMessage());
             return false;
         } finally {
-            if (is_file($tmpZip)) {
+            if (is_string($tmpZip) && is_file($tmpZip)) {
                 unlink($tmpZip);
             }
-            if (is_dir($extractPath)) {
+            if (is_string($extractPath) && is_dir($extractPath)) {
                 self::recursiveRmdir($extractPath);
             }
         }

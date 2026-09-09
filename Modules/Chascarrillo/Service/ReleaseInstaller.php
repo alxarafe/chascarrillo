@@ -18,8 +18,12 @@ final class ReleaseInstaller
     /**
      * @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>}
      */
-    public function install(string $releaseRoot, string $installRoot, ?string $releaseTag = null): array
-    {
+    public function install(
+        string $releaseRoot,
+        string $installRoot,
+        ?string $releaseTag = null,
+        ?callable $phaseObserver = null
+    ): array {
         $releasePaths = new SafePath($releaseRoot);
         $installPaths = new SafePath($installRoot);
         $releaseRoot = $releasePaths->root();
@@ -68,6 +72,9 @@ final class ReleaseInstaller
 
         // Close the preflight-to-apply window before making the first change.
         $plan->assertPreconditions($installPaths);
+        if ($phaseObserver !== null) {
+            $phaseObserver(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+        }
         $copied = 0;
         foreach ($plan->copies() as $operation) {
             $operation->assertPrecondition($installPaths);
@@ -79,6 +86,9 @@ final class ReleaseInstaller
             $copied++;
         }
 
+        if ($phaseObserver !== null) {
+            $phaseObserver(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true);
+        }
         $removed = 0;
         foreach ($plan->removals() as $operation) {
             $operation->assertPrecondition($installPaths);
@@ -101,6 +111,9 @@ final class ReleaseInstaller
 
         $this->validator->validate($installRoot, false);
         $plan->assertManifestPrecondition($installPaths);
+        if ($phaseObserver !== null) {
+            $phaseObserver(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+        }
         $installPaths->atomicWrite(ManagedFileManifest::FILENAME, ManagedFileManifest::encode($next));
 
         if (function_exists('opcache_reset')) {

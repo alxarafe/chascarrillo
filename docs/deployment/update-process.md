@@ -87,15 +87,56 @@ procedan; no incluye contenido ni rutas absolutas. El administrador debe:
 Un aborto del preflight deja intactos archivos, assets, caché Blade, manifiesto, versión, OPcache y
 base de datos.
 
+## Estado persistente y exclusión mutua
+
+El coordinador adquiere con `flock(LOCK_EX | LOCK_NB)` el bloqueo local
+`var/update/update.lock` antes de leer estado, validar o mutar la instalación, y lo mantiene hasta
+terminar. Que el archivo exista no significa que haya un proceso activo: solo el resultado de
+`flock` lo determina. El sistema operativo libera el bloqueo si el proceso muere.
+
+`var/update/state.json` se escribe con un temporal regular verificado y `rename`, siempre mediante
+`SafePath`. Tanto los enlaces simbólicos como los componentes intermedios o tipos de nodo
+inesperados se rechazan. El JSON usa `format_version: 1` y contiene solo: identificador aleatorio,
+versiones anterior y objetivo, estado, última fase alcanzada, instantes UTC de inicio y
+actualización, `mutations_started`, error sanitizado opcional y el intento interrumpido/fallido del
+que procede un reinicio seguro. No contiene trazas, credenciales, contenido ni rutas absolutas.
+
+Las fases observables, en orden, son:
+
+1. `preparing`: validación, planificación y preflight, todavía sin mutaciones de aplicación;
+2. `installing_files`: copias de ficheros;
+3. `publishing_cleanup`: eliminaciones, assets, limpieza de Blade y verificaciones finales;
+4. `promoting_manifest`: promoción del manifiesto y reset de OPcache;
+5. `migrations`: migraciones;
+6. `completed`.
+
+El estado general es `in_progress`, `completed`, `failed` o `interrupted`. Las transiciones fuera de
+ese orden y cualquier esquema desconocido o incompleto fallan de forma segura. `completed`,
+`failed` e `interrupted` son terminales para su intento. `mutations_started` pasa a `true` antes de
+que pueda comenzar la primera copia y nunca vuelve a `false`; por tanto es deliberadamente
+conservador.
+
+Un intento `completed` permite otro. También pueden repetirse un `failed` o `interrupted` con
+`mutations_started: false`: el nuevo intento conserva `recovered_from` y `recovered_status`,
+repite toda la validación y el preflight, y no muta antes de superarlos. Un `in_progress`
+encontrado después de adquirir un
+lock ya libre demuestra una terminación abrupta y se persiste primero como `interrupted`. Si ese
+intento, o un `failed` anterior, tiene `mutations_started: true`, la actualización queda bloqueada y
+requiere restauración o intervención administrativa. La evidencia no se borra automáticamente.
+
+Para inspeccionar sin modificar, el administrador debe mantener el sitio en mantenimiento y leer
+`var/update/state.json`, comprobando `status`, `phase`, `mutations_started`, `error` y los instantes.
+B3 no incorpora un comando para borrar o forzar el marcador ni recuperación automática.
+
 ## Fallos y límites pendientes
 
 Un fallo de lectura, copia, publicación, limpieza o validación lanza un error y evita el mensaje de éxito. Una versión ausente, inválida o distinta del tag o de `UpdateService::VERSION` se rechaza antes de copiar el primer fichero. Las migraciones también deben devolver éxito. El log y el mensaje de mantenimiento deben conservar el primer error accionable.
 
 El proceso actual hace reemplazos atómicos por fichero y revalida precondiciones para reducir
-carreras, pero no es una transacción de árbol completo. B3 debe añadir estados persistentes y
-recuperación tras interrupciones; B4 debe decidir la promoción definitiva del manifiesto, que por
-ahora ocurre antes de las migraciones; B5 debe abordar actualización atómica del árbol, rollback y
-recuperación de base de datos, y autenticidad criptográfica de artefactos/manifiestos. Hoy las
+carreras, pero no es una transacción de árbol completo. B4 debe corregir la promoción definitiva
+del manifiesto, que por ahora ocurre antes de las migraciones. B5 debe abordar actualización
+atómica del árbol, rollback y recuperación de ficheros/base de datos; B3 solo detecta y bloquea,
+no restaura. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
 huellas detectan corrupción y cambios locales, pero un atacante con permiso para sustituir a la vez
 el código y su manifiesto queda fuera del modelo B2. Por ello una copia de seguridad sigue siendo
 obligatoria.
@@ -104,7 +145,9 @@ obligatoria.
 
 En un hosting compatible, preparar `releases/<version>/`, enlazar directorios persistentes (`Content`, `storage`, uploads y configuración), ejecutar las comprobaciones y cambiar un symlink `current` de forma atómica. Hostings compartidos que fijan `public_html` pueden usar dos árboles hermanos y un pequeño bootstrap estable, o una ventana de mantenimiento con copia completa y restauración ensayada.
 
-Antes de 1.0 deben definirse: layout exacto permitido por Hostinger, presupuesto de disco para dos releases, tratamiento transaccional/rollback de migraciones, retención de backups y un marcador de estado que detecte y reanude o revierta una actualización interrumpida.
+Antes de 1.0 deben definirse: layout exacto permitido por Hostinger, presupuesto de disco para dos
+releases, tratamiento transaccional/rollback de migraciones, retención de backups y recuperación
+administrativa o automática a partir del marcador persistente de B3.
 
 ## Checklist de actualización
 

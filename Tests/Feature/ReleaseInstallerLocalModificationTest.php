@@ -304,7 +304,7 @@ final class ReleaseInstallerLocalModificationTest extends TestCase
         self::assertSame(HistoricalManagedFileBaseline::ASSET_SHA256, $data['source']['obtained_sha256']);
         self::assertSame(HistoricalManagedFileBaseline::INVENTORY_SHA256, $data['inventory_sha256']);
         self::assertCount(3636, $data['files']);
-        self::assertCount(3637, $files);
+        self::assertCount(3642, $files);
         self::assertSame(
             hash('sha256', "@include('partial.project_menu')\n"),
             $files['templates/partial/user_menu.blade.php']

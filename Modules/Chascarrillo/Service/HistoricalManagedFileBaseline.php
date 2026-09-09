@@ -9,13 +9,31 @@ use RuntimeException;
 final class HistoricalManagedFileBaseline
 {
     /**
-     * A pre-v0.8.17 override which could remain after the old copy-only updater.
-     * It was not shipped by the authenticated v0.8.17 asset and stays explicit.
+     * Pre-v0.8.17 overrides which could remain after the old copy-only updater.
+     * They were not shipped by the authenticated v0.8.17 asset and stay explicit.
+     *
+     * Git blob provenance for the production residues:
+     * - high-contrast and alternative user_menu: commit
+     *   2239cc9822ec988bc5e076518943f3b885a5a5f1 (before deletion in be98510);
+     * - alxarafe and cyberpunk user_menu: commit
+     *   3b89147802e5be54d3417e01c58e16f5ceee32fd (before deletion in 2239cc9);
+     * - body_standard: commit 4b1286bdab6a9c999640443fd918db14d6e6f71c
+     *   (before deletion in dec0c19).
      *
      * @var array<string,string>
      */
     private const EXPLICIT_LEGACY_FILES = [
+        'templates/partial/body_standard.blade.php' =>
+            '7d153b352d1b3f5eeb2412172979d0e84831cc68a5e407198eea3354acc7d9dc',
         'templates/partial/user_menu.blade.php' =>
+            '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
+        'templates/themes/alternative/partial/user_menu.blade.php' =>
+            '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
+        'templates/themes/alxarafe/partial/user_menu.blade.php' =>
+            '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
+        'templates/themes/cyberpunk/partial/user_menu.blade.php' =>
+            '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
+        'templates/themes/high-contrast/partial/user_menu.blade.php' =>
             '641721c80f976cf66d9b52e46b83fac04423003e237b8ae4ca24b1eb51c2fe65',
     ];
 

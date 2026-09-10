@@ -15,6 +15,8 @@ final class ReleaseUpdateState
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_FAILED = 'failed';
     public const STATUS_INTERRUPTED = 'interrupted';
+    public const STATUS_FILESYSTEM_ROLLED_BACK = 'filesystem_rolled_back';
+    public const STATUS_ROLLBACK_FAILED = 'rollback_failed';
     public const PHASE_PREPARING = 'preparing';
     public const PHASE_INSTALLING_FILES = 'installing_files';
     public const PHASE_PUBLISHING_CLEANUP = 'publishing_cleanup';
@@ -177,6 +179,30 @@ final class ReleaseUpdateState
         return $this->copy(self::STATUS_INTERRUPTED, $this->phase, $this->mutationsStarted, null);
     }
 
+    public function filesystemRolledBack(?string $class = null, ?string $message = null): self
+    {
+        $this->assertInProgress();
+        if (!in_array($this->phase, [self::PHASE_INSTALLING_FILES, self::PHASE_PUBLISHING_CLEANUP], true)) {
+            throw new RuntimeException('Rollback automático prohibido desde migraciones');
+        }
+        $error = $class === null || $message === null ? null : self::validatedError($class, $message);
+        return $this->copy(self::STATUS_FILESYSTEM_ROLLED_BACK, $this->phase, true, $error);
+    }
+
+    public function rollbackFailed(string $class, string $message): self
+    {
+        $this->assertInProgress();
+        if (!in_array($this->phase, [self::PHASE_INSTALLING_FILES, self::PHASE_PUBLISHING_CLEANUP], true)) {
+            throw new RuntimeException('Rollback automático prohibido desde migraciones');
+        }
+        return $this->copy(
+            self::STATUS_ROLLBACK_FAILED,
+            $this->phase,
+            true,
+            self::validatedError($class, $message)
+        );
+    }
+
     public function attemptId(): string
     {
         return $this->attemptId;
@@ -264,6 +290,25 @@ final class ReleaseUpdateState
         if ($phase === self::PHASE_COMPLETED) {
             throw new RuntimeException('La fase completed requiere estado completed');
         }
+        if ($status === self::STATUS_FILESYSTEM_ROLLED_BACK) {
+            if (!in_array($phase, [self::PHASE_INSTALLING_FILES, self::PHASE_PUBLISHING_CLEANUP], true) || !$mutations) {
+                throw new RuntimeException('Estado filesystem_rolled_back incoherente');
+            }
+            if ($error !== null) {
+                if (!is_array($error)) {
+                    throw new RuntimeException('Error de rollback no válido');
+                }
+                self::validatedError($error['class'] ?? null, $error['message'] ?? null);
+            }
+            return;
+        }
+        if ($status === self::STATUS_ROLLBACK_FAILED) {
+            if (!in_array($phase, [self::PHASE_INSTALLING_FILES, self::PHASE_PUBLISHING_CLEANUP], true) || !$mutations || !is_array($error)) {
+                throw new RuntimeException('Estado rollback_failed incoherente');
+            }
+            self::validatedError($error['class'] ?? null, $error['message'] ?? null);
+            return;
+        }
         if ($status === self::STATUS_FAILED) {
             if (!is_array($error)) {
                 throw new RuntimeException('El estado failed requiere error');
@@ -313,7 +358,7 @@ final class ReleaseUpdateState
             return;
         }
         self::assertAttemptId($attemptId, 'recovered_from');
-        if (!in_array($status, [self::STATUS_FAILED, self::STATUS_INTERRUPTED], true)) {
+        if (!in_array($status, [self::STATUS_FAILED, self::STATUS_INTERRUPTED, self::STATUS_FILESYSTEM_ROLLED_BACK], true)) {
             throw new RuntimeException('Estado de recuperación no válido');
         }
     }

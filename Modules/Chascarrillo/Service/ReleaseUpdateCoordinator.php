@@ -27,29 +27,22 @@ final class ReleaseUpdateCoordinator
     /** @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>} */
     public function apply(string $releaseRoot, string $installRoot, ?string $releaseTag = null): array
     {
-        return $this->prepareAndApply(
-            $installRoot,
-            $releaseTag,
-            static fn (): string => $releaseRoot
-        );
+        return $this->prepareAndApply($installRoot, $releaseTag, static fn (): string => $releaseRoot);
     }
 
     /**
      * @param callable():string $prepareRelease Returns the extracted release root.
      * @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>}
      */
-    public function prepareAndApply(
-        string $installRoot,
-        ?string $releaseTag,
-        callable $prepareRelease
-    ): array {
+    public function prepareAndApply(string $installRoot, ?string $releaseTag, callable $prepareRelease): array
+    {
         $storage = new ReleaseUpdateStorage($installRoot);
         $storage->acquire();
         $attempt = null;
         $releaseRoot = null;
         try {
             $previous = $storage->load();
-            $recovery = $this->classifyPreviousAttempt($storage, $previous);
+            $recovery = $this->classifyPreviousAttempt($storage, $previous, $installRoot);
             $attempt = ReleaseUpdateState::start(
                 ApplicationVersion::canonical(),
                 $this->targetVersion($releaseTag),
@@ -63,7 +56,13 @@ final class ReleaseUpdateCoordinator
                 $attempt = $attempt->advance($phase, $mutationsStarted);
                 $storage->write($attempt);
             };
-            $result = $this->installer->prepareInstallation($releaseRoot, $installRoot, $releaseTag, $observer);
+            $result = $this->installer->prepareInstallation(
+                $releaseRoot,
+                $installRoot,
+                $releaseTag,
+                $observer,
+                $attempt->attemptId()
+            );
             $attempt = $attempt->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
             $storage->write($attempt);
             if (!(($this->migrate)())) {
@@ -77,14 +76,47 @@ final class ReleaseUpdateCoordinator
             $this->installer->promotePreparedManifest();
             $completed = $attempt->complete();
             $storage->write($completed);
+            try {
+                $this->installer->markRecoveryCompleted();
+            } catch (Throwable) {
+                // Completed is authoritative; evidence cleanup/annotation is best effort only.
+            }
             return $result;
         } catch (Throwable $exception) {
             if ($attempt instanceof ReleaseUpdateState && $attempt->isInProgress()) {
-                $attempt = $attempt->fail(
-                    $exception::class,
-                    $this->sanitizedMessage($exception, $releaseRoot, $installRoot)
-                );
-                $storage->write($attempt);
+                if ($this->canRollbackFilesystem($attempt)) {
+                    try {
+                        $journal = FilesystemRecoveryJournal::open(
+                            new SafePath($installRoot),
+                            $attempt->attemptId()
+                        );
+                        $journal->rollback();
+                        $this->refreshDerivedEffects($installRoot);
+                    } catch (Throwable $rollbackException) {
+                        $attempt = $attempt->rollbackFailed(
+                            $rollbackException::class,
+                            $this->sanitizedMessage($rollbackException, $releaseRoot, $installRoot)
+                        );
+                        $storage->write($attempt);
+                        throw new RuntimeException(
+                            'Falló el rollback de filesystem; se requiere recuperación administrativa.',
+                            0,
+                            $rollbackException
+                        );
+                    }
+                    $rolledBack = $attempt->filesystemRolledBack(
+                        $exception::class,
+                        $this->sanitizedMessage($exception, $releaseRoot, $installRoot)
+                    );
+                    $storage->write($rolledBack);
+                    $attempt = $rolledBack;
+                } else {
+                    $attempt = $attempt->fail(
+                        $exception::class,
+                        $this->sanitizedMessage($exception, $releaseRoot, $installRoot)
+                    );
+                    $storage->write($attempt);
+                }
             }
             throw $exception;
         } finally {
@@ -96,10 +128,40 @@ final class ReleaseUpdateCoordinator
     /** @return array{attempt_id:string,status:string}|null */
     private function classifyPreviousAttempt(
         ReleaseUpdateStorage $storage,
-        ?ReleaseUpdateState $previous
+        ?ReleaseUpdateState $previous,
+        string $installRoot
     ): ?array {
         if ($previous === null || $previous->status() === ReleaseUpdateState::STATUS_COMPLETED) {
             return null;
+        }
+        if ($previous->status() === ReleaseUpdateState::STATUS_FILESYSTEM_ROLLED_BACK) {
+            return ['attempt_id' => $previous->attemptId(), 'status' => $previous->status()];
+        }
+        if ($previous->status() === ReleaseUpdateState::STATUS_ROLLBACK_FAILED) {
+            throw new RuntimeException(
+                'El rollback anterior falló; se requiere recuperación administrativa.'
+            );
+        }
+        if ($previous->isInProgress() && $this->canRollbackFilesystem($previous)) {
+            try {
+                $journal = FilesystemRecoveryJournal::open(new SafePath($installRoot), $previous->attemptId());
+                $journal->rollback();
+                $this->refreshDerivedEffects($installRoot);
+            } catch (Throwable $exception) {
+                $previous = $previous->rollbackFailed(
+                    $exception::class,
+                    $this->sanitizedMessage($exception, null, $installRoot)
+                );
+                $storage->write($previous);
+                throw new RuntimeException(
+                    'No se pudo reconciliar la actualización interrumpida; se requiere recuperación administrativa.',
+                    0,
+                    $exception
+                );
+            }
+            $rolledBack = $previous->filesystemRolledBack();
+            $storage->write($rolledBack);
+            return ['attempt_id' => $rolledBack->attemptId(), 'status' => $rolledBack->status()];
         }
         if ($previous->isInProgress()) {
             $previous = $previous->interrupt();
@@ -107,13 +169,27 @@ final class ReleaseUpdateCoordinator
         }
         if ($previous->mutationsStarted()) {
             throw new RuntimeException(
-                'La actualización anterior pudo modificar la instalación; se requiere intervención administrativa.'
+                'La actualización anterior pudo alcanzar migraciones; se requiere intervención administrativa.'
             );
         }
-        return [
-            'attempt_id' => $previous->attemptId(),
-            'status' => $previous->status(),
-        ];
+        return ['attempt_id' => $previous->attemptId(), 'status' => $previous->status()];
+    }
+
+    private function canRollbackFilesystem(ReleaseUpdateState $state): bool
+    {
+        return $state->mutationsStarted() && in_array(
+            $state->phase(),
+            [ReleaseUpdateState::PHASE_INSTALLING_FILES, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP],
+            true
+        );
+    }
+
+    private function refreshDerivedEffects(string $installRoot): void
+    {
+        $this->installer->clearBladeCache($installRoot);
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
     }
 
     private function targetVersion(?string $releaseTag): string

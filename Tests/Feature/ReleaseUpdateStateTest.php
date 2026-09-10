@@ -342,10 +342,10 @@ final class ReleaseUpdateStateTest extends TestCase
                 ->apply($release, $install);
             self::fail('La interrupción con posibles mutaciones debía bloquear');
         } catch (RuntimeException $exception) {
-            self::assertStringContainsString('intervención administrativa', $exception->getMessage());
+            self::assertStringContainsString('administrativa', $exception->getMessage());
         }
         $interrupted = $this->readState($install);
-        self::assertSame(ReleaseUpdateState::STATUS_INTERRUPTED, $interrupted['status']);
+        self::assertSame(ReleaseUpdateState::STATUS_ROLLBACK_FAILED, $interrupted['status']);
         self::assertSame(ReleaseUpdateState::PHASE_INSTALLING_FILES, $interrupted['phase']);
         self::assertTrue($interrupted['mutations_started']);
         self::assertFileDoesNotExist($install . '/composer.lock');
@@ -547,10 +547,10 @@ final class ReleaseUpdateStateTest extends TestCase
         }
         $state = $this->readState($install);
         self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
-        self::assertSame(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, $state['phase']);
-        self::assertTrue($state['mutations_started']);
+        self::assertSame(ReleaseUpdateState::PHASE_PREPARING, $state['phase']);
+        self::assertFalse($state['mutations_started']);
         self::assertSame(0, $migrations);
-        self::assertFileExists($install . '/composer.lock');
+        self::assertFileDoesNotExist($install . '/composer.lock');
         self::assertStringNotContainsString(
             $this->workspace,
             (string) ($state["error"]["message"] ?? "")

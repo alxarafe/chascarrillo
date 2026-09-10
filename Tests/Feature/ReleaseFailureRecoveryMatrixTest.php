@@ -76,6 +76,8 @@ function opcache_reset(): bool
 namespace Tests\Feature;
 
 use Modules\Chascarrillo\Service\ManagedFileManifest;
+use Modules\Chascarrillo\Service\FilesystemRecoveryJournal;
+use Modules\Chascarrillo\Service\SafePath;
 use Modules\Chascarrillo\Service\ReleaseFailureProbe;
 use Modules\Chascarrillo\Service\ReleaseInstallationConflictException;
 use Modules\Chascarrillo\Service\ReleaseInstaller;
@@ -182,7 +184,7 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
         }
     }
 
-    public function testFailureBeforeFirstCopyRecordsConservativeMutationStateAndBlocksRetry(): void
+    public function testFailureBeforeFirstCopyRollsBackAndAllowsRetry(): void
     {
         [$release, $install, $outside] = $this->releaseFixture('before-first-copy');
         $this->failNativeWhen(
@@ -194,17 +196,39 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
 
         $this->expectCoordinatorFailure($release, $install, 'before first copy');
 
+        $journalPersisted = null;
+        $firstReleaseCopy = null;
+        foreach (ReleaseFailureProbe::events() as $index => $event) {
+            if (
+                $event['operation'] === 'rename'
+                && str_ends_with((string) $event['arguments'][1], '/journal.json')
+            ) {
+                $journalPersisted = $index;
+            }
+            if (
+                $event['operation'] === 'copy'
+                && str_starts_with((string) $event['arguments'][0], $release . '/')
+            ) {
+                $firstReleaseCopy = $index;
+                break;
+            }
+        }
+        self::assertIsInt($journalPersisted);
+        self::assertIsInt($firstReleaseCopy);
+        self::assertLessThan($firstReleaseCopy, $journalPersisted);
+
         $this->assertFailedMutationState($install, ReleaseUpdateState::PHASE_INSTALLING_FILES);
         self::assertSame('old a', $this->contents($install . '/a-first.txt'));
         self::assertSame('old z', $this->contents($install . '/z-second.txt'));
-            self::assertFileDoesNotExist($install . '/composer.lock');
         self::assertSame('old obsolete a', $this->contents($install . '/obsolete/a.txt'));
+        self::assertFileDoesNotExist($install . '/composer.lock');
+        self::assertDirectoryDoesNotExist($install . '/vendor');
         $this->assertSafetyWitnesses($install, $outside);
         $this->assertLockReleased($install);
         $this->assertRetryBlocked($release, $install);
     }
 
-    public function testFailureDuringLaterCopyLeavesDeterministicPartialTreeAndBlocksRetry(): void
+    public function testFailureDuringLaterCopyRestoresThePreviousTreeAndAllowsRetry(): void
     {
         [$release, $install, $outside] = $this->releaseFixture('later-copy');
         $this->failNativeWhen(
@@ -217,15 +241,17 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
         $this->expectCoordinatorFailure($release, $install, 'later copy');
 
         $this->assertFailedMutationState($install, ReleaseUpdateState::PHASE_INSTALLING_FILES);
-        self::assertSame('new a', $this->contents($install . '/a-first.txt'));
+        self::assertSame('old a', $this->contents($install . '/a-first.txt'));
         self::assertSame('old z', $this->contents($install . '/z-second.txt'));
         self::assertSame('old obsolete a', $this->contents($install . '/obsolete/a.txt'));
+        self::assertFileDoesNotExist($install . '/composer.lock');
+        self::assertDirectoryDoesNotExist($install . '/vendor');
         $this->assertSafetyWitnesses($install, $outside);
         $this->assertLockReleased($install);
         $this->assertRetryBlocked($release, $install);
     }
 
-    public function testFailureDuringLaterObsoleteRemovalLeavesCopiesAndPartialRemoval(): void
+    public function testFailureDuringLaterObsoleteRemovalRestoresThePreviousTree(): void
     {
         [$release, $install, $outside] = $this->releaseFixture('obsolete-removal');
         $this->failNativeWhen(
@@ -238,16 +264,16 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
         $this->expectCoordinatorFailure($release, $install, 'obsolete removal');
 
         $this->assertFailedMutationState($install, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP);
-        self::assertSame('new a', $this->contents($install . '/a-first.txt'));
-        self::assertSame('new z', $this->contents($install . '/z-second.txt'));
-        self::assertFileDoesNotExist($install . '/obsolete/a.txt');
+        self::assertSame('old a', $this->contents($install . '/a-first.txt'));
+        self::assertSame('old z', $this->contents($install . '/z-second.txt'));
+        self::assertSame('old obsolete a', $this->contents($install . '/obsolete/a.txt'));
         self::assertSame('old obsolete z', $this->contents($install . '/obsolete/z.txt'));
         $this->assertSafetyWitnesses($install, $outside);
         $this->assertLockReleased($install);
         $this->assertRetryBlocked($release, $install);
     }
 
-    public function testAssetAndBladeFailuresExposeTheirRealPartialFilesystemEffects(): void
+    public function testAssetAndBladeFailuresRestoreManagedFilesAndClearDerivedCache(): void
     {
         foreach (['assets', 'blade'] as $scenario) {
             [$release, $install, $outside] = $this->releaseFixture($scenario);
@@ -255,7 +281,8 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
                 $this->failNativeWhen(
                     'copy',
                     static fn (array $arguments): bool => $arguments[0]
-                        === $install . '/vendor/alxarafe/alxarafe/templates/themes/default/css/z.css',
+                        === $release . '/vendor/alxarafe/alxarafe/templates/themes/default/css/z.css'
+                        && str_contains($arguments[1], '/public_html/themes/default/css/'),
                     false,
                     'asset publication'
                 );
@@ -271,15 +298,13 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
             $this->expectCoordinatorFailure($release, $install, $scenario === 'assets' ? 'asset publication' : 'blade cleanup');
 
             $this->assertFailedMutationState($install, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP);
-            self::assertSame('new asset a', $this->contents($install . '/public_html/themes/default/css/a.css'));
+            self::assertSame('old asset a', $this->contents($install . '/public_html/themes/default/css/a.css'));
             if ($scenario === 'assets') {
                 self::assertSame('old asset z', $this->contents($install . '/public_html/themes/default/css/z.css'));
-                self::assertFileExists($install . '/var/cache/blade/a.php');
             } else {
-                self::assertSame('new asset z', $this->contents($install . '/public_html/themes/default/css/z.css'));
-                self::assertFileDoesNotExist($install . '/var/cache/blade/a.php');
-                self::assertFileExists($install . '/var/cache/blade/z.php');
+                self::assertSame('old asset z', $this->contents($install . '/public_html/themes/default/css/z.css'));
             }
+            self::assertDirectoryDoesNotExist($install . '/var/cache/blade');
             $this->assertSafetyWitnesses($install, $outside);
             $this->assertLockReleased($install);
             $this->assertRetryBlocked($release, $install);
@@ -298,10 +323,9 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
         $this->expectCoordinatorFailure($release, $install, 'verificación final');
 
         $this->assertFailedMutationState($install, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP);
-        self::assertFileDoesNotExist($install . '/' . $relative);
+        self::assertSame('managed but obsolete asset', $this->contents($install . '/' . $relative));
         $this->assertSafetyWitnesses($install, $outside);
         $this->assertLockReleased($install);
-        $this->assertRetryBlocked($release, $install);
     }
 
     public function testOpcacheResetFailureIsObservableAfterInvalidationsAndBeforeMigrations(): void
@@ -474,7 +498,10 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
             $this->assertRetryBlocked($release, $install);
 
             $interrupted = $this->readState($install);
-            self::assertSame(ReleaseUpdateState::STATUS_INTERRUPTED, $interrupted['status']);
+            $expectedStatus = in_array($scenario, ['installing_files', 'publishing_cleanup'], true)
+                ? ReleaseUpdateState::STATUS_ROLLBACK_FAILED
+                : ReleaseUpdateState::STATUS_INTERRUPTED;
+            self::assertSame($expectedStatus, $interrupted['status']);
             self::assertTrue($interrupted['mutations_started']);
             self::assertSame('new a', $this->contents($install . '/a-first.txt'));
             $this->assertSafetyWitnesses($install, $outside);
@@ -570,6 +597,228 @@ PHP);
         );
         $this->assertSafetyWitnesses($install, $outside);
         $this->assertLockReleased($install);
+    }
+
+    public function testJournalReconcilesAnAmbiguousPreMigrationOperationAfterInterruption(): void
+    {
+        foreach ([ReleaseUpdateState::PHASE_INSTALLING_FILES, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP] as $phase) {
+            [$release, $install] = $this->releaseFixture('journal-interruption-' . $phase);
+            $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+                ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+            if ($phase === ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP) {
+                $state = $state->advance(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true);
+            }
+            $storage = new ReleaseUpdateStorage($install);
+            $storage->acquire();
+            $storage->write($state);
+            $storage->release();
+            $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+                'type' => 'copy',
+                'path' => 'a-first.txt',
+                'new_hash' => hash('sha256', 'new a'),
+                'new_size' => strlen('new a'),
+            ]]);
+            try {
+                $journal->apply(0, function () use ($install): void {
+                    $this->writeFile($install . '/a-first.txt', 'new a');
+                    throw new RuntimeException('simulated abrupt stop');
+                });
+                self::fail('La caída simulada debía interrumpir la confirmación');
+            } catch (RuntimeException $exception) {
+                self::assertSame('simulated abrupt stop', $exception->getMessage());
+            }
+
+            $observedOldTree = false;
+            try {
+                (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                    ->prepareAndApply($install, 'v0.8.17', function () use ($install, &$observedOldTree): string {
+                        $observedOldTree = $this->contents($install . '/a-first.txt') === 'old a';
+                        throw new RuntimeException('stop after recovered tree inspection');
+                    });
+                self::fail('La inspección debía detener el nuevo intento');
+            } catch (RuntimeException $exception) {
+                self::assertStringContainsString('stop after recovered', $exception->getMessage());
+            }
+            self::assertTrue($observedOldTree, $phase);
+            self::assertTrue($journal->isRolledBack(), $phase);
+        }
+    }
+
+    public function testMigrationPhaseNeverTriggersAutomaticFilesystemRollback(): void
+    {
+        [$release, $install] = $this->releaseFixture('journal-migrations-boundary');
+        $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+            ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true)
+            ->advance(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true)
+            ->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
+        $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+            'type' => 'copy',
+            'path' => 'a-first.txt',
+            'new_hash' => hash('sha256', 'new a'),
+            'new_size' => strlen('new a'),
+        ]]);
+        $journal->apply(0, function () use ($install): void {
+            $this->writeFile($install . '/a-first.txt', 'new a');
+        });
+        $storage = new ReleaseUpdateStorage($install);
+        $storage->acquire();
+        $storage->write($state);
+        $storage->release();
+
+        $this->assertRetryBlocked($release, $install);
+        self::assertSame('new a', $this->contents($install . '/a-first.txt'));
+        self::assertFalse($journal->isRolledBack());
+        self::assertSame(ReleaseUpdateState::STATUS_INTERRUPTED, $this->readState($install)['status']);
+    }
+
+    public function testMissingSnapshotAndCorruptJournalBlockWithoutPartialRestore(): void
+    {
+        foreach (['snapshot', 'journal', 'transition'] as $scenario) {
+            [$release, $install] = $this->releaseFixture('corrupt-recovery-' . $scenario);
+            $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+                ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+            $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+                'type' => 'copy',
+                'path' => 'a-first.txt',
+                'new_hash' => hash('sha256', 'new a'),
+                'new_size' => strlen('new a'),
+            ]]);
+            $journal->apply(0, function () use ($install): void {
+                $this->writeFile($install . '/a-first.txt', 'new a');
+            });
+            $storage = new ReleaseUpdateStorage($install);
+            $storage->acquire();
+            $storage->write($state);
+            $storage->release();
+            $base = $install . '/var/update/recovery/' . $state->attemptId();
+            if ($scenario === 'snapshot') {
+                self::assertTrue(unlink($base . '/backups/000000.bin'));
+            } elseif ($scenario === 'journal') {
+                $this->writeFile($base . '/journal.json', '{corrupt');
+            } else {
+                $document = json_decode($this->contents($base . '/journal.json'), true, 512, JSON_THROW_ON_ERROR);
+                $document['operations'][0]['state'] = 'invalid_transition';
+                $this->writeFile(
+                    $base . '/journal.json',
+                    json_encode($document, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . "\n"
+                );
+            }
+
+            try {
+                (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                    ->apply($release, $install);
+                self::fail('Recovery corrupto debía bloquear');
+            } catch (RuntimeException $exception) {
+                self::assertStringContainsString('administrativa', $exception->getMessage());
+            }
+            self::assertSame('new a', $this->contents($install . '/a-first.txt'));
+            self::assertSame(ReleaseUpdateState::STATUS_ROLLBACK_FAILED, $this->readState($install)['status']);
+        }
+    }
+
+    public function testConcurrentModificationIsNotOverwrittenDuringRollback(): void
+    {
+        [$release, $install] = $this->releaseFixture('concurrent-recovery');
+        $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+            ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+        $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+            'type' => 'copy',
+            'path' => 'a-first.txt',
+            'new_hash' => hash('sha256', 'new a'),
+            'new_size' => strlen('new a'),
+        ]]);
+        $journal->apply(0, function () use ($install): void {
+            $this->writeFile($install . '/a-first.txt', 'new a');
+        });
+        $this->writeFile($install . '/a-first.txt', 'third party edit');
+        $storage = new ReleaseUpdateStorage($install);
+        $storage->acquire();
+        $storage->write($state);
+        $storage->release();
+
+        try {
+            (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                ->apply($release, $install);
+            self::fail('La modificación concurrente debía bloquear');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('administrativa', $exception->getMessage());
+        }
+        self::assertSame('third party edit', $this->contents($install . '/a-first.txt'));
+        self::assertSame(ReleaseUpdateState::STATUS_ROLLBACK_FAILED, $this->readState($install)['status']);
+    }
+
+    public function testFailureDuringRollbackPersistsRollbackFailedAndBlocksNextAttempt(): void
+    {
+        [$release, $install] = $this->releaseFixture('rollback-failure');
+        $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+            ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+        $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+            'type' => 'copy',
+            'path' => 'a-first.txt',
+            'new_hash' => hash('sha256', 'new a'),
+            'new_size' => strlen('new a'),
+        ]]);
+        $journal->apply(0, function () use ($install): void {
+            $this->writeFile($install . '/a-first.txt', 'new a');
+        });
+        $storage = new ReleaseUpdateStorage($install);
+        $storage->acquire();
+        $storage->write($state);
+        $storage->release();
+        $this->failNativeWhen(
+            'copy',
+            static fn (array $arguments): bool => str_contains($arguments[0], '/var/update/recovery/'),
+            false,
+            'rollback copy failed'
+        );
+        try {
+            (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                ->apply($release, $install);
+            self::fail('El rollback debía fallar');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('administrativa', $exception->getMessage());
+        } finally {
+            ReleaseFailureProbe::arm(null);
+        }
+        self::assertSame(ReleaseUpdateState::STATUS_ROLLBACK_FAILED, $this->readState($install)['status']);
+        $this->assertRetryBlocked($release, $install);
+    }
+
+    public function testRecoverySnapshotAndJournalSymlinksAreRejectedWithoutTouchingWitnesses(): void
+    {
+        foreach (['snapshot', 'journal'] as $scenario) {
+            [$release, $install, $outside] = $this->releaseFixture('recovery-symlink-' . $scenario);
+            $state = ReleaseUpdateState::start('0.8.17', '0.8.17')
+                ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true);
+            $journal = FilesystemRecoveryJournal::prepare(new SafePath($install), $state->attemptId(), [[
+                'type' => 'copy',
+                'path' => 'a-first.txt',
+                'new_hash' => hash('sha256', 'new a'),
+                'new_size' => strlen('new a'),
+            ]]);
+            $journal->apply(0, function () use ($install): void {
+                $this->writeFile($install . '/a-first.txt', 'new a');
+            });
+            $storage = new ReleaseUpdateStorage($install);
+            $storage->acquire();
+            $storage->write($state);
+            $storage->release();
+            $base = $install . '/var/update/recovery/' . $state->attemptId();
+            $target = $scenario === 'snapshot' ? $base . '/backups/000000.bin' : $base . '/journal.json';
+            self::assertTrue(unlink($target));
+            self::assertTrue(symlink($outside, $target));
+
+            try {
+                (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                    ->apply($release, $install);
+                self::fail('El symlink de recovery debía bloquear');
+            } catch (RuntimeException $exception) {
+                self::assertStringContainsString('administrativa', $exception->getMessage());
+            }
+            self::assertSame('outside untouched', $this->contents($outside));
+            self::assertSame('new a', $this->contents($install . '/a-first.txt'));
+            self::assertSame(ReleaseUpdateState::STATUS_ROLLBACK_FAILED, $this->readState($install)['status']);
+        }
     }
 
     /** @return array{string,string,string} */
@@ -721,7 +970,11 @@ PHP);
     private function assertFailedMutationState(string $install, string $phase): void
     {
         $state = $this->readState($install);
-        self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+        $expectedStatus = in_array($phase, [
+            ReleaseUpdateState::PHASE_INSTALLING_FILES,
+            ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP,
+        ], true) ? ReleaseUpdateState::STATUS_FILESYSTEM_ROLLED_BACK : ReleaseUpdateState::STATUS_FAILED;
+        self::assertSame($expectedStatus, $state['status']);
         self::assertSame($phase, $state['phase']);
         self::assertTrue($state['mutations_started']);
         self::assertNotSame(ReleaseUpdateState::STATUS_COMPLETED, $state['status']);
@@ -729,12 +982,18 @@ PHP);
 
     private function assertRetryBlocked(string $release, string $install): void
     {
+        if ($this->readState($install)['status'] === ReleaseUpdateState::STATUS_FILESYSTEM_ROLLED_BACK) {
+            (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                ->apply($release, $install, 'v0.8.17');
+            self::assertSame(ReleaseUpdateState::STATUS_COMPLETED, $this->readState($install)['status']);
+            return;
+        }
         try {
             (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
                 ->apply($release, $install, 'v0.8.17');
             self::fail('El siguiente intento debía quedar bloqueado');
         } catch (RuntimeException $exception) {
-            self::assertStringContainsString('intervención administrativa', $exception->getMessage());
+            self::assertStringContainsString('administrativa', $exception->getMessage());
         }
     }
 

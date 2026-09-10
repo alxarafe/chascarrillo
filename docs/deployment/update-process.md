@@ -115,23 +115,58 @@ Las fases observables, en orden, son:
 5. `promoting_manifest`: validación final superada y promoción atómica del manifiesto;
 6. `completed`.
 
-El estado general es `in_progress`, `completed`, `failed` o `interrupted`. Las transiciones fuera de
+El estado general incorpora además `filesystem_rolled_back` y `rollback_failed` para B5.2. Las transiciones fuera de
 ese orden y cualquier esquema desconocido o incompleto fallan de forma segura. `completed`,
 `failed` e `interrupted` son terminales para su intento. `mutations_started` pasa a `true` antes de
 que pueda comenzar la primera copia y nunca vuelve a `false`; por tanto es deliberadamente
 conservador.
 
-Un intento `completed` permite otro. También pueden repetirse un `failed` o `interrupted` con
-`mutations_started: false`: el nuevo intento conserva `recovered_from` y `recovered_status`,
-repite toda la validación y el preflight, y no muta antes de superarlos. Un `in_progress`
-encontrado después de adquirir un
-lock ya libre demuestra una terminación abrupta y se persiste primero como `interrupted`. Si ese
-intento, o un `failed` anterior, tiene `mutations_started: true`, la actualización queda bloqueada y
-requiere restauración o intervención administrativa. La evidencia no se borra automáticamente.
+Un intento `completed` o `filesystem_rolled_back` permite otro intento completo. También pueden repetirse un `failed` o `interrupted` con `mutations_started: false`. Los estados mutados anteriores a migraciones se reconcilian con el journal; `rollback_failed` y toda fase desde `migrations` bloquean. No existe un comando ni una ruta web para borrar o forzar el marcador.
 
-Para inspeccionar sin modificar, el administrador debe mantener el sitio en mantenimiento y leer
-`var/update/state.json`, comprobando `status`, `phase`, `mutations_started`, `error` y los instantes.
-B3 no incorpora un comando para borrar o forzar el marcador ni recuperación automática.
+## Journal y rollback de filesystem anterior a migraciones
+
+Antes de la primera mutación, el plan B2 se amplía con las copias, retiradas y manifiesto del
+publicador de assets. `SafePath` valida tipos y rutas; después se crea
+`var/update/recovery/<attempt-id>/`. Esa ruta está protegida, no pertenece al manifiesto de
+distribución y no participa en limpiezas ordinarias. Contiene `journal.json` (`format_version: 1`)
+y `backups/NNNNNN.bin`: no almacena configuración, contenido, uploads, credenciales ni rutas
+absolutas.
+
+Cada operación registra tipo, ruta canónica, existencia o ausencia original, hash SHA-256 anterior
+y nuevo, modo original y referencia al backup. Sus estados son `pending`,
+`precondition_checked`, `applying`, `applied`, `restoring` y `restored`. Tanto el journal como cada
+cambio de estado se escriben atómicamente. Las copias anteriores se crean mediante temporal y
+`rename`, se vuelven a hashear y solo entonces se habilita la primera mutación. El presupuesto de
+espacio usa los tamaños reales de backups y nuevos temporales, dos temporales máximos, dos copias
+del JSON y un margen del 10 % con mínimo de 1 MiB.
+
+Una excepción controlada en `installing_files` o `publishing_cleanup` detiene las mutaciones y
+recorre el journal al revés. Para una operación `applying`, la reconciliación acepta únicamente
+ausencia, hash anterior o alguno de los hashes producidos por el intento; nunca usa fechas ni
+tamaños. Restaura backups verificados, retira un fichero originalmente ausente solo si aún coincide
+con el hash instalado, restaura obsoletos y assets, y retira únicamente directorios creados que
+continúan vacíos. Una divergencia posterior se considera conflicto y no se sobrescribe. Blade se
+limpia después del rollback; OPcache se resetea por el mecanismo disponible, sin interpretar que el
+CLI haya limpiado un PHP-FPM remoto.
+
+El resultado íntegro se persiste como `filesystem_rolled_back` y permite un intento nuevo completo.
+Cualquier ausencia, corrupción, symlink, transición inválida o fallo de restauración produce
+`rollback_failed`, conserva journal/snapshot y bloquea. Al encontrar un `in_progress` con lock ya
+libre, el coordinador completa la misma reconciliación solo si la fase es `installing_files` o
+`publishing_cleanup` y el journal está íntegro.
+
+`migrations` es una frontera estricta: desde esa fase, o si el estado no demuestra que las
+migraciones no comenzaron, no hay rollback automático de filesystem. Se conservan código,
+snapshot, journal y estado, se bloquean intentos y se exige recuperación coordinada B5.3/B5.4.
+Restaurar código anterior sobre una base posiblemente nueva es inseguro. El manifiesto principal
+anterior sigue intacto hasta después de migraciones.
+
+Los snapshots de fallos y rollbacks se conservan. No se eliminan antes de `completed`; una
+anotación o limpieza posterior fallida no cambia un `completed` a fallo. Provisionalmente, el
+administrador debe mantener mantenimiento, copiar `state.json` y el directorio del intento para
+la auditoría, verificar hashes y estado terminal y retirar manualmente solo directorios de intentos
+`completed` cuya observación haya cerrado. No existe todavía retención automática avanzada ni una
+acción web para borrar recovery.
 
 ## Fallos y límites pendientes
 
@@ -140,8 +175,7 @@ Un fallo de lectura, copia, publicación, limpieza o validación lanza un error 
 antes de copiar el primer fichero. Las migraciones también deben devolver éxito. Si fallan, el estado
 queda `failed` en `migrations`, con `mutations_started: true`; el manifiesto anterior permanece
 idéntico byte a byte o, si no existía, continúa ausente. El intento siguiente queda bloqueado para
-intervención administrativa. Los ficheros y la base de datos pueden haber quedado modificados: no se
-restauran.
+intervención administrativa. Los ficheros no se restauran automáticamente desde esta frontera y la base de datos no se revierte.
 
 Si falla la promoción después de migrar, el estado queda `failed` en `promoting_manifest` y no se
 anuncia éxito ni se revierten migraciones o ficheros. Mientras el `rename` no haya sustituido el
@@ -151,9 +185,7 @@ de mantenimiento deben conservar el primer error accionable.
 
 El proceso actual hace reemplazos atómicos por fichero y revalida precondiciones para reducir
 carreras, y B4 retrasa la promoción definitiva del manifiesto hasta después de las migraciones y la
-validación final. No es una transacción de árbol completo. B5 debe abordar actualización atómica del
-árbol, rollback y recuperación de ficheros/base de datos; B3/B4 solo detectan y bloquean, no
-restauran. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
+validación final. No es una transacción de árbol completo. B5.2 restaura únicamente el filesystem administrado antes de migraciones. B5.3/B5.4 deben abordar base de datos y reconciliación coordinada posterior; no existe transacción de árbol completo. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
 huellas detectan corrupción y cambios locales, pero un atacante con permiso para sustituir a la vez
 el código y su manifiesto queda fuera del modelo B2. Por ello una copia de seguridad sigue siendo
 obligatoria.

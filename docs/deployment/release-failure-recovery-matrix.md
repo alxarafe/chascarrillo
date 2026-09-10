@@ -36,7 +36,7 @@ La prueba usa hashes SHA-256 y contenidos deterministas en directorios temporale
 
 ## Matriz verificable
 
-`FS` resume ficheros administrados, obsoletos, assets y Blade. `DB` indica el testigo de migración. Todos los fallos controlados liberan `flock`; todos los estados con `mutations_started: true` bloquean el siguiente intento salvo el caso en que ya quedó `completed`.
+`FS` resume ficheros administrados, obsoletos, assets y Blade. `DB` indica el testigo de migración. Todos los fallos controlados liberan `flock`. `filesystem_rolled_back` permite un intento completo; `rollback_failed` y las fases desde `migrations` bloquean.
 
 Salvo indicación contraria, “anterior” significa hash y contenido idénticos al fixture previo; “nuevo” significa hash idéntico al release. En #1–#16 no se genera mensaje de éxito: la excepción llega a `UpdateService` como “Actualización cancelada”; #17 devuelve `false` y mensaje de error pese a que `completed` ya es autoritativo. El manifiesto permanece anterior hasta #14, puede ser anterior o nuevo en #15 y es nuevo en #16–#17. Las migraciones no se invocan hasta #10 inclusive.
 
@@ -45,13 +45,13 @@ Salvo indicación contraria, “anterior” significa hash y contenido idéntico
 | 1 | Descarga | `failed/preparing`, mutaciones `false` | FS, assets, Blade, manifiesto y DB anteriores | permitido | **SAFE_RETRY** | repetir descarga |
 | 2 | ZIP o release inválido | `failed/preparing`, `false` | igual que #1; el release real rechaza hash/estructura | permitido | **SAFE_RETRY** | obtener artefacto válido |
 | 3 | Plan o preflight | `failed/preparing`, `false` | conflicto conservado, sin copias ni migraciones | permitido tras resolver conflicto | **SAFE_RETRY** | resolver causa y repetir |
-| 4 | Antes de primera copia | `failed/installing_files`, `true` | ninguna copia alcanzó destino; manifiesto anterior | bloqueado | **SAFE_RETRY** + **BLOCKED_MANUAL_RECOVERY** | verificar testigos y desbloquear administrativamente; B3 es conservador |
-| 5 | Copia posterior | `failed/installing_files`, `true` | primera copia nueva, copia fallida anterior, obsoletos y assets anteriores | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restauración manual desde backup |
-| 6 | Eliminación de obsoleto posterior | `failed/publishing_cleanup`, `true` | copias nuevas, primer obsoleto ausente, segundo conservado | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restauración manual |
-| 7 | Publicación de assets | `failed/publishing_cleanup`, `true` | assets mezclados anterior/nuevo; manifiesto principal anterior | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restaurar árbol y manifiesto de assets |
-| 8 | Limpieza Blade | `failed/publishing_cleanup`, `true` | assets nuevos; caché parcialmente eliminada | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restaurar ficheros y regenerar/borrar Blade de forma segura |
-| 9 | Verificación del árbol | `failed/publishing_cleanup`, `true` | la retirada de un asset administrado es detectada; DB no iniciada | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restaurar árbol administrado |
-| 10 | Reset OPcache | `failed/publishing_cleanup`, `true` | invalidaciones por fichero observadas; reset falla; DB no iniciada | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM** | restaurar FS y reiniciar/resetear runtime; OPcache CLI está deshabilitado en desarrollo |
+| 4 | Antes de primera copia | `filesystem_rolled_back/installing_files`, `true` | árbol anterior; journal íntegro | permitido | **SAFE_RETRY**, **RECOVERED_FILESYSTEM** | no había bytes de aplicación que restaurar |
+| 5 | Copia posterior | `filesystem_rolled_back/installing_files`, `true` | copias sustituidas y nuevas restauradas byte a byte | permitido | **RECOVERED_FILESYSTEM** | reconciliación inversa por hash |
+| 6 | Eliminación de obsoleto posterior | `filesystem_rolled_back/publishing_cleanup`, `true` | copias y obsoletos anteriores restaurados | permitido | **RECOVERED_FILESYSTEM** | backup verificado y restauración inversa |
+| 7 | Publicación de assets | `filesystem_rolled_back/publishing_cleanup`, `true` | assets y manifiesto de assets anteriores | permitido | **RECOVERED_FILESYSTEM** | rollback de operaciones de assets |
+| 8 | Limpieza Blade | `filesystem_rolled_back/publishing_cleanup`, `true` | ficheros/assets anteriores; Blade vacío y regenerable | permitido | **RECOVERED_FILESYSTEM** | no restaura compilados derivados |
+| 9 | Verificación del árbol | `filesystem_rolled_back/publishing_cleanup`, `true` | árbol administrado anterior | permitido | **RECOVERED_FILESYSTEM** | reconciliación completa |
+| 10 | Reset OPcache | `filesystem_rolled_back/publishing_cleanup`, `true` | árbol anterior; nueva invalidación best effort | permitido | **RECOVERED_FILESYSTEM** | no se afirma limpieza de PHP-FPM remoto |
 | 11 | Primera migración tras mutar | `failed/migrations`, `true` | FS nuevo, manifiesto anterior, primer testigo DB persistente | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM**, **DATABASE_RECOVERY_REQUIRED** | backup/restauración manual de FS y DB |
 | 12 | Migración posterior | `failed/migrations`, `true` | testigos DB de migración previa y actual; manifiesto anterior | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM**, **DATABASE_RECOVERY_REQUIRED** | restauración coordinada de FS y DB |
 | 13 | Validación final tras migrar | `failed/migrations`, `true` | DB modificada y árbol divergente; manifiesto anterior | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **RECOVERABLE_FILESYSTEM**, **DATABASE_RECOVERY_REQUIRED** | restauración coordinada y diagnóstico del cambio |
@@ -60,7 +60,7 @@ Salvo indicación contraria, “anterior” significa hash y contenido idéntico
 | 16 | Persistencia de `completed` antes/después de `rename` | `failed/promoting_manifest`, `true` tras excepción controlada | manifiesto nuevo; nunca se devuelve éxito; el catch vuelve a estado fallido | bloqueado | **BLOCKED_MANUAL_RECOVERY**, **AMBIGUOUS_COMMIT** | reconciliar manifiesto/árbol/DB y escribir decisión administrativa |
 | 17 | Generación del mensaje de éxito | `completed/completed`, `true` | manifiesto y árbol nuevos; fallo de mensaje produce error y `false` | permitido por estado | **AMBIGUOUS_COMMIT** para el llamador; el estado lo resuelve | leer `state.json`; no repetir ni restaurar si sigue siendo `completed` |
 
-Las interrupciones abruptas se simulan sin matar procesos: se dejan testigos reales y un estado `in_progress` en `installing_files`, `publishing_cleanup`, `migrations` y `promoting_manifest`, se libera el lock como haría el sistema operativo y se inicia un nuevo coordinador. B3 convierte el intento en `interrupted` y bloquea si hubo posibles mutaciones. En promoción se demostraron ambos resultados posibles, manifiesto anterior y nuevo, bajo la misma fase persistida.
+Las interrupciones abruptas anteriores a migraciones se reconcilian con `journal.json` y el árbol real: una operación `applying` se resuelve por existencia, tipo y hash, se completa el rollback y queda `filesystem_rolled_back`. Si falta o está corrupto el journal/snapshot, queda `rollback_failed` y se bloquea. En `migrations` y `promoting_manifest` se conserva el bloqueo anterior sin rollback automático.
 
 ## Seguridad e invariantes
 
@@ -68,16 +68,16 @@ Las interrupciones abruptas se simulan sin matar procesos: se dejan testigos rea
 - Symlinks, manifiestos/locks inseguros y nodos inesperados siguen fallando cerrados en las regresiones B2/B3.
 - El manifiesto principal no se promueve antes de migraciones y validación final.
 - Ningún fallo anterior a la persistencia final devuelve éxito ni deja `completed`.
-- Una excepción controlada libera el lock. Una interrupción simulada conserva suficiente estado y el siguiente intento la marca `interrupted`.
-- `mutations_started` es deliberadamente conservador: cambia antes de la primera copia. Por ello #4 necesita inspección aunque la prueba demuestre cero cambios.
-- La fase persistida agrupa varias operaciones: `publishing_cleanup` no distingue obsoletos, assets, Blade, verificación u OPcache; `migrations` no identifica la última migración confirmada.
+- Una excepción controlada anterior a migraciones libera el lock después de restaurar o persistir `rollback_failed`; una interrupción con journal íntegro completa la misma recuperación.
+- `mutations_started` sigue siendo conservador; el journal íntegro demuestra el resultado del caso 4 y evita una inspección manual innecesaria.
+- La fase persiste la frontera general y el journal distingue cada mutación de filesystem; `migrations` aún no identifica la última migración confirmada.
 - No apareció falso éxito, pérdida del manifiesto anterior ni escape de ruta. El fallo del mensaje final sí puede devolver falso fallo con estado `completed`; la recuperación debe confiar en el estado, no solo en el booleano o la UI.
 
 ## Requisitos derivados
 
 ### B5.2: recuperación de filesystem
 
-Debe conservar un snapshot o journal verificable de cada fichero administrado sustituido/eliminado, assets, manifiesto de assets, caché y manifiesto principal. La restauración ha de ser confinada por `SafePath`, idempotente, compatible con manifiesto ausente y capaz de resolver #5–#10 y la parte FS de #11–#16. No existe hoy este rollback.
+Implementada para `installing_files` y `publishing_cleanup`: snapshot por intento, JSON estricto versionado, estados duraderos por operación, reconciliación por SHA-256, rollback inverso, protección contra cambios concurrentes y bloqueo `rollback_failed`. Blade y OPcache se invalidan como derivados; el manifiesto principal sigue sin promoverse. La frontera `migrations` queda excluida deliberadamente.
 
 ### B5.3: recuperación de base de datos
 
@@ -89,8 +89,8 @@ Debe resolver estados ambiguos comparando estado, hash del manifiesto, árbol y 
 
 ## Decisión de release
 
-1. **Actualización automática habilitable:** no con el diseño actual. Antes de habilitarla son imprescindibles B5.2, una estrategia B5.3 probada con backup/restauración y la reconciliación mínima de B5.4 para #15–#17.
-2. **Actualización manual controlada con backup:** sí, en mantenimiento, con backup verificado de filesystem y DB, paquete anterior retenido, inspección de `state.json` y procedimiento ensayado de restauración. Es la única recomendación para la próxima release si B5.2/B5.3 no se completan.
+1. **Actualización automática habilitable:** no todavía. B5.2 cubre los fallos anteriores a migraciones; siguen siendo imprescindibles una estrategia B5.3 probada y la reconciliación B5.4 para los casos 11–17.
+2. **Actualización manual controlada con backup:** sí, en mantenimiento, con backup verificado de filesystem y DB, paquete anterior retenido, inspección de `state.json` y procedimiento ensayado de restauración. Sigue siendo la recomendación hasta completar B5.3/B5.4.
 3. **Aplazable hasta 1.0:** cambio atómico de árbol por releases/symlink, rollback automático completo, optimización de retención y UX avanzada. La firma/autenticidad criptográfica sigue siendo necesaria en el modelo final, pero no fue implementada ni evaluada como mecanismo de recuperación en B5.1.
 
-B5.1 caracteriza todas las fases persistentes solicitadas; no implementa rollback, restauración, transacciones, atomicidad de árbol ni firma de artefactos.
+B5.1 caracteriza todas las fases; B5.2 añade rollback automático solo antes de migraciones. No se implementan transacciones o recuperación de DB, rollback posterior, atomicidad de árbol ni firma.

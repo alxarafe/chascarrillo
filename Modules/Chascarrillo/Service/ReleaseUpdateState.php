@@ -10,7 +10,7 @@ use RuntimeException;
 /** Validated, immutable snapshot of one release-update attempt. */
 final class ReleaseUpdateState
 {
-    public const FORMAT_VERSION = 1;
+    public const FORMAT_VERSION = 2;
     public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_FAILED = 'failed';
@@ -35,10 +35,17 @@ final class ReleaseUpdateState
     ];
 
     /** @var list<string> */
-    private const FIELDS = [
+    private const LEGACY_FIELDS = [
         'format_version', 'attempt_id', 'from_version', 'target_version', 'status', 'phase',
         'started_at', 'updated_at', 'mutations_started', 'error', 'recovered_from',
         'recovered_status',
+    ];
+
+    /** @var list<string> */
+    private const FIELDS = [
+        'format_version', 'attempt_id', 'from_version', 'target_version', 'status', 'phase',
+        'started_at', 'updated_at', 'mutations_started', 'error', 'recovered_from',
+        'recovered_status', 'reconciliation',
     ];
 
     /** @param array{class:string,message:string}|null $error */
@@ -53,7 +60,9 @@ final class ReleaseUpdateState
         private readonly bool $mutationsStarted,
         private readonly ?array $error,
         private readonly ?string $recoveredFrom,
-        private readonly ?string $recoveredStatus
+        private readonly ?string $recoveredStatus,
+        /** @var array<string,string>|null */
+        private readonly ?array $reconciliation
     ) {
     }
 
@@ -78,7 +87,8 @@ final class ReleaseUpdateState
             false,
             null,
             $recoveredFrom,
-            $recoveredStatus
+            $recoveredStatus,
+            null
         );
     }
 
@@ -87,10 +97,14 @@ final class ReleaseUpdateState
     {
         $fields = array_keys($data);
         sort($fields, SORT_STRING);
-        $expected = self::FIELDS;
+        $format = $data['format_version'] ?? null;
+        $expected = $format === 1 ? self::LEGACY_FIELDS : self::FIELDS;
         sort($expected, SORT_STRING);
-        if ($fields !== $expected || ($data['format_version'] ?? null) !== self::FORMAT_VERSION) {
+        if ($fields !== $expected || !in_array($format, [1, self::FORMAT_VERSION], true)) {
             throw new RuntimeException('Esquema de estado de actualización desconocido o incompleto');
+        }
+        if ($format === 1) {
+            $data['reconciliation'] = null;
         }
         foreach (['attempt_id', 'from_version', 'target_version', 'status', 'phase', 'started_at', 'updated_at'] as $key) {
             if (!is_string($data[$key])) {
@@ -118,7 +132,14 @@ final class ReleaseUpdateState
             throw new RuntimeException('updated_at no puede preceder a started_at');
         }
         self::assertRecovery($data['recovered_from'], $data['recovered_status']);
-        self::assertCombination($data['status'], $data['phase'], $data['mutations_started'], $data['error']);
+        self::assertReconciliation($data['reconciliation']);
+        self::assertCombination(
+            $data['status'],
+            $data['phase'],
+            $data['mutations_started'],
+            $data['error'],
+            $data['reconciliation']
+        );
         /** @var array{class:string,message:string}|null $error */
         $error = $data['error'];
         return new self(
@@ -132,7 +153,8 @@ final class ReleaseUpdateState
             $data['mutations_started'],
             $error,
             $data['recovered_from'],
-            $data['recovered_status']
+            $data['recovered_status'],
+            $data['reconciliation']
         );
     }
 
@@ -232,6 +254,49 @@ final class ReleaseUpdateState
         return $this->mutationsStarted;
     }
 
+    public function fromVersion(): string
+    {
+        return $this->fromVersion;
+    }
+
+    public function targetVersion(): string
+    {
+        return $this->targetVersion;
+    }
+
+    /** @return array<string,string>|null */
+    public function reconciliation(): ?array
+    {
+        return $this->reconciliation;
+    }
+
+    /** @param array<string,string> $reconciliation */
+    public function reconcile(array $reconciliation): self
+    {
+        if ($this->reconciliation !== null) {
+            if ($this->reconciliation !== $reconciliation) {
+                throw new RuntimeException('El intento ya tiene otra reconciliación');
+            }
+            return $this;
+        }
+        self::assertReconciliation($reconciliation);
+        $completion = $reconciliation['resolution'] === 'completion';
+        return new self(
+            $this->attemptId,
+            $this->fromVersion,
+            $this->targetVersion,
+            $completion ? self::STATUS_COMPLETED : ($this->isInProgress() ? self::STATUS_INTERRUPTED : $this->status),
+            $completion ? self::PHASE_COMPLETED : $this->phase,
+            $this->startedAt,
+            self::now(),
+            $this->mutationsStarted,
+            $completion ? null : $this->error,
+            $this->recoveredFrom,
+            $this->recoveredStatus,
+            $reconciliation
+        );
+    }
+
     public function isInProgress(): bool
     {
         return $this->status === self::STATUS_IN_PROGRESS;
@@ -253,6 +318,7 @@ final class ReleaseUpdateState
             'error' => $this->error,
             'recovered_from' => $this->recoveredFrom,
             'recovered_status' => $this->recoveredStatus,
+            'reconciliation' => $this->reconciliation,
         ];
     }
 
@@ -270,7 +336,8 @@ final class ReleaseUpdateState
             $mutationsStarted,
             $error,
             $this->recoveredFrom,
-            $this->recoveredStatus
+            $this->recoveredStatus,
+            $this->reconciliation
         );
     }
 
@@ -282,8 +349,13 @@ final class ReleaseUpdateState
     }
 
     /** @param mixed $error */
-    private static function assertCombination(string $status, string $phase, bool $mutations, mixed $error): void
-    {
+    private static function assertCombination(
+        string $status,
+        string $phase,
+        bool $mutations,
+        mixed $error,
+        mixed $reconciliation
+    ): void {
         if (!in_array($phase, self::PHASES, true)) {
             throw new RuntimeException("Fase de actualización desconocida: {$phase}");
         }
@@ -293,6 +365,9 @@ final class ReleaseUpdateState
         if ($status === self::STATUS_COMPLETED) {
             if ($phase !== self::PHASE_COMPLETED || !$mutations || $error !== null) {
                 throw new RuntimeException('Estado completed incoherente');
+            }
+            if ($reconciliation !== null && $reconciliation['resolution'] !== 'completion') {
+                throw new RuntimeException('Estado completed con reconciliación incoherente');
             }
             return;
         }
@@ -332,6 +407,45 @@ final class ReleaseUpdateState
         }
         if (!in_array($status, [self::STATUS_IN_PROGRESS, self::STATUS_INTERRUPTED], true) || $error !== null) {
             throw new RuntimeException("Estado de actualización no válido: {$status}");
+        }
+    }
+
+    private static function assertReconciliation(mixed $reconciliation): void
+    {
+        if ($reconciliation === null) {
+            return;
+        }
+        if (!is_array($reconciliation)) {
+            throw new RuntimeException('Reconciliación de estado no válida');
+        }
+        $fields = array_keys($reconciliation);
+        sort($fields, SORT_STRING);
+        if ($fields !== ['classification', 'fingerprint', 'record_sha256', 'resolution', 'resolved_at']) {
+            throw new RuntimeException('Esquema de reconciliación de estado no válido');
+        }
+        if (
+            !is_string($reconciliation['classification'])
+            || !in_array($reconciliation['classification'], [
+                'SAFE_RETRY', 'CONFIRMED_ROLLBACK', 'CONFIRMED_COMPLETION',
+            ], true)
+            || !is_string($reconciliation['resolution'])
+            || !in_array($reconciliation['resolution'], ['retry', 'rollback', 'completion'], true)
+            || !is_string($reconciliation['fingerprint'])
+            || preg_match('/^[a-f0-9]{64}$/', $reconciliation['fingerprint']) !== 1
+            || !is_string($reconciliation['record_sha256'])
+            || preg_match('/^[a-f0-9]{64}$/', $reconciliation['record_sha256']) !== 1
+            || !is_string($reconciliation['resolved_at'])
+        ) {
+            throw new RuntimeException('Reconciliación de estado no válida');
+        }
+        self::assertTimestamp($reconciliation['resolved_at'], 'resolved_at');
+        $expected = [
+            'SAFE_RETRY' => 'retry',
+            'CONFIRMED_ROLLBACK' => 'rollback',
+            'CONFIRMED_COMPLETION' => 'completion',
+        ];
+        if ($expected[$reconciliation['classification']] !== $reconciliation['resolution']) {
+            throw new RuntimeException('Clasificación y resolución reconciliada no coinciden');
         }
     }
 

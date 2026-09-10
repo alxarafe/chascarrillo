@@ -269,6 +269,13 @@ final class FilesystemRecoveryJournal
     }
 
     /** @return array<string,mixed> */
+    public function toArray(): array
+    {
+        $this->reload();
+        return $this->document;
+    }
+
+    /** @return array<string,mixed> */
     private function operation(int $index): array
     {
         $operation = $this->document['operations'][$index] ?? null;

@@ -130,5 +130,6 @@ En esos casos:
 5. invalide caches derivados;
 6. verifique versión, esquema y tabla `migrations` antes de decidir un nuevo intento.
 
-Invertir o mezclar el orden/punto puede dejar código viejo con esquema nuevo. B5.3 no implementa la
-acción administrativa que reconcilia y desbloquea el estado: corresponde a B5.4.
+Invertir o mezclar el orden/punto puede dejar código viejo con esquema nuevo. B5.4 aporta la
+inspección y el cierre administrativo seguro descritos en `update-reconciliation.md`; no convierte
+una declaración de restauración en evidencia ni desbloquea un DDL iniciado que siga siendo ambiguo.

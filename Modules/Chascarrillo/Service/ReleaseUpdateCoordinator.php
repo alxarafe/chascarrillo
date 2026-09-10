@@ -53,10 +53,11 @@ final class ReleaseUpdateCoordinator
         $recoveryCapability = DatabaseRecoveryCapability::unavailable();
         try {
             $previous = $storage->load();
-            $recovery = $this->classifyPreviousAttempt($storage, $previous, $installRoot);
+            $targetVersion = $this->targetVersion($releaseTag);
+            $recovery = $this->classifyPreviousAttempt($storage, $previous, $installRoot, $targetVersion);
             $attempt = ReleaseUpdateState::start(
                 ApplicationVersion::canonical(),
-                $this->targetVersion($releaseTag),
+                $targetVersion,
                 $recovery['attempt_id'] ?? null,
                 $recovery['status'] ?? null
             );
@@ -196,9 +197,34 @@ final class ReleaseUpdateCoordinator
     private function classifyPreviousAttempt(
         ReleaseUpdateStorage $storage,
         ?ReleaseUpdateState $previous,
-        string $installRoot
+        string $installRoot,
+        string $targetVersion
     ): ?array {
-        if ($previous === null || $previous->status() === ReleaseUpdateState::STATUS_COMPLETED) {
+        if ($previous === null) {
+            return null;
+        }
+        $reconciliation = $previous->reconciliation();
+        if ($reconciliation !== null) {
+            if (
+                $reconciliation['resolution'] === UpdateReconciliationPlan::RESOLUTION_COMPLETION
+                && $previous->targetVersion() === $targetVersion
+            ) {
+                throw new RuntimeException('La actualización objetivo ya consta completada por reconciliación');
+            }
+            if (
+                in_array(
+                    $reconciliation['resolution'],
+                    [
+                        UpdateReconciliationPlan::RESOLUTION_RETRY,
+                        UpdateReconciliationPlan::RESOLUTION_ROLLBACK,
+                    ],
+                    true
+                )
+            ) {
+                return ['attempt_id' => $previous->attemptId(), 'status' => $previous->status()];
+            }
+        }
+        if ($previous->status() === ReleaseUpdateState::STATUS_COMPLETED) {
             return null;
         }
         if ($previous->status() === ReleaseUpdateState::STATUS_FILESYSTEM_ROLLED_BACK) {

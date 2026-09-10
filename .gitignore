@@ -11,4 +11,5 @@ config.json
 /scripts/*
 !/scripts/build_distribution_manifest.php
 !/scripts/validate_release.php
+!/scripts/reconcile_update.php
 /public_html/uploads/

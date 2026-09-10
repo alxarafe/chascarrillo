@@ -194,8 +194,8 @@ El proceso actual hace reemplazos atómicos por fichero y revalida precondicione
 carreras, y B4 retrasa la promoción definitiva del manifiesto hasta después de las migraciones y la
 validación final. No es una transacción de árbol completo. B5.2 restaura el filesystem administrado
 cuando B5.3 demuestra que la base no comenzó; B5.3 registra los límites y exige recuperación externa
-validada para el DDL actual. B5.4 debe aportar la reconciliación administrativa posterior; no existe
-transacción de árbol completo. La autenticidad criptográfica de artefactos/manifiestos también queda
+validada para el DDL actual. B5.4 inspecciona y registra únicamente rollback o finalización
+plenamente demostrados; no existe transacción de árbol completo. La autenticidad criptográfica de artefactos/manifiestos también queda
 pendiente. Hoy las
 huellas detectan corrupción y cambios locales, pero un atacante con permiso para sustituir a la vez
 el código y su manifiesto queda fuera del modelo B2. Por ello una copia de seguridad sigue siendo
@@ -206,8 +206,8 @@ obligatoria.
 En un hosting compatible, preparar `releases/<version>/`, enlazar directorios persistentes (`Content`, `storage`, uploads y configuración), ejecutar las comprobaciones y cambiar un symlink `current` de forma atómica. Hostings compartidos que fijan `public_html` pueden usar dos árboles hermanos y un pequeño bootstrap estable, o una ventana de mantenimiento con copia completa y restauración ensayada.
 
 Antes de 1.0 deben definirse: layout exacto permitido por Hostinger, presupuesto de disco para dos
-releases, tratamiento transaccional/rollback de migraciones, retención de backups y recuperación
-administrativa o automática a partir del marcador persistente de B3.
+releases, tratamiento transaccional/rollback de migraciones, retención definitiva de backups y una
+atestación verificable de restauraciones externas posteriores a DDL.
 
 ## Checklist de actualización
 

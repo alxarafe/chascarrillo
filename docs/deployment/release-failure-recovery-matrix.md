@@ -89,15 +89,21 @@ predeterminado bloquea hasta que una integración demuestre evidencia externa `v
 
 ### B5.4: reconciliación y operación administrativa
 
-Debe resolver estados ambiguos comparando estado, hash del manifiesto, árbol y migraciones; ofrecer una acción explícita de completar o restaurar, nunca borrar a ciegas el marcador. También debe hacer que la respuesta de `applyUpdate()` tome `completed` como resultado autoritativo si falla únicamente el mensaje posterior. Conviene desglosar `publishing_cleanup` y registrar la última migración confirmada.
+Implementada como CLI de inspección de solo lectura y aplicación explícita. Compara estado, journals,
+backups, hashes del árbol, manifiesto, versión, checkpoints y tabla real de migraciones; vuelve a
+inspeccionar bajo `flock` y exige una huella estable. Solo registra `SAFE_RETRY`,
+`CONFIRMED_ROLLBACK` o `CONFIRMED_COMPLETION`; los demás resultados permanecen bloqueados. Véase
+`update-reconciliation.md`.
 
 ## Decisión de release
 
 1. **Actualización automática habilitable:** solo para releases sin migraciones. Con migraciones,
    queda bloqueada por defecto hasta integrar un proveedor B5.3 que verifique recuperación externa;
-   B5.4 sigue siendo necesaria para reconciliar los casos ambiguos.
-2. **Actualización manual controlada con backup:** sí, en mantenimiento, con backup verificado de filesystem y DB, paquete anterior retenido, inspección de `state.json` y procedimiento ensayado de restauración. Sigue siendo la recomendación hasta completar B5.3/B5.4.
+   B5.4 diagnostica los casos ambiguos, pero no los desbloquea sin evidencia suficiente.
+2. **Actualización manual controlada con backup:** sí, en mantenimiento, con backup verificado de filesystem y DB, paquete anterior retenido, inspección de `state.json` y procedimiento ensayado de restauración. Sigue siendo la recomendación mientras no exista un proveedor
+   de recovery apropiado y para cualquier estado que B5.4 mantenga bloqueado.
 3. **Aplazable hasta 1.0:** cambio atómico de árbol por releases/symlink, rollback automático completo, optimización de retención y UX avanzada. La firma/autenticidad criptográfica sigue siendo necesaria en el modelo final, pero no fue implementada ni evaluada como mecanismo de recuperación en B5.1.
 
-B5.1 caracteriza todas las fases; B5.2 recupera filesystem antes del comienzo DB y B5.3 coordina
-evidencia externa y checkpoints. No se implementan rollback DB, reconciliación B5.4, atomicidad de árbol ni firma.
+B5.1 caracteriza todas las fases; B5.2 recupera filesystem antes del comienzo DB, B5.3 coordina
+evidencia externa y checkpoints, y B5.4 reconcilia solo estados demostrados. No se implementan
+rollback DB, atomicidad de árbol ni firma.

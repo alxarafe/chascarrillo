@@ -8,6 +8,13 @@ use RuntimeException;
 
 final class ReleaseInstaller
 {
+    private ?SafePath $pendingInstallPaths = null;
+    private ?ReleaseInstallationPlan $pendingPlan = null;
+    private ?string $pendingManifest = null;
+
+    /** @var array<string,string>|null */
+    private ?array $pendingFileHashes = null;
+
     public function __construct(
         private readonly ReleaseValidator $validator = new ReleaseValidator(),
         private readonly ThemeAssetPublisher $assetPublisher = new ThemeAssetPublisher(),
@@ -24,6 +31,21 @@ final class ReleaseInstaller
         ?string $releaseTag = null,
         ?callable $phaseObserver = null
     ): array {
+        $result = $this->prepareInstallation($releaseRoot, $installRoot, $releaseTag, $phaseObserver);
+        $this->promotePreparedManifest($phaseObserver);
+        return $result;
+    }
+
+    /**
+     * @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>}
+     */
+    public function prepareInstallation(
+        string $releaseRoot,
+        string $installRoot,
+        ?string $releaseTag = null,
+        ?callable $phaseObserver = null
+    ): array {
+        $this->discardPreparedManifest();
         $releasePaths = new SafePath($releaseRoot);
         $installPaths = new SafePath($installRoot);
         $releaseRoot = $releasePaths->root();
@@ -111,14 +133,15 @@ final class ReleaseInstaller
 
         $this->validator->validate($installRoot, false);
         $plan->assertManifestPrecondition($installPaths);
-        if ($phaseObserver !== null) {
-            $phaseObserver(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
-        }
-        $installPaths->atomicWrite(ManagedFileManifest::FILENAME, ManagedFileManifest::encode($next));
 
         if (function_exists('opcache_reset')) {
             @opcache_reset();
         }
+
+        $this->pendingInstallPaths = $installPaths;
+        $this->pendingPlan = $plan;
+        $this->pendingManifest = ManagedFileManifest::encode($next);
+        $this->pendingFileHashes = $next['files'];
 
         return [
             'copied' => $copied,
@@ -129,8 +152,60 @@ final class ReleaseInstaller
         ];
     }
 
+    public function validatePreparedInstallation(): void
+    {
+        [$installPaths, $plan, , $fileHashes] = $this->requirePreparedManifest();
+        foreach ($fileHashes as $relative => $expectedHash) {
+            if (!$installPaths->isFile($relative) || $installPaths->hash($relative) !== $expectedHash) {
+                throw new RuntimeException("La verificación final falló para {$relative}");
+            }
+        }
+        $this->validator->validate($installPaths->root(), false);
+        $plan->assertManifestPrecondition($installPaths);
+    }
+
+    public function promotePreparedManifest(?callable $phaseObserver = null): void
+    {
+        [$installPaths, $plan, $manifest] = $this->requirePreparedManifest();
+        $this->discardPreparedManifest();
+        $plan->assertManifestPrecondition($installPaths);
+        if ($phaseObserver !== null) {
+            $phaseObserver(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+        }
+        $installPaths->atomicWrite(ManagedFileManifest::FILENAME, $manifest);
+    }
+
+    public function discardPreparedManifest(): void
+    {
+        $this->pendingInstallPaths = null;
+        $this->pendingPlan = null;
+        $this->pendingManifest = null;
+        $this->pendingFileHashes = null;
+    }
+
     public function clearBladeCache(string $installRoot): int
     {
         return (new SafePath($installRoot))->removeTree('var/cache/blade');
+    }
+
+    /**
+     * @return array{SafePath,ReleaseInstallationPlan,string,array<string,string>}
+     */
+    private function requirePreparedManifest(): array
+    {
+        if (
+            $this->pendingInstallPaths === null
+            || $this->pendingPlan === null
+            || $this->pendingManifest === null
+            || $this->pendingFileHashes === null
+        ) {
+            throw new RuntimeException('No hay una instalación validada pendiente de promoción');
+        }
+        return [
+            $this->pendingInstallPaths,
+            $this->pendingPlan,
+            $this->pendingManifest,
+            $this->pendingFileHashes,
+        ];
     }
 }

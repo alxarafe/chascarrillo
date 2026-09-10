@@ -27,8 +27,8 @@ final class ReleaseUpdateState
         self::PHASE_PREPARING,
         self::PHASE_INSTALLING_FILES,
         self::PHASE_PUBLISHING_CLEANUP,
-        self::PHASE_PROMOTING_MANIFEST,
         self::PHASE_MIGRATIONS,
+        self::PHASE_PROMOTING_MANIFEST,
         self::PHASE_COMPLETED,
     ];
 
@@ -154,8 +154,8 @@ final class ReleaseUpdateState
     public function complete(): self
     {
         $this->assertInProgress();
-        if ($this->phase !== self::PHASE_MIGRATIONS || !$this->mutationsStarted) {
-            throw new RuntimeException('La actualización solo puede completarse después de migraciones');
+        if ($this->phase !== self::PHASE_PROMOTING_MANIFEST || !$this->mutationsStarted) {
+            throw new RuntimeException('La actualización solo puede completarse después de promover el manifiesto');
         }
         return $this->copy(self::STATUS_COMPLETED, self::PHASE_COMPLETED, true, null);
     }

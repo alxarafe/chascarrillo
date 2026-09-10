@@ -37,10 +37,14 @@ El algoritmo es:
    migrar, promover el manifiesto ni invalidar OPcache;
 5. revalidar todas las precondiciones y, justo antes de cada operación, el tipo y la huella esperados;
 6. copiar mediante temporal y `rename`, y retirar los obsoletos intactos;
-7. publicar assets, limpiar `var/cache/blade/` e invalidar OPcache si está disponible;
-8. verificar todas las huellas y la salud del runtime;
-9. guardar el manifiesto nuevo;
-10. ejecutar migraciones de base de datos y solo entonces anunciar éxito.
+7. publicar assets y limpiar `var/cache/blade/`;
+8. verificar todas las huellas y la salud del runtime, invalidando cada script copiado y haciendo el
+   reset global de OPcache antes de ejecutar código nuevo durante las migraciones;
+9. persistir `migrations` y ejecutar las migraciones de base de datos;
+10. repetir la validación aplicable del árbol instalado;
+11. persistir `promoting_manifest` y, solo entonces, promover el manifiesto ya validado mediante un
+    temporal regular verificado y `rename`;
+12. persistir `completed` y solo después anunciar éxito.
 
 ### Transición controlada desde v0.8.17
 
@@ -105,9 +109,10 @@ Las fases observables, en orden, son:
 
 1. `preparing`: validación, planificación y preflight, todavía sin mutaciones de aplicación;
 2. `installing_files`: copias de ficheros;
-3. `publishing_cleanup`: eliminaciones, assets, limpieza de Blade y verificaciones finales;
-4. `promoting_manifest`: promoción del manifiesto y reset de OPcache;
-5. `migrations`: migraciones;
+3. `publishing_cleanup`: eliminaciones, assets, limpieza de Blade, verificaciones del árbol y
+   preparación de OPcache;
+4. `migrations`: migraciones;
+5. `promoting_manifest`: validación final superada y promoción atómica del manifiesto;
 6. `completed`.
 
 El estado general es `in_progress`, `completed`, `failed` o `interrupted`. Las transiciones fuera de
@@ -130,13 +135,25 @@ B3 no incorpora un comando para borrar o forzar el marcador ni recuperación aut
 
 ## Fallos y límites pendientes
 
-Un fallo de lectura, copia, publicación, limpieza o validación lanza un error y evita el mensaje de éxito. Una versión ausente, inválida o distinta del tag o de `UpdateService::VERSION` se rechaza antes de copiar el primer fichero. Las migraciones también deben devolver éxito. El log y el mensaje de mantenimiento deben conservar el primer error accionable.
+Un fallo de lectura, copia, publicación, limpieza o validación lanza un error y evita el mensaje de
+éxito. Una versión ausente, inválida o distinta del tag o de `UpdateService::VERSION` se rechaza
+antes de copiar el primer fichero. Las migraciones también deben devolver éxito. Si fallan, el estado
+queda `failed` en `migrations`, con `mutations_started: true`; el manifiesto anterior permanece
+idéntico byte a byte o, si no existía, continúa ausente. El intento siguiente queda bloqueado para
+intervención administrativa. Los ficheros y la base de datos pueden haber quedado modificados: no se
+restauran.
+
+Si falla la promoción después de migrar, el estado queda `failed` en `promoting_manifest` y no se
+anuncia éxito ni se revierten migraciones o ficheros. Mientras el `rename` no haya sustituido el
+destino, el manifiesto anterior permanece intacto. Si la promoción termina, el manifiesto coincide
+exactamente con el artefacto verificado; solo después se persiste `completed`. El log y el mensaje
+de mantenimiento deben conservar el primer error accionable.
 
 El proceso actual hace reemplazos atómicos por fichero y revalida precondiciones para reducir
-carreras, pero no es una transacción de árbol completo. B4 debe corregir la promoción definitiva
-del manifiesto, que por ahora ocurre antes de las migraciones. B5 debe abordar actualización
-atómica del árbol, rollback y recuperación de ficheros/base de datos; B3 solo detecta y bloquea,
-no restaura. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
+carreras, y B4 retrasa la promoción definitiva del manifiesto hasta después de las migraciones y la
+validación final. No es una transacción de árbol completo. B5 debe abordar actualización atómica del
+árbol, rollback y recuperación de ficheros/base de datos; B3/B4 solo detectan y bloquean, no
+restauran. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
 huellas detectan corrupción y cambios locales, pero un atacante con permiso para sustituir a la vez
 el código y su manifiesto queda fuera del modelo B2. Por ello una copia de seguridad sigue siendo
 obligatoria.

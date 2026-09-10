@@ -63,7 +63,7 @@ final class ReleaseUpdateCoordinator
                 $attempt = $attempt->advance($phase, $mutationsStarted);
                 $storage->write($attempt);
             };
-            $result = $this->installer->install($releaseRoot, $installRoot, $releaseTag, $observer);
+            $result = $this->installer->prepareInstallation($releaseRoot, $installRoot, $releaseTag, $observer);
             $attempt = $attempt->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
             $storage->write($attempt);
             if (!(($this->migrate)())) {
@@ -71,6 +71,10 @@ final class ReleaseUpdateCoordinator
                     'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'
                 );
             }
+            $this->installer->validatePreparedInstallation();
+            $attempt = $attempt->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+            $storage->write($attempt);
+            $this->installer->promotePreparedManifest();
             $completed = $attempt->complete();
             $storage->write($completed);
             return $result;
@@ -84,6 +88,7 @@ final class ReleaseUpdateCoordinator
             }
             throw $exception;
         } finally {
+            $this->installer->discardPreparedManifest();
             $storage->release();
         }
     }

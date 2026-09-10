@@ -85,13 +85,25 @@ final class ReleaseUpdateStateTest extends TestCase
         ], $observed);
 
         [$release, $install] = $this->releaseFixture('coordinated');
-        (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
-            ->apply($release, $install);
+        $expectedManifest = (string) file_get_contents($release . '/' . ManagedFileManifest::FILENAME);
+        $migrationPhases = [];
+        (new ReleaseUpdateCoordinator(
+            new ReleaseInstaller(),
+            function () use ($install, &$migrationPhases): bool {
+                $migrationPhases[] = $this->readState($install)['phase'];
+                return true;
+            }
+        ))->apply($release, $install);
         $state = $this->readState($install);
+        self::assertSame([ReleaseUpdateState::PHASE_MIGRATIONS], $migrationPhases);
         self::assertSame(ReleaseUpdateState::STATUS_COMPLETED, $state['status']);
         self::assertSame(ReleaseUpdateState::PHASE_COMPLETED, $state['phase']);
         self::assertTrue($state['mutations_started']);
         self::assertFileExists($install . '/' . ReleaseUpdateStorage::STATE_PATH);
+        self::assertSame(
+            $expectedManifest,
+            file_get_contents($install . '/' . ManagedFileManifest::FILENAME)
+        );
     }
 
     public function testFailureBeforeMutationIsRecordedAndCanBeRetried(): void
@@ -105,6 +117,7 @@ final class ReleaseUpdateStateTest extends TestCase
                 'templates/partial/project_menu.blade.php' => hash('sha256', 'previous'),
             ],
         ]);
+        $previousManifest = (string) file_get_contents($install . '/' . ManagedFileManifest::FILENAME);
         $migrations = 0;
         $coordinator = new ReleaseUpdateCoordinator(
             new ReleaseInstaller(),
@@ -124,6 +137,10 @@ final class ReleaseUpdateStateTest extends TestCase
             self::assertFalse($state['mutations_started']);
             self::assertSame(0, $migrations);
             self::assertSame('local change', file_get_contents($install . '/templates/partial/project_menu.blade.php'));
+            self::assertSame(
+                $previousManifest,
+                file_get_contents($install . '/' . ManagedFileManifest::FILENAME)
+            );
         }
 
         self::assertTrue(unlink($install . '/templates/partial/project_menu.blade.php'));
@@ -147,6 +164,7 @@ final class ReleaseUpdateStateTest extends TestCase
         self::assertSame(ReleaseUpdateState::STATUS_FAILED, $failed['status']);
         self::assertSame(ReleaseUpdateState::PHASE_MIGRATIONS, $failed['phase']);
         self::assertTrue($failed['mutations_started']);
+        self::assertFileDoesNotExist($install . '/' . ManagedFileManifest::FILENAME);
 
         $impossible = ReleaseUpdateState::start('0.8.17', '0.8.17')->toArray();
         $impossible['status'] = ReleaseUpdateState::STATUS_FAILED;
@@ -162,6 +180,134 @@ final class ReleaseUpdateStateTest extends TestCase
         $this->expectExceptionMessage('intervención administrativa');
         (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
             ->apply($release, $install);
+    }
+
+    public function testMigrationFailurePreservesPreviousManifestByteForByte(): void
+    {
+        [$release, $install] = $this->releaseFixture('migration-manifest');
+        $relative = 'templates/partial/project_menu.blade.php';
+        $this->writeFile($install . '/' . $relative, 'previous release');
+        ManagedFileManifest::write($install, [
+            'format' => 2,
+            'application_version' => '0.8.17',
+            'files' => [$relative => hash('sha256', 'previous release')],
+        ]);
+        $manifestPath = $install . '/' . ManagedFileManifest::FILENAME;
+        $previousManifest = (string) file_get_contents($manifestPath);
+
+        try {
+            (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => false))
+                ->apply($release, $install);
+            self::fail('La migración fallida debía propagarse');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('migraciones', $exception->getMessage());
+        }
+
+        self::assertFileExists($install . '/composer.lock');
+        self::assertSame('new release', file_get_contents($install . '/' . $relative));
+        self::assertSame($previousManifest, file_get_contents($manifestPath));
+        $state = $this->readState($install);
+        self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+        self::assertSame(ReleaseUpdateState::PHASE_MIGRATIONS, $state['phase']);
+        self::assertTrue($state['mutations_started']);
+    }
+
+    public function testMigrationFailureWithoutPreviousManifestLeavesItAbsentAndSkipsPromotion(): void
+    {
+        [$release, $install] = $this->releaseFixture('migration-no-manifest');
+
+        try {
+            (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => false))
+                ->apply($release, $install);
+            self::fail('La migración fallida debía propagarse');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('migraciones', $exception->getMessage());
+        }
+
+        self::assertFileDoesNotExist($install . '/' . ManagedFileManifest::FILENAME);
+        $state = $this->readState($install);
+        self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+        self::assertSame(ReleaseUpdateState::PHASE_MIGRATIONS, $state['phase']);
+        self::assertTrue($state['mutations_started']);
+    }
+
+    public function testPromotionFailureAfterSuccessfulMigrationPreservesManifestAndRecordsExactPhase(): void
+    {
+        [$release, $install] = $this->releaseFixture('promotion-failure');
+        $relative = 'templates/partial/project_menu.blade.php';
+        $this->writeFile($install . '/' . $relative, 'previous release');
+        ManagedFileManifest::write($install, [
+            'format' => 2,
+            'application_version' => '0.8.17',
+            'files' => [$relative => hash('sha256', 'previous release')],
+        ]);
+        $manifestPath = $install . '/' . ManagedFileManifest::FILENAME;
+        $previousManifest = (string) file_get_contents($manifestPath);
+        $migrations = 0;
+        $coordinator = new ReleaseUpdateCoordinator(
+            new ReleaseInstaller(),
+            static function () use ($install, &$migrations): bool {
+                $migrations++;
+                self::assertTrue(chmod($install, 0555));
+                return true;
+            }
+        );
+
+        set_error_handler(static fn (int $severity): bool => $severity === E_NOTICE);
+        try {
+            $coordinator->apply($release, $install);
+            self::fail('El fallo de promoción debía propagarse sin falso éxito');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('temporal', $exception->getMessage());
+        } finally {
+            restore_error_handler();
+            self::assertTrue(chmod($install, 0755));
+        }
+
+        self::assertSame(1, $migrations);
+        self::assertSame($previousManifest, file_get_contents($manifestPath));
+        $state = $this->readState($install);
+        self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+        self::assertSame(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, $state['phase']);
+        self::assertTrue($state['mutations_started']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('intervención administrativa');
+        (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+            ->apply($release, $install);
+    }
+
+    public function testFinalValidationAfterMigrationPreventsPromotionOfAMismatchedTree(): void
+    {
+        [$release, $install] = $this->releaseFixture('post-migration-validation');
+        $relative = 'templates/partial/project_menu.blade.php';
+        $this->writeFile($install . '/' . $relative, 'previous release');
+        ManagedFileManifest::write($install, [
+            'format' => 2,
+            'application_version' => '0.8.17',
+            'files' => [$relative => hash('sha256', 'previous release')],
+        ]);
+        $manifestPath = $install . '/' . ManagedFileManifest::FILENAME;
+        $previousManifest = (string) file_get_contents($manifestPath);
+
+        try {
+            (new ReleaseUpdateCoordinator(
+                new ReleaseInstaller(),
+                function () use ($install, $relative): bool {
+                    $this->writeFile($install . '/' . $relative, 'changed during migrations');
+                    return true;
+                }
+            ))->apply($release, $install);
+            self::fail('La validación final debía impedir la promoción');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('verificación final', $exception->getMessage());
+        }
+
+        self::assertSame($previousManifest, file_get_contents($manifestPath));
+        $state = $this->readState($install);
+        self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+        self::assertSame(ReleaseUpdateState::PHASE_MIGRATIONS, $state['phase']);
+        self::assertTrue($state['mutations_started']);
     }
 
     public function testReleasedNonTerminalStateIsClassifiedAsInterruptedAndSafePreflightCanRestart(): void
@@ -203,6 +349,45 @@ final class ReleaseUpdateStateTest extends TestCase
         self::assertSame(ReleaseUpdateState::PHASE_INSTALLING_FILES, $interrupted['phase']);
         self::assertTrue($interrupted['mutations_started']);
         self::assertFileDoesNotExist($install . '/composer.lock');
+    }
+
+    public function testInterruptionsDuringMigrationsAndPromotionPreserveManifestAndBlock(): void
+    {
+        foreach ([ReleaseUpdateState::PHASE_MIGRATIONS, ReleaseUpdateState::PHASE_PROMOTING_MANIFEST] as $phase) {
+            [$release, $install] = $this->releaseFixture('interrupted-' . $phase);
+            ManagedFileManifest::write($install, [
+                'format' => 2,
+                'application_version' => '0.8.17',
+                'files' => [],
+            ]);
+            $manifestPath = $install . '/' . ManagedFileManifest::FILENAME;
+            $previousManifest = (string) file_get_contents($manifestPath);
+            $previous = ReleaseUpdateState::start('0.8.17', '0.8.17')
+                ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true)
+                ->advance(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true)
+                ->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
+            if ($phase === ReleaseUpdateState::PHASE_PROMOTING_MANIFEST) {
+                $previous = $previous->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+            }
+            $storage = new ReleaseUpdateStorage($install);
+            $storage->acquire();
+            $storage->write($previous);
+            $storage->release();
+
+            try {
+                (new ReleaseUpdateCoordinator(new ReleaseInstaller(), static fn (): bool => true))
+                    ->apply($release, $install);
+                self::fail("La interrupción en {$phase} debía bloquear");
+            } catch (RuntimeException $exception) {
+                self::assertStringContainsString('intervención administrativa', $exception->getMessage());
+            }
+
+            $interrupted = $this->readState($install);
+            self::assertSame(ReleaseUpdateState::STATUS_INTERRUPTED, $interrupted['status']);
+            self::assertSame($phase, $interrupted['phase']);
+            self::assertTrue($interrupted['mutations_started']);
+            self::assertSame($previousManifest, file_get_contents($manifestPath));
+        }
     }
 
     public function testConcurrentProcessIsRejectedAndLocksReleaseAfterSuccessAndError(): void
@@ -294,6 +479,50 @@ final class ReleaseUpdateStateTest extends TestCase
         }
     }
 
+    public function testManifestPromotionRequiresPreparationAndUnsafeManifestNodesAreRejected(): void
+    {
+        $installer = new ReleaseInstaller();
+        try {
+            $installer->promotePreparedManifest();
+            self::fail('No debía poder promoverse un manifiesto sin una preparación válida');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('instalación validada', $exception->getMessage());
+        }
+
+        foreach (['symlink', 'directory'] as $case) {
+            [$release, $install] = $this->releaseFixture('unsafe-manifest-' . $case);
+            $outside = $this->workspace . '/outside-manifest-' . $case;
+            $this->writeFile($outside, 'outside witness');
+            $manifestPath = $install . '/' . ManagedFileManifest::FILENAME;
+            if ($case === 'symlink') {
+                self::assertTrue(symlink($outside, $manifestPath));
+            } else {
+                self::assertTrue(mkdir($manifestPath, 0755, true));
+            }
+            $migrations = 0;
+
+            try {
+                (new ReleaseUpdateCoordinator(
+                    new ReleaseInstaller(),
+                    static function () use (&$migrations): bool {
+                        $migrations++;
+                        return true;
+                    }
+                ))->apply($release, $install);
+                self::fail("El nodo {$case} del manifiesto debía rechazarse");
+            } catch (ReleaseInstallationConflictException) {
+            }
+
+            self::assertSame(0, $migrations);
+            self::assertSame('outside witness', file_get_contents($outside));
+            self::assertFileDoesNotExist($install . '/composer.lock');
+            $state = $this->readState($install);
+            self::assertSame(ReleaseUpdateState::STATUS_FAILED, $state['status']);
+            self::assertSame(ReleaseUpdateState::PHASE_PREPARING, $state['phase']);
+            self::assertFalse($state['mutations_started']);
+        }
+    }
+
     public function testAssetFailureAfterCopiesIsRecordedAndDoesNotRunMigrations(): void
     {
         [$release, $install] = $this->releaseFixture('asset-failure');
@@ -333,13 +562,28 @@ final class ReleaseUpdateStateTest extends TestCase
         $completed = ReleaseUpdateState::start('0.8.17', '0.8.17')
             ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true)
             ->advance(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true)
-            ->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true)
             ->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true)
+            ->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true)
             ->complete();
         try {
             $completed->interrupt();
             self::fail('completed debía ser terminal');
         } catch (RuntimeException) {
+        }
+
+        $promoting = ReleaseUpdateState::start('0.8.17', '0.8.17')
+            ->advance(ReleaseUpdateState::PHASE_INSTALLING_FILES, true)
+            ->advance(ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, true)
+            ->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true)
+            ->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+        try {
+            $promoting->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
+            self::fail('La transición antigua promoting_manifest -> migrations debía rechazarse');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString(
+                'promoting_manifest -> migrations',
+                $exception->getMessage()
+            );
         }
         $failed = ReleaseUpdateState::start('0.8.17', '0.8.17')->fail(RuntimeException::class, 'fallo');
         try {

@@ -134,7 +134,9 @@ final class ReleaseFailureRecoveryMatrixTest extends TestCase
                     $coordinator->prepareAndApply(
                         $install,
                         'v0.8.17',
-                        static fn (): string => throw new RuntimeException('download failed')
+                        static function (): string {
+                            throw new RuntimeException('download failed');
+                        }
                     );
                 } elseif ($scenario === 'zip') {
                     $invalidZip = $this->workspace . '/invalid.zip';

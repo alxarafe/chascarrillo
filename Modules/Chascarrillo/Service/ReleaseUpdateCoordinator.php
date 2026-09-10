@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Chascarrillo\Service;
 
-use Alxarafe\Infrastructure\Persistence\Config;
 use Closure;
 use RuntimeException;
 use Throwable;
@@ -12,16 +11,26 @@ use Throwable;
 final class ReleaseUpdateCoordinator
 {
     /** @var Closure():bool */
-    private readonly Closure $migrate;
+    private readonly ?Closure $legacyMigrate;
 
-    /** @param (callable():bool)|null $migrate */
+    private readonly ReleaseMigrationExecutor $migrations;
+
+    private readonly DatabaseRecoveryProvider $databaseRecovery;
+
+    /** @param ReleaseMigrationExecutor|(callable():bool)|null $migrate */
     public function __construct(
         private readonly ReleaseInstaller $installer = new ReleaseInstaller(),
-        ?callable $migrate = null
+        ReleaseMigrationExecutor|callable|null $migrate = null,
+        ?DatabaseRecoveryProvider $databaseRecovery = null
     ) {
-        $this->migrate = $migrate === null
-            ? static fn (): bool => Config::doRunMigrations()
-            : Closure::fromCallable($migrate);
+        if (is_callable($migrate) && !$migrate instanceof ReleaseMigrationExecutor) {
+            $this->legacyMigrate = Closure::fromCallable($migrate);
+            $this->migrations = new AlxarafeReleaseMigrationExecutor();
+        } else {
+            $this->legacyMigrate = null;
+            $this->migrations = $migrate ?? new AlxarafeReleaseMigrationExecutor();
+        }
+        $this->databaseRecovery = $databaseRecovery ?? new UnavailableDatabaseRecoveryProvider();
     }
 
     /** @return array{copied:int,removed:int,preserved:int,cache_removed:int,assets:array<string,mixed>} */
@@ -40,6 +49,8 @@ final class ReleaseUpdateCoordinator
         $storage->acquire();
         $attempt = null;
         $releaseRoot = null;
+        $pendingMigrations = [];
+        $recoveryCapability = DatabaseRecoveryCapability::unavailable();
         try {
             $previous = $storage->load();
             $recovery = $this->classifyPreviousAttempt($storage, $previous, $installRoot);
@@ -52,6 +63,23 @@ final class ReleaseUpdateCoordinator
             $storage->write($attempt);
             $releaseRoot = $prepareRelease();
 
+            if ($this->legacyMigrate === null) {
+                $pendingMigrations = $this->migrations->pending($releaseRoot);
+                if ($pendingMigrations !== []) {
+                    $recoveryCapability = $this->databaseRecovery->verify(
+                        $releaseRoot,
+                        $installRoot,
+                        $pendingMigrations
+                    );
+                    if (!$recoveryCapability->allowsMigrations()) {
+                        throw new RuntimeException(
+                            'La actualización requiere migraciones, pero no existe una recuperación de base '
+                            . 'de datos validada. Cree y verifique una copia externa antes de reintentar.'
+                        );
+                    }
+                }
+            }
+
             $observer = function (string $phase, bool $mutationsStarted) use ($storage, &$attempt): void {
                 $attempt = $attempt->advance($phase, $mutationsStarted);
                 $storage->write($attempt);
@@ -63,15 +91,54 @@ final class ReleaseUpdateCoordinator
                 $observer,
                 $attempt->attemptId()
             );
-            $attempt = $attempt->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
-            $storage->write($attempt);
-            if (!(($this->migrate)())) {
-                throw new RuntimeException(
-                    'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'
+            if ($this->legacyMigrate !== null) {
+                $attempt = $attempt->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
+                $storage->write($attempt);
+                if (!(($this->legacyMigrate)())) {
+                    throw new RuntimeException(
+                        'La actualización de archivos terminó, pero fallaron las migraciones. Revise el registro.'
+                    );
+                }
+            } else {
+                $databaseJournal = DatabaseRecoveryJournal::prepare(
+                    new SafePath($installRoot),
+                    $attempt->attemptId(),
+                    $recoveryCapability,
+                    $pendingMigrations
                 );
+                $this->migrations->prepare($installRoot, $pendingMigrations);
+                $firstMigration = true;
+                foreach ($pendingMigrations as $migration) {
+                    $databaseJournal->start($migration);
+                    if ($firstMigration) {
+                        $attempt = $attempt->advance(ReleaseUpdateState::PHASE_MIGRATIONS, true);
+                        $storage->write($attempt);
+                        $firstMigration = false;
+                    }
+                    try {
+                        $this->migrations->execute($migration, $installRoot);
+                    } catch (Throwable $migrationFailure) {
+                        try {
+                            $databaseJournal->failed($migration);
+                        } catch (Throwable) {
+                            // A started checkpoint remains conservatively blocking.
+                        }
+                        throw new RuntimeException(
+                            "Falló la migración {$migration}; restaure base de datos y filesystem desde el "
+                            . 'mismo punto antes de reintentar.',
+                            0,
+                            $migrationFailure
+                        );
+                    }
+                    $databaseJournal->applied($migration);
+                }
+                $this->migrations->assertApplied($pendingMigrations);
+                $databaseJournal->complete();
             }
             $this->installer->validatePreparedInstallation();
-            $attempt = $attempt->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
+            $attempt = $this->legacyMigrate === null && $pendingMigrations === []
+                ? $attempt->promoteWithoutMigrations()
+                : $attempt->advance(ReleaseUpdateState::PHASE_PROMOTING_MANIFEST, true);
             $storage->write($attempt);
             $this->installer->promotePreparedManifest();
             $completed = $attempt->complete();
@@ -84,7 +151,7 @@ final class ReleaseUpdateCoordinator
             return $result;
         } catch (Throwable $exception) {
             if ($attempt instanceof ReleaseUpdateState && $attempt->isInProgress()) {
-                if ($this->canRollbackFilesystem($attempt)) {
+                if ($this->canRollbackFilesystem($attempt, $installRoot)) {
                     try {
                         $journal = FilesystemRecoveryJournal::open(
                             new SafePath($installRoot),
@@ -142,7 +209,7 @@ final class ReleaseUpdateCoordinator
                 'El rollback anterior falló; se requiere recuperación administrativa.'
             );
         }
-        if ($previous->isInProgress() && $this->canRollbackFilesystem($previous)) {
+        if ($previous->isInProgress() && $this->canRollbackFilesystem($previous, $installRoot)) {
             try {
                 $journal = FilesystemRecoveryJournal::open(new SafePath($installRoot), $previous->attemptId());
                 $journal->rollback();
@@ -164,6 +231,7 @@ final class ReleaseUpdateCoordinator
             return ['attempt_id' => $rolledBack->attemptId(), 'status' => $rolledBack->status()];
         }
         if ($previous->isInProgress()) {
+            $this->markDatabaseAmbiguous($previous, $installRoot);
             $previous = $previous->interrupt();
             $storage->write($previous);
         }
@@ -175,13 +243,53 @@ final class ReleaseUpdateCoordinator
         return ['attempt_id' => $previous->attemptId(), 'status' => $previous->status()];
     }
 
-    private function canRollbackFilesystem(ReleaseUpdateState $state): bool
+    private function canRollbackFilesystem(ReleaseUpdateState $state, string $installRoot): bool
     {
-        return $state->mutationsStarted() && in_array(
-            $state->phase(),
-            [ReleaseUpdateState::PHASE_INSTALLING_FILES, ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP],
-            true
-        );
+        if (!$state->mutationsStarted()) {
+            return false;
+        }
+        if ($state->phase() === ReleaseUpdateState::PHASE_INSTALLING_FILES) {
+            return true;
+        }
+        if ($state->phase() !== ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP) {
+            return false;
+        }
+        $paths = new SafePath($installRoot);
+        $journalPath = FilesystemRecoveryJournal::ROOT . '/' . $state->attemptId()
+            . '/' . DatabaseRecoveryJournal::JOURNAL;
+        $type = $paths->nodeType($journalPath);
+        if ($type === SafePath::NODE_MISSING) {
+            return true;
+        }
+        if ($type !== SafePath::NODE_FILE) {
+            return false;
+        }
+        try {
+            return DatabaseRecoveryJournal::open($paths, $state->attemptId())->isKnownUnchanged();
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function markDatabaseAmbiguous(ReleaseUpdateState $state, string $installRoot): void
+    {
+        if (
+            !in_array(
+                $state->phase(),
+                [ReleaseUpdateState::PHASE_PUBLISHING_CLEANUP, ReleaseUpdateState::PHASE_MIGRATIONS],
+                true
+            )
+        ) {
+            return;
+        }
+        try {
+            DatabaseRecoveryJournal::open(
+                new SafePath($installRoot),
+                $state->attemptId()
+            )->markAmbiguous();
+        } catch (Throwable) {
+            // Missing or corrupt evidence is already ambiguous and must remain blocked.
+        }
     }
 
     private function refreshDerivedEffects(string $installRoot): void

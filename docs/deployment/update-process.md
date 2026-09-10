@@ -155,11 +155,17 @@ Cualquier ausencia, corrupción, symlink, transición inválida o fallo de resta
 libre, el coordinador completa la misma reconciliación solo si la fase es `installing_files` o
 `publishing_cleanup` y el journal está íntegro.
 
-`migrations` es una frontera estricta: desde esa fase, o si el estado no demuestra que las
-migraciones no comenzaron, no hay rollback automático de filesystem. Se conservan código,
-snapshot, journal y estado, se bloquean intentos y se exige recuperación coordinada B5.3/B5.4.
-Restaurar código anterior sobre una base posiblemente nueva es inseguro. El manifiesto principal
-anterior sigue intacto hasta después de migraciones.
+Antes de instalar archivos, B5.3 compara las migraciones del artefacto con el registro aplicado.
+Si no hay pendientes, omite la fase de base de datos y no exige snapshot. Si hay pendientes, el
+proveedor predeterminado cierra en seguro: solo evidencia externa validada mediante el contrato
+portable `DatabaseRecoveryProvider` permite continuar. El detalle operativo y los estados están en
+[`database-recovery.md`](database-recovery.md).
+
+`migrations` es una frontera estricta cuando se ha persistido `started`: desde entonces no hay
+rollback automático de filesystem. Se conservan código, snapshots, ambos journals y estado, se
+bloquean intentos y se exige recuperación coordinada. Un fallo anterior a `started` mantiene el
+rollback B5.2. Restaurar código anterior sobre una base posiblemente nueva es inseguro. El
+manifiesto principal anterior sigue intacto hasta después de migraciones.
 
 Los snapshots de fallos y rollbacks se conservan. No se eliminan antes de `completed`; una
 anotación o limpieza posterior fallida no cambia un `completed` a fallo. Provisionalmente, el
@@ -172,10 +178,11 @@ acción web para borrar recovery.
 
 Un fallo de lectura, copia, publicación, limpieza o validación lanza un error y evita el mensaje de
 éxito. Una versión ausente, inválida o distinta del tag o de `UpdateService::VERSION` se rechaza
-antes de copiar el primer fichero. Las migraciones también deben devolver éxito. Si fallan, el estado
-queda `failed` en `migrations`, con `mutations_started: true`; el manifiesto anterior permanece
-idéntico byte a byte o, si no existía, continúa ausente. El intento siguiente queda bloqueado para
-intervención administrativa. Los ficheros no se restauran automáticamente desde esta frontera y la base de datos no se revierte.
+antes de copiar el primer fichero. Cada migración debe terminar `up()`, persistir su fila de registro
+y confirmar su checkpoint. Si falla, el estado queda `failed` en `migrations`, y el journal indica
+la última aplicada y la actual fallida o ambigua. El manifiesto anterior permanece idéntico byte a
+byte o, si no existía, continúa ausente. El intento siguiente queda bloqueado. Los ficheros no se
+restauran automáticamente desde esta frontera y la base de datos no se revierte.
 
 Si falla la promoción después de migrar, el estado queda `failed` en `promoting_manifest` y no se
 anuncia éxito ni se revierten migraciones o ficheros. Mientras el `rename` no haya sustituido el
@@ -185,7 +192,11 @@ de mantenimiento deben conservar el primer error accionable.
 
 El proceso actual hace reemplazos atómicos por fichero y revalida precondiciones para reducir
 carreras, y B4 retrasa la promoción definitiva del manifiesto hasta después de las migraciones y la
-validación final. No es una transacción de árbol completo. B5.2 restaura únicamente el filesystem administrado antes de migraciones. B5.3/B5.4 deben abordar base de datos y reconciliación coordinada posterior; no existe transacción de árbol completo. La autenticidad criptográfica de artefactos/manifiestos también queda pendiente. Hoy las
+validación final. No es una transacción de árbol completo. B5.2 restaura el filesystem administrado
+cuando B5.3 demuestra que la base no comenzó; B5.3 registra los límites y exige recuperación externa
+validada para el DDL actual. B5.4 debe aportar la reconciliación administrativa posterior; no existe
+transacción de árbol completo. La autenticidad criptográfica de artefactos/manifiestos también queda
+pendiente. Hoy las
 huellas detectan corrupción y cambios locales, pero un atacante con permiso para sustituir a la vez
 el código y su manifiesto queda fuera del modelo B2. Por ello una copia de seguridad sigue siendo
 obligatoria.

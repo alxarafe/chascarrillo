@@ -81,7 +81,11 @@ Implementada para `installing_files` y `publishing_cleanup`: snapshot por intent
 
 ### B5.3: recuperación de base de datos
 
-Debe registrar por migración el inicio y la confirmación, definir qué migraciones admiten transacción y exigir backup/restauración para las demás. La decisión debe coordinar versión de DB, árbol y manifiesto; restaurar solo ficheros después de #11–#15 puede dejar código viejo contra esquema nuevo. No existe hoy rollback de DB.
+Implementada con preflight de pendientes sobre el artefacto, contrato portable de proveedor externo
+y `database.json` por intento. Registra `pending`, `started`, `applied`, `failed` y `ambiguous`, además
+de la última migración confirmada. Sin pendientes no exige snapshot. Con pendientes, el proveedor
+predeterminado bloquea hasta que una integración demuestre evidencia externa `validated` o
+`restore_tested`. El DDL MySQL/MariaDB actual no se declara transaccional. No existe rollback
 
 ### B5.4: reconciliación y operación administrativa
 
@@ -89,8 +93,11 @@ Debe resolver estados ambiguos comparando estado, hash del manifiesto, árbol y 
 
 ## Decisión de release
 
-1. **Actualización automática habilitable:** no todavía. B5.2 cubre los fallos anteriores a migraciones; siguen siendo imprescindibles una estrategia B5.3 probada y la reconciliación B5.4 para los casos 11–17.
+1. **Actualización automática habilitable:** solo para releases sin migraciones. Con migraciones,
+   queda bloqueada por defecto hasta integrar un proveedor B5.3 que verifique recuperación externa;
+   B5.4 sigue siendo necesaria para reconciliar los casos ambiguos.
 2. **Actualización manual controlada con backup:** sí, en mantenimiento, con backup verificado de filesystem y DB, paquete anterior retenido, inspección de `state.json` y procedimiento ensayado de restauración. Sigue siendo la recomendación hasta completar B5.3/B5.4.
 3. **Aplazable hasta 1.0:** cambio atómico de árbol por releases/symlink, rollback automático completo, optimización de retención y UX avanzada. La firma/autenticidad criptográfica sigue siendo necesaria en el modelo final, pero no fue implementada ni evaluada como mecanismo de recuperación en B5.1.
 
-B5.1 caracteriza todas las fases; B5.2 añade rollback automático solo antes de migraciones. No se implementan transacciones o recuperación de DB, rollback posterior, atomicidad de árbol ni firma.
+B5.1 caracteriza todas las fases; B5.2 recupera filesystem antes del comienzo DB y B5.3 coordina
+evidencia externa y checkpoints. No se implementan rollback DB, reconciliación B5.4, atomicidad de árbol ni firma.

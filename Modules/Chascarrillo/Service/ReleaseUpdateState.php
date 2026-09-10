@@ -153,6 +153,15 @@ final class ReleaseUpdateState
         return $this->copy(self::STATUS_IN_PROGRESS, $phase, true, null);
     }
 
+    public function promoteWithoutMigrations(): self
+    {
+        $this->assertInProgress();
+        if ($this->phase !== self::PHASE_PUBLISHING_CLEANUP || !$this->mutationsStarted) {
+            throw new RuntimeException('Solo puede omitirse migrations tras preparar el filesystem');
+        }
+        return $this->copy(self::STATUS_IN_PROGRESS, self::PHASE_PROMOTING_MANIFEST, true, null);
+    }
+
     public function complete(): self
     {
         $this->assertInProgress();
